@@ -1,6 +1,7 @@
 function showQuiz(deck) {
   activeDeck = deck || activeDeck;
-  data = activeDeck === 'sem3' ? SEM3_DATA : (loadData(), data);
+  const deckMap = { sem3: SEM3_DATA, months: MONTHS_DATA, clocks: CLOCKS_DATA };
+  if (deckMap[activeDeck]) { data = deckMap[activeDeck]; } else { loadData(); }
 
   const pool = Object.values(data).filter(v => v && v.trim());
   if (pool.length < 6) {

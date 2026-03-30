@@ -58,3 +58,111 @@ const SEM3_DATA = {
   "9400":"Solar-System - Mars","9500":"Solar-System - Jupiter","9600":"Solar-System - Saturn",
   "9700":"Solar-System - Uranus","9800":"Solar-System - Neptune","9900":"Solar-System - Pluto"
 };
+
+// ── Month Days (Georgian ABC) ─────────────────────────────────────────────
+// Quiz answer = first word of each mnemonic sentence
+const MONTHS_DATA = {
+   "1":"არწივი",   "2":"ბუ",         "3":"გოჭი",       "4":"დინოზავრი",
+   "5":"ენოტი",    "6":"ვეშაპი",     "7":"ზებრა",      "8":"თხუნელა",
+   "9":"ირემი",   "10":"კატა",      "11":"ლოკოკინა",  "12":"მატარებელი",
+  "13":"ნავი",    "14":"ოფოფი",     "15":"პეპელა",    "16":"ჟირაფი",
+  "17":"რჩეული", "18":"სპილო",     "19":"ტორნადო",   "20":"უთო",
+  "21":"ფლამინგო","22":"ქამელეონი", "23":"ღამურა",    "24":"ყვავი",
+  "25":"შველი",  "26":"ჩიტი",      "27":"ცხვარი",    "28":"ძროხა",
+  "29":"წიწილა", "30":"ჭიამაია",   "31":"ხარი",      "32":"ჯიხვი",
+  "33":"ჰიპოპოტამი"
+};
+
+// Full mnemonic sentences for the preview table
+const MONTHS_FULL = {
+   "1":"არწივი ანანო ამაღლებულ აივანზე",
+   "2":"ბუ ბექა ბებერ ბუდეში",
+   "3":"გოჭი გრიგოლი გალუმპული გემზე",
+   "4":"დინოზავრი დიანა დახრილ დერეფანში",
+   "5":"ენოტი ელენე ეკოლოგიურ ეზოში",
+   "6":"ვეშაპი ვეფხვი ვიკა ვრცელი ვენტილატორთან",
+   "7":"ზებრა ზვიადი ზუსტი ზონა",
+   "8":"თხუნელა თხა თეკლა თბილი თარო",
+   "9":"ირემი ირმა იშვიათი იატაკი",
+  "10":"კატა კნუტი კურდღელი კესო კეთილი კარადა",
+  "11":"ლოკოკინა ლიკა ლამაზი ლოგინი",
+  "12":"მატარებელი მგელი მარიამი მგრძნობიარე მინდორი",
+  "13":"ნავი ნილოსი ნიანგი ნინი ნაზი ნაძვნარი",
+  "14":"ოფოფი ობობა ოთარი ოსტატური ოთახი",
+  "15":"პეპელა პაპუნა პატიოსანი პურის ქარხანა",
+  "16":"ჟირაფი ჟოზე ჟანგიან ჟალუზებთან",
+  "17":"რჩეული რეზო რბილი რაფა",
+  "18":"სპილო სოფო სასიამოვნო სკამი",
+  "19":"ტორნადო ტურა ტერენტი ტკბილი ტუალეტი",
+  "20":"უთო უნაგირი ულაყი ულისე უდარდელი უჯრაში",
+  "21":"ფლამინგო ფარშევანგი ფატი ფრთხილი ფანჯარასთან",
+  "22":"ქამელეონი ქეთი ქარიანი ქოლგის ქვეშ",
+  "23":"ღამურა ღვთისო ღრმა ღობე",
+  "24":"ყვავი ყარამან ყვავილოვანი ყუთი",
+  "25":"შველი შორენა შუშხუნა შუქნიშანთან",
+  "26":"ჩიტი ჩიორა ჩუმი ჩანთაში",
+  "27":"ცხვარი ციცინო ცნობისმოყვარე ცარიელ კუთხეში",
+  "28":"ძროხა ძიძია ძველი ძეგლთან",
+  "29":"წიწილა წიკო წითელი წინა ოთახში",
+  "30":"ჭიამაია ჭრელა ჭრელ ჭიშკართან",
+  "31":"ხარი ხატია ხუთვარსკვლავიან ხეზე",
+  "32":"ჯიხვი ჯეინი ჯანსაღ ჯემში",
+  "33":"ჰიპოპოტამი ჰექტორი ჰარმონიულ ჰოლში"
+};
+
+// ── Clocks ────────────────────────────────────────────────────────────────
+// Quiz answer = clock name
+const CLOCKS_DATA = {
+  "12:00":"Wells Cathedral clock",
+  "13:00":"Zytglogge",
+  "14:00":"Prague Astronomical Clock",
+  "15:00":"St Mark's Clock",
+  "16:00":"Ulm Town Hall Astronomical Clock",
+  "17:00":"Sighișoara Clock Tower",
+  "18:00":"Astronomical Clock of Lyon",
+  "19:00":"Spasskaya Tower Clock",
+  "20:00":"Atlas Clock",
+  "21:00":"Big Ben",
+  "22:00":"Église Sainte-Croix Clock",
+  "23:00":"Dolmabahçe Clock Tower",
+  "00:00":"City Hall Clock",
+  "01:00":"Orsay Station Clock",
+  "02:00":"Edwardian Clock & Tower",
+  "03:00":"Grand Central Terminal Clock",
+  "04:00":"Anker Clock",
+  "05:00":"Peace Tower",
+  "06:00":"Selfridges Clock",
+  "07:00":"Binns Clock",
+  "08:00":"Allen-Bradley Clock Tower",
+  "09:00":"World Clock",
+  "10:00":"Leaning Clock Tower",
+  "11:00":"Makkah Royal Clock Tower"
+};
+
+// Extra info shown in the preview table only
+const CLOCKS_META = [
+  { time:"12:00", name:"Wells Cathedral clock",          location:"England",               year:"1392", mnemonic:"DuMB Nun"      },
+  { time:"13:00", name:"Zytglogge",                      location:"Bern, Switzerland",     year:"1405", mnemonic:"Tears Lollipop"},
+  { time:"14:00", name:"Prague Astronomical Clock",      location:"Czech, Prague",         year:"1410", mnemonic:"Tart sauce"    },
+  { time:"15:00", name:"St Mark's Clock",                location:"Venice, Italy",         year:"1499", mnemonic:"Drop Baby"     },
+  { time:"16:00", name:"Ulm Town Hall Astronomical Clock",location:"Germany",              year:"1520", mnemonic:"TeLeNewS"      },
+  { time:"17:00", name:"Sighișoara Clock Tower",         location:"Romania",               year:"1648", mnemonic:"DJ roof"       },
+  { time:"18:00", name:"Astronomical Clock of Lyon",     location:"France, Lyon",          year:"1661", mnemonic:"Attach Judah"  },
+  { time:"19:00", name:"Spasskaya Tower Clock",          location:"Russia",                year:"1852", mnemonic:"Devil Nail"    },
+  { time:"20:00", name:"Atlas Clock",                    location:"Tiffany, NYC",          year:"1853", mnemonic:"Diva Lamb"     },
+  { time:"21:00", name:"Big Ben",                        location:"London",                year:"1859", mnemonic:"Tough Lip"     },
+  { time:"22:00", name:"Église Sainte-Croix Clock",      location:"Nantes, France",        year:"1860", mnemonic:"TV jazz"       },
+  { time:"23:00", name:"Dolmabahçe Clock Tower",         location:"Istanbul, Türkiye",     year:"1895", mnemonic:"Diva Pail"     },
+  { time:"00:00", name:"City Hall Clock",                location:"Philadelphia",           year:"1898", mnemonic:"Dive Buffet"   },
+  { time:"01:00", name:"Orsay Station Clock",            location:"Paris",                 year:"1900", mnemonic:"Top Sauce"     },
+  { time:"02:00", name:"Edwardian Clock & Tower",        location:"US, Dorchester",        year:"1905", mnemonic:"shTePSeLi"     },
+  { time:"03:00", name:"Grand Central Terminal Clock",   location:"New York City",         year:"1913", mnemonic:"Top Dome"      },
+  { time:"04:00", name:"Anker Clock",                    location:"Vienna, Austria",       year:"1914", mnemonic:"Debater"       },
+  { time:"05:00", name:"Peace Tower",                    location:"Ottawa, Canada",        year:"1920", mnemonic:"Top news"      },
+  { time:"06:00", name:"Selfridges Clock",               location:"London, Oxford St",     year:"1931", mnemonic:"Dope mad"      },
+  { time:"07:00", name:"Binns Clock",                    location:"Edinburgh, Scotland",   year:"1960", mnemonic:"Top Jazz"      },
+  { time:"08:00", name:"Allen-Bradley Clock Tower",      location:"Milwaukee, Wisconsin",  year:"1962", mnemonic:"BaBaJaN"       },
+  { time:"09:00", name:"World Clock",                    location:"Urania, Berlin",        year:"1969", mnemonic:"Top Shop"      },
+  { time:"10:00", name:"Leaning Clock Tower",            location:"Tbilisi",               year:"2011", mnemonic:"Nasty Date"    },
+  { time:"11:00", name:"Makkah Royal Clock Tower",       location:"Mecca, Saudi Arabia",   year:"2011", mnemonic:"Nasty Date"    },
+];

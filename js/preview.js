@@ -5,7 +5,6 @@ function showPreview(deck) {
   if (deck === 'major') {
     document.getElementById('preview-title').textContent = 'Major System';
 
-    // Build a local copy from DEFAULTS + localStorage — never touches global data
     const pd = { ...DEFAULTS };
     const saved = localStorage.getItem(LS_KEY);
     if (saved) {
@@ -15,7 +14,6 @@ function showPreview(deck) {
     }
 
     addTableHeaders(table, Array.from({ length: 10 }, (_, i) => '+' + i));
-
     const tbody = table.createTBody();
     for (let r = 0; r <= 90; r += 10) {
       const row = tbody.insertRow();
@@ -26,16 +24,14 @@ function showPreview(deck) {
       }
     }
 
-  } else {
+  } else if (deck === 'sem3') {
     document.getElementById('preview-title').textContent = 'SEM3';
 
     const categories = [
-      'Vision', 'Sound', 'Smell', 'Taste', 'Touch',
-      'Sensation', 'Animals', 'Birds', 'Rainbow', 'Solar-System'
+      'Vision','Sound','Smell','Taste','Touch',
+      'Sensation','Animals','Birds','Rainbow','Solar-System'
     ];
-
     addTableHeaders(table, Array.from({ length: 10 }, (_, i) => i));
-
     const tbody = table.createTBody();
     categories.forEach((cat, r) => {
       const row = tbody.insertRow();
@@ -46,6 +42,34 @@ function showPreview(deck) {
         const item = full.includes(' - ') ? full.split(' - ')[1] : full;
         addCell(row, code, item);
       }
+    });
+
+  } else if (deck === 'months') {
+    document.getElementById('preview-title').textContent = 'Month Days (Georgian ABC)';
+
+    addTableHeaders(table, ['Word', 'Full mnemonic']);
+    const tbody = table.createTBody();
+    for (let d = 1; d <= 33; d++) {
+      const key = String(d);
+      const row = tbody.insertRow();
+      addRowHead(row, d);
+      addCell(row, '', MONTHS_DATA[key] || '—');
+      const td = row.insertCell();
+      td.innerHTML = `<span class="cell-word" style="white-space:normal">${MONTHS_FULL[key] || '—'}</span>`;
+    }
+
+  } else if (deck === 'clocks') {
+    document.getElementById('preview-title').textContent = 'Famous Clocks';
+
+    addTableHeaders(table, ['Clock', 'Location', 'Year', 'Mnemonic']);
+    const tbody = table.createTBody();
+    CLOCKS_META.forEach(({ time, name, location, year, mnemonic }) => {
+      const row = tbody.insertRow();
+      addRowHead(row, time);
+      [name, location, year, mnemonic].forEach(val => {
+        const td = row.insertCell();
+        td.innerHTML = `<span class="cell-word">${val}</span>`;
+      });
     });
   }
 
@@ -73,5 +97,7 @@ function addRowHead(row, label) {
 
 function addCell(row, code, word) {
   const td = row.insertCell();
-  td.innerHTML = `<span class="cell-num">${code}</span><span class="cell-word">${word}</span>`;
+  td.innerHTML = (code !== '')
+    ? `<span class="cell-num">${code}</span><span class="cell-word">${word}</span>`
+    : `<span class="cell-word">${word}</span>`;
 }
