@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mnemonic Training</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .view { display: none; flex: 1; flex-direction: column; }
+    .view.active { display: flex; }
+
+    /* ── Score bar ── */
+    #score-bar {
+      background: #0f0f23;
+      padding: 0.5rem 1.5rem;
+      gap: 2rem;
+      font-size: 0.9rem;
+      border-bottom: 1px solid #2d3748;
+      display: none;
+      align-items: center;
+    }
+    #score-bar.visible { display: flex; }
+    .score-item span { font-weight: 700; }
+    #sc-correct { color: #10b981; }
+    #sc-wrong   { color: #ef4444; }
+    #sc-streak  { color: #f59e0b; }
+
+    /* ── Shared button ── */
+    .btn {
+      padding: 0.75rem 2rem;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.15s, background 0.15s;
+      min-width: 200px;
+    }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #7c3aed, #06b6d4);
+      color: #fff;
+    }
+    .btn-primary:hover { opacity: 0.88; }
+
+    .btn-secondary {
+      background: #16213e;
+      color: #a0aec0;
+      border: 1px solid #2d3748;
+    }
+    .btn-secondary:hover { background: #1e2d4e; color: #e0e0e0; }
+
+    /* ── Home ── */
+    #home {
+      align-items: center;
+      justify-content: center;
+      gap: 1.4rem;
+      padding: 2rem;
+    }
+    .logo {
+      font-size: 3rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #7c3aed, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+    }
+    .logo-sub {
+      color: #6b7280;
+      font-size: 1rem;
+      margin-top: -1.4rem;
+    }
+    .deck-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.7rem;
+      width: 100%;
+      max-width: 280px;
+    }
+    .deck-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #6b7280;
+      align-self: flex-start;
+    }
+    .home-divider {
+      width: 200px;
+      height: 1px;
+      background: #2d3748;
+    }
+
+    /* ── Quiz ── */
+    #quiz {
+      align-items: center;
+      padding: 2rem 1rem;
+      gap: 1.5rem;
+    }
+    .number-display {
+      font-size: 7rem;
+      font-weight: 900;
+      line-height: 1;
+      background: linear-gradient(135deg, #7c3aed, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .number-display.long { font-size: 4.5rem; }
+    .question-label {
+      color: #6b7280;
+      font-size: 0.95rem;
+      margin-top: -1rem;
+    }
+    .timer {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #4b5563;
+      letter-spacing: 0.05em;
+      font-variant-numeric: tabular-nums;
+    }
+    .feedback {
+      height: 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .feedback.correct { color: #10b981; }
+    .feedback.wrong   { color: #ef4444; }
+
+    .answers-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      width: 100%;
+      max-width: 460px;
+    }
+    .ans-btn {
+      padding: 1rem 0.5rem;
+      border: 2px solid #2d3748;
+      border-radius: 12px;
+      background: #16213e;
+      color: #e0e0e0;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+      text-align: center;
+    }
+    .ans-btn:hover:not(:disabled) { border-color: #7c3aed; background: #1e1e3f; }
+    .ans-btn:active:not(:disabled) { transform: scale(0.97); }
+    .ans-btn:disabled { cursor: default; }
+    .ans-btn.correct-ans { background: #064e3b; border-color: #10b981; color: #10b981; }
+    .ans-btn.wrong-ans   { background: #450a0a; border-color: #ef4444; color: #ef4444; }
+
+    /* ── Editor ── */
+    #editor { padding: 1.5rem; gap: 1rem; }
+    .editor-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .editor-title { font-size: 1.3rem; font-weight: 700; flex: 1; }
+    .editor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.5rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .editor-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #16213e;
+      border-radius: 8px;
+      padding: 0.4rem 0.6rem;
+    }
+    .num-badge {
+      background: #2d3748;
+      color: #7c3aed;
+      font-weight: 700;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      padding: 0.15rem 0.4rem;
+      min-width: 1.9rem;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .word-input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #2d3748;
+      color: #e0e0e0;
+      font-size: 0.9rem;
+      width: 100%;
+      outline: none;
+      padding: 0.1rem 0;
+    }
+    .word-input:focus { border-bottom-color: #7c3aed; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(2rem);
+      background: #10b981;
+      color: #fff;
+      padding: 0.6rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Stats ── */
+    #stats {
+      padding: 1.5rem;
+      gap: 1.2rem;
+      overflow-y: auto;
+    }
+    .stats-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .stats-title { font-size: 1.4rem; font-weight: 800; flex: 1; }
+    .summary-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .summary-card {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 0.8rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 90px;
+      flex: 1;
+    }
+    .summary-card .val {
+      font-size: 1.8rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .summary-card .lbl { font-size: 0.75rem; color: #6b7280; margin-top: 0.2rem; }
+    .val-correct { color: #10b981; }
+    .val-wrong   { color: #ef4444; }
+    .val-avg     { color: #f59e0b; }
+    .val-total   { color: #7c3aed; }
+
+    .section-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      margin-top: 0.3rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 0.5rem;
+    }
+    .stat-card {
+      background: #16213e;
+      border-radius: 10px;
+      padding: 0.6rem 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      border-left: 3px solid transparent;
+    }
+    .stat-card.bad  { border-color: #ef4444; }
+    .stat-card.slow { border-color: #f59e0b; }
+    .stat-card.good { border-color: #10b981; }
+    .stat-num  { font-size: 1.3rem; font-weight: 900; color: #e0e0e0; }
+    .stat-word { font-size: 0.85rem; color: #9ca3af; }
+    .stat-meta { font-size: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .stat-err  { color: #ef4444; font-weight: 700; }
+    .stat-time { color: #f59e0b; }
+
+    @media (max-width: 400px) {
+      .number-display { font-size: 5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Score bar (quiz only) -->
+<div id="score-bar">
+  <div class="score-item">Correct: <span id="sc-correct">0</span></div>
+  <div class="score-item">Wrong: <span id="sc-wrong">0</span></div>
+  <div class="score-item">Streak: <span id="sc-streak">0</span></div>
+  <div class="score-item">Avg: <span id="sc-avg">—</span></div>
+</div>
+
+<!-- HOME -->
+<div id="home" class="view active">
+  <div class="logo">Mnemonic Training</div>
+  <div class="deck-section">
+    <div class="deck-label">Major System</div>
+    <button class="btn btn-primary"    onclick="showQuiz('major')">▶ Start Quiz</button>
+    <button class="btn btn-secondary"  onclick="showEditor()">✎ Edit Associations</button>
+  </div>
+  <div class="home-divider"></div>
+  <div class="deck-section">
+    <div class="deck-label">SEM3</div>
+    <button class="btn btn-primary"    onclick="showQuiz('sem3')">▶ Start Quiz</button>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz" class="view">
+  <div class="number-display" id="q-number">—</div>
+  <div class="question-label">What's the word?</div>
+  <div class="timer" id="q-timer">0.0s</div>
+  <div class="feedback" id="q-feedback"></div>
+  <div class="answers-grid" id="q-answers"></div>
+  <button class="btn btn-secondary" style="margin-top:0.5rem" onclick="showHome()">← Back</button>
+  <button class="btn btn-primary"   style="margin-top:0.25rem" onclick="showStats()">⏹ Finish &amp; See Stats</button>
+</div>
+
+<!-- STATS -->
+<div id="stats" class="view">
+  <div class="stats-header">
+    <div class="stats-title">Session Results</div>
+    <button class="btn btn-secondary" style="min-width:auto;padding:.5rem 1.2rem" onclick="showHome()">← Home</button>
+    <button class="btn btn-primary"   style="min-width:auto;padding:.5rem 1.2rem" onclick="showQuiz(activeDeck)">↺ Retry</button>
+  </div>
+  <div class="summary-row" id="st-summary"></div>
+  <div class="section-label">Needs Attention</div>
+  <div class="stats-grid" id="st-attention"></div>
+  <div class="section-label" id="st-good-label"></div>
+  <div class="stats-grid" id="st-good"></div>
+</div>
+
+<!-- EDITOR -->
+<div id="editor" class="view">
+  <div class="editor-header">
+    <div class="editor-title">Associations (0–99)</div>
+    <button class="btn btn-primary"   style="min-width:auto;padding:.5rem 1.2rem" onclick="saveEditor()">Save</button>
+    <button class="btn btn-secondary" style="min-width:auto;padding:.5rem 1.2rem" onclick="showHome()">Back</button>
+  </div>
+  <div class="editor-grid" id="editor-grid"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Default associations (0-99) ────────────────────────────────────────────
+const DEFAULTS = {
+   0:"Saw",   1:"Day",   2:"Noah",  3:"Mew",    4:"Ra",
+   5:"Law",   6:"Jaw",   7:"Key",   8:"Ava",    9:"Bay",
+  10:"Daze", 11:"Dad",  12:"DNA",  13:"Dome",  14:"Dairy",
+  15:"Dale", 16:"Dash", 17:"Dog",  18:"Diva",  19:"Dab",
+  20:"NASA", 21:"Net",  22:"Nun",  23:"Name",  24:"Nero",
+  25:"Nail", 26:"Niche",27:"Nag",  28:"Navy",  29:"Nab",
+  30:"Mace", 31:"Mat",  32:"Man",  33:"Ma'am", 34:"Mare",
+  35:"Mail", 36:"Mash", 37:"Mac",  38:"Mafia", 39:"Map",
+  40:"Race", 41:"Rat",  42:"Rain", 43:"Ram",   44:"Ra-ra",
+  45:"Rail", 46:"Rage", 47:"Rack", 48:"Rafia", 49:"Rap",
+  50:"Lace", 51:"Lad",  52:"Lane", 53:"Lama",  54:"Lair",
+  55:"Lily", 56:"Lash", 57:"Lake", 58:"Lava",  59:"Lab",
+  60:"Chase",61:"Chat", 62:"Chain",63:"Chime", 64:"Chair",
+  65:"Cello",66:"Cha-cha",67:"Check",68:"Chaff",69:"Chap",
+  70:"Case", 71:"Cat",  72:"Can",  73:"Cameo", 74:"Car",
+  75:"Call", 76:"Cage", 77:"Cake", 78:"Cafe",  79:"Cab",
+  80:"Face", 81:"Fad",  82:"Fan",  83:"Fame",  84:"Fair",
+  85:"Fall", 86:"Fish", 87:"Fog",  88:"Fife",  89:"Fab",
+  90:"Base", 91:"Bat",  92:"Ban",  93:"Bam",   94:"Bar",
+  95:"Ball", 96:"Bash", 97:"Back", 98:"Beef",  99:"Babe"
+};
+
+// ── SEM3 associations (fixed) ─────────────────────────────────────────────
+const SEM3_DATA = {
+  "0100":"Vision - Dinosaur",  "0200":"Vision - Nobility",   "0300":"Vision - Moonlight",
+  "0400":"Vision - Ravine",    "0500":"Vision - Lightning",   "0600":"Vision - Church",
+  "0700":"Vision - Concorde",  "0800":"Vision - Fire",        "0900":"Vision - Painting",
+  "1000":"Sound - Sing",       "1100":"Sound - Drum",         "1200":"Sound - Neigh",
+  "1300":"Sound - Moan",       "1400":"Sound - Roar",         "1500":"Sound - Lap",
+  "1600":"Sound - Shh",        "1700":"Sound - Gong",         "1800":"Sound - Violine",
+  "1900":"Sound - Piano",      "2000":"Smell - Seaweed",      "2100":"Smell - Tar",
+  "2200":"Smell - Nutmeg",     "2300":"Smell - Mint",         "2400":"Smell - Rose",
+  "2500":"Smell - Leather",    "2600":"Smell - Cheese",       "2700":"Smell - Coffee",
+  "2800":"Smell - Forest",     "2900":"Smell - Bread",        "3000":"Taste - Spaghetti",
+  "3100":"Taste - Tomato",     "3200":"Taste - Nuts",         "3300":"Taste - Mango",
+  "3400":"Taste - Rhubarb",    "3500":"Taste - Lemon",        "3600":"Taste - Cherry",
+  "3700":"Taste - Custard",    "3800":"Taste - Fudge",        "3900":"Taste - Banana",
+  "4000":"Touch - Sand",       "4100":"Touch - Dump",         "4200":"Touch - Newspaper",
+  "4300":"Touch - Mud",        "4400":"Touch - Rock",         "4500":"Touch - Lather",
+  "4600":"Touch - Jelly",      "4700":"Touch - Grass",        "4800":"Touch - Velvet",
+  "4900":"Touch - Bark",       "5000":"Sensation - Swim",     "5100":"Sensation - Dancing",
+  "5200":"Sensation - Nuzzling","5300":"Sensation - Mingling","5400":"Sensation - Rubbing",
+  "5500":"Sensation - Loving", "5600":"Sensation - Shaking",  "5700":"Sensation - Climbing",
+  "5800":"Sensation - Flying", "5900":"Sensation - Peace",    "6000":"Animals - Zebra",
+  "6100":"Animals - Deer",     "6200":"Animals - Newt",       "6300":"Animals - Monkey",
+  "6400":"Animals - Rhino",    "6500":"Animals - Elephant",   "6600":"Animals - Giraffe",
+  "6700":"Animals - Kangaroo", "6800":"Animals - Fox",        "6900":"Animals - Bear",
+  "7000":"Birds - Seagull",    "7100":"Birds - Duck",         "7200":"Birds - Nighteagle",
+  "7300":"Birds - Magpie",     "7400":"Birds - Robin",        "7500":"Birds - Lark",
+  "7600":"Birds - Chicken",    "7700":"Birds - Kingfisher",   "7800":"Birds - Flamingo",
+  "7900":"Birds - Peacock",    "8000":"Rainbow - Red",        "8100":"Rainbow - Orange",
+  "8200":"Rainbow - Yellow",   "8300":"Rainbow - Green",      "8400":"Rainbow - Blue",
+  "8500":"Rainbow - Indigo",   "8600":"Rainbow - Violet",     "8700":"Rainbow - Black",
+  "8800":"Rainbow - Gray",     "8900":"Rainbow - White",      "9000":"Solar-System - Sun",
+  "9100":"Solar-System - Mercury","9200":"Solar-System - Venus","9300":"Solar-System - Earth",
+  "9400":"Solar-System - Mars","9500":"Solar-System - Jupiter","9600":"Solar-System - Saturn",
+  "9700":"Solar-System - Uranus","9800":"Solar-System - Neptune","9900":"Solar-System - Pluto"
+};
+
+const LS_KEY = 'majorSystemData_v2';
+let activeDeck = 'major';
+let data = {};
+let score = { correct: 0, wrong: 0, streak: 0, times: [] };
+let currentAnswer = '';
+let currentNum = '';
+let answering = false;
+let questionStartTime = 0;
+let timerInterval = null;
+let numStats = {}; // { "42": { correct, wrong, totalTime, attempts } }
+
+// ── Bootstrap ──────────────────────────────────────────────────────────────
+// Always start from DEFAULTS; overlay with any non-empty user edits saved in localStorage.
+function loadData() {
+  data = { ...DEFAULTS };
+  const saved = localStorage.getItem(LS_KEY);
+  if (saved) {
+    const stored = JSON.parse(saved);
+    for (const [k, v] of Object.entries(stored)) {
+      // Only override default if user explicitly set a value (empty string means "cleared")
+      if (Object.prototype.hasOwnProperty.call(stored, k)) data[k] = v;
+    }
+  }
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function setView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+}
+
+function showHome() {
+  document.getElementById('score-bar').classList.remove('visible');
+  setView('home');
+}
+
+function showEditor() {
+  buildEditor();
+  setView('editor');
+}
+
+function showQuiz(deck) {
+  activeDeck = deck || activeDeck;
+  if (activeDeck === 'sem3') {
+    data = SEM3_DATA;
+  } else {
+    loadData();
+  }
+  const pool = Object.values(data).filter(v => v && v.trim());
+  if (pool.length < 6) {
+    alert('You need at least 6 associations defined to quiz. Open the editor and fill in some words first.');
+    return;
+  }
+  score = { correct: 0, wrong: 0, streak: 0, times: [] };
+  numStats = {};
+  updateScoreBar();
+  document.getElementById('score-bar').classList.add('visible');
+  setView('quiz');
+  nextQuestion();
+}
+
+// ── Score bar ──────────────────────────────────────────────────────────────
+function updateScoreBar() {
+  document.getElementById('sc-correct').textContent = score.correct;
+  document.getElementById('sc-wrong').textContent   = score.wrong;
+  document.getElementById('sc-streak').textContent  = score.streak;
+  const avg = score.times.length
+    ? (score.times.reduce((a, b) => a + b, 0) / score.times.length).toFixed(1) + 's'
+    : '—';
+  document.getElementById('sc-avg').textContent = avg;
+}
+
+// ── Quiz ───────────────────────────────────────────────────────────────────
+function startTimer() {
+  clearInterval(timerInterval);
+  questionStartTime = Date.now();
+  const el = document.getElementById('q-timer');
+  el.textContent = '0.0s';
+  timerInterval = setInterval(() => {
+    el.textContent = ((Date.now() - questionStartTime) / 1000).toFixed(1) + 's';
+  }, 100);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  return (Date.now() - questionStartTime) / 1000;
+}
+
+function nextQuestion() {
+  answering = false;
+  const fb = document.getElementById('q-feedback');
+  fb.textContent = '';
+  fb.className = 'feedback';
+
+  const pool = Object.entries(data).filter(([, v]) => v && v.trim());
+  const [num, word] = pool[Math.floor(Math.random() * pool.length)];
+  currentAnswer = word.trim();
+  currentNum = num;
+
+  const numEl = document.getElementById('q-number');
+  numEl.textContent = num;
+  numEl.className = 'number-display' + (String(num).length > 2 ? ' long' : '');
+
+  const wrongs = pool
+    .filter(([n]) => n !== num)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 5)
+    .map(([, v]) => v.trim());
+
+  const options = shuffle([currentAnswer, ...wrongs]);
+  const grid = document.getElementById('q-answers');
+  grid.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'ans-btn';
+    btn.textContent = opt;
+    btn.onclick = () => handleAnswer(btn, opt);
+    grid.appendChild(btn);
+  });
+
+  startTimer();
+}
+
+function handleAnswer(clickedBtn, chosen) {
+  if (answering) return;
+  answering = true;
+
+  const elapsed = stopTimer();
+  document.getElementById('q-timer').textContent = elapsed.toFixed(1) + 's';
+  score.times.push(elapsed);
+
+  // Per-number stats
+  if (!numStats[currentNum]) numStats[currentNum] = { correct: 0, wrong: 0, totalTime: 0, attempts: 0 };
+  numStats[currentNum].attempts++;
+  numStats[currentNum].totalTime += elapsed;
+
+  document.querySelectorAll('.ans-btn').forEach(b => (b.disabled = true));
+
+  const fb = document.getElementById('q-feedback');
+  if (chosen === currentAnswer) {
+    clickedBtn.classList.add('correct-ans');
+    fb.textContent = `✓ Correct! (${elapsed.toFixed(1)}s)`;
+    fb.className = 'feedback correct';
+    score.correct++;
+    score.streak++;
+    numStats[currentNum].correct++;
+    updateScoreBar();
+    setTimeout(nextQuestion, 900);
+  } else {
+    clickedBtn.classList.add('wrong-ans');
+    document.querySelectorAll('.ans-btn').forEach(b => {
+      if (b.textContent === currentAnswer) b.classList.add('correct-ans');
+    });
+    fb.textContent = `✗ It was: ${currentAnswer} (${elapsed.toFixed(1)}s)`;
+    fb.className = 'feedback wrong';
+    score.wrong++;
+    score.streak = 0;
+    numStats[currentNum].wrong++;
+    updateScoreBar();
+    setTimeout(nextQuestion, 1600);
+  }
+}
+
+// ── Stats screen ───────────────────────────────────────────────────────────
+function showStats() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+
+  const total = score.correct + score.wrong;
+  const avgTime = score.times.length
+    ? (score.times.reduce((a, b) => a + b, 0) / score.times.length)
+    : 0;
+
+  // Summary cards
+  document.getElementById('st-summary').innerHTML = `
+    <div class="summary-card"><div class="val val-total">${total}</div><div class="lbl">Answered</div></div>
+    <div class="summary-card"><div class="val val-correct">${score.correct}</div><div class="lbl">Correct</div></div>
+    <div class="summary-card"><div class="val val-wrong">${score.wrong}</div><div class="lbl">Wrong</div></div>
+    <div class="summary-card"><div class="val val-avg">${avgTime.toFixed(1)}s</div><div class="lbl">Avg Time</div></div>
+  `;
+
+  // Sort numbers: wrong first, then by avg time desc
+  const entries = Object.entries(numStats).map(([num, s]) => ({
+    num,
+    word: data[num] || '?',
+    errorRate: s.wrong / s.attempts,
+    avgTime: s.totalTime / s.attempts,
+    wrong: s.wrong,
+    attempts: s.attempts,
+  }));
+
+  entries.sort((a, b) => b.errorRate - a.errorRate || b.avgTime - a.avgTime);
+
+  const attention = entries.filter(e => e.wrong > 0);
+  const good      = entries.filter(e => e.wrong === 0);
+
+  const makeCard = (e, cls) => `
+    <div class="stat-card ${cls}">
+      <div class="stat-num">${e.num}</div>
+      <div class="stat-word">${e.word}</div>
+      <div class="stat-meta">
+        ${e.wrong > 0 ? `<span class="stat-err">${e.wrong}✗ / ${e.attempts}</span>` : `<span style="color:#10b981">${e.attempts}✓</span>`}
+        <span class="stat-time">${e.avgTime.toFixed(1)}s</span>
+      </div>
+    </div>`;
+
+  document.getElementById('st-attention').innerHTML =
+    attention.length ? attention.map(e => makeCard(e, 'bad')).join('') : '<p style="color:#6b7280;font-size:.9rem">No mistakes!</p>';
+
+  document.getElementById('st-good-label').textContent = good.length ? 'All Correct' : '';
+  document.getElementById('st-good').innerHTML = good.map(e => makeCard(e, 'good')).join('');
+
+  document.getElementById('score-bar').classList.remove('visible');
+  setView('stats');
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ── Editor ─────────────────────────────────────────────────────────────────
+function buildEditor() {
+  const grid = document.getElementById('editor-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i <= 99; i++) {
+    const row = document.createElement('div');
+    row.className = 'editor-row';
+
+    const badge = document.createElement('span');
+    badge.className = 'num-badge';
+    badge.textContent = i;
+
+    const input = document.createElement('input');
+    input.className = 'word-input';
+    input.type = 'text';
+    input.dataset.num = i;
+    input.value = data[i] || '';
+    input.placeholder = '…';
+
+    row.appendChild(badge);
+    row.appendChild(input);
+    grid.appendChild(row);
+  }
+}
+
+function saveEditor() {
+  document.querySelectorAll('.word-input').forEach(inp => {
+    data[inp.dataset.num] = inp.value.trim();
+  });
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+  showToast('Saved ✓');
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+loadData();
+</script>
+</body>
+</html>
