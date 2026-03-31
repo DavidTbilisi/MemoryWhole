@@ -203,4 +203,27 @@ function showDashboard(deck) {
 // Called after each quiz session
 function recordQuizSession(deck, sessionStats) {
   recordSessionStats(deck, sessionStats);
+  refreshHomeMastery();
+}
+
+// Render tiny mastery badge on each home card
+function refreshHomeMastery() {
+  const decks = ['major', 'sem3', 'months', 'clocks'];
+  decks.forEach(deck => {
+    const el = document.getElementById('mastery-' + deck);
+    if (!el) return;
+    const items = getDeckStats(deck);
+    const mastery = calculateMastery(items);
+    const pct = mastery.score.toFixed(0);
+    const color = mastery.score >= 80 ? '#10b981' : mastery.score >= 50 ? '#f59e0b' : '#ef4444';
+    el.innerHTML = `
+      <svg width="44" height="44" viewBox="0 0 44 44">
+        <circle cx="22" cy="22" r="18" fill="none" stroke="#2d3748" stroke-width="4"/>
+        <circle cx="22" cy="22" r="18" fill="none" stroke="${color}" stroke-width="4"
+          stroke-dasharray="${(mastery.score / 100 * 113).toFixed(1)} 113"
+          stroke-linecap="round"
+          transform="rotate(-90 22 22)"/>
+        <text x="22" y="27" text-anchor="middle" fill="${color}" font-size="10" font-weight="700">${pct}%</text>
+      </svg>`;
+  });
 }

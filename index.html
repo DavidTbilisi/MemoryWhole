@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mnemonic Training</title>
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
 
@@ -46,43 +46,97 @@
 
 <!-- HOME -->
 <div id="home" class="view active">
-  <div class="logo">Mnemonic Training</div>
-  <div class="auth-bar">
-    <div id="auth-signed-out" style="display:flex">
-      <button class="btn btn-google" onclick="window.fbSignIn && window.fbSignIn()">Sign in with Google</button>
+  <div class="home-header">
+    <div class="logo">Mnemonic Training</div>
+    <div class="auth-bar">
+      <div id="auth-signed-out" style="display:flex">
+        <button class="btn btn-google" onclick="window.fbSignIn && window.fbSignIn()">Sign in with Google</button>
+      </div>
+      <div id="auth-signed-in" style="display:none;align-items:center;gap:0.75rem">
+        <span id="auth-name" class="auth-name"></span>
+        <button class="btn btn-secondary" style="min-width:auto;padding:.4rem 1rem;font-size:.85rem" onclick="window.fbSignOut()">Sign out</button>
+      </div>
     </div>
-    <div id="auth-signed-in" style="display:none;align-items:center;gap:0.75rem">
-      <span id="auth-name" class="auth-name"></span>
-      <button class="btn btn-secondary" style="min-width:auto;padding:.4rem 1rem;font-size:.85rem" onclick="window.fbSignOut()">Sign out</button>
+  </div>
+
+  <div class="deck-grid">
+
+    <!-- Major System -->
+    <div class="deck-card">
+      <div class="deck-card-header">
+        <div class="deck-card-icon">🔢</div>
+        <div class="deck-card-info">
+          <div class="deck-card-name">Major System</div>
+          <div class="deck-card-count">100 items</div>
+        </div>
+        <div class="deck-card-mastery" id="mastery-major"></div>
+      </div>
+      <button class="deck-quiz-btn" onclick="showQuizConfig('major')">▶ Start Quiz</button>
+      <div class="deck-actions">
+        <button class="deck-action-btn" onclick="showDashboard('major')" title="Dashboard">📊<span>Stats</span></button>
+        <button class="deck-action-btn" onclick="showPreview('major')"   title="Preview Table">⊞<span>Preview</span></button>
+        <button class="deck-action-btn" onclick="showEditor('major')"    title="Edit Associations">✎<span>Edit</span></button>
+        <button class="deck-action-btn" onclick="exportDeck('major')"    title="Export Data">⬇<span>Export</span></button>
+      </div>
     </div>
-  </div>
-  <div class="deck-section">
-    <div class="deck-label">Major System</div>
-    <button class="btn btn-primary"   onclick="showQuizConfig('major')">▶ Start Quiz</button>
-    <button class="btn btn-secondary" onclick="showDashboard('major')">📊 Dashboard</button>
-    <button class="btn btn-secondary" onclick="showPreview('major')">⊞ Preview Table</button>
-    <button class="btn btn-secondary" onclick="showEditor()">✎ Edit Associations</button>
-  </div>
-  <div class="home-divider"></div>
-  <div class="deck-section">
-    <div class="deck-label">SEM3</div>
-    <button class="btn btn-primary"   onclick="showQuizConfig('sem3')">▶ Start Quiz</button>
-    <button class="btn btn-secondary" onclick="showDashboard('sem3')">📊 Dashboard</button>
-    <button class="btn btn-secondary" onclick="showPreview('sem3')">⊞ Preview Table</button>
-  </div>
-  <div class="home-divider"></div>
-  <div class="deck-section">
-    <div class="deck-label">Month Days (Georgian ABC)</div>
-    <button class="btn btn-primary"   onclick="showQuizConfig('months')">▶ Start Quiz</button>
-    <button class="btn btn-secondary" onclick="showDashboard('months')">📊 Dashboard</button>
-    <button class="btn btn-secondary" onclick="showPreview('months')">⊞ Preview Table</button>
-  </div>
-  <div class="home-divider"></div>
-  <div class="deck-section">
-    <div class="deck-label">Famous Clocks</div>
-    <button class="btn btn-primary"   onclick="showQuizConfig('clocks')">▶ Start Quiz</button>
-    <button class="btn btn-secondary" onclick="showDashboard('clocks')">📊 Dashboard</button>
-    <button class="btn btn-secondary" onclick="showPreview('clocks')">⊞ Preview Table</button>
+
+    <!-- SEM3 -->
+    <div class="deck-card">
+      <div class="deck-card-header">
+        <div class="deck-card-icon">🧠</div>
+        <div class="deck-card-info">
+          <div class="deck-card-name">SEM3</div>
+          <div class="deck-card-count">100 items</div>
+        </div>
+        <div class="deck-card-mastery" id="mastery-sem3"></div>
+      </div>
+      <button class="deck-quiz-btn" onclick="showQuizConfig('sem3')">▶ Start Quiz</button>
+      <div class="deck-actions">
+        <button class="deck-action-btn" onclick="showDashboard('sem3')" title="Dashboard">📊<span>Stats</span></button>
+        <button class="deck-action-btn" onclick="showPreview('sem3')"   title="Preview Table">⊞<span>Preview</span></button>
+        <button class="deck-action-btn" onclick="showEditor('sem3')"    title="Edit Associations">✎<span>Edit</span></button>
+        <button class="deck-action-btn" onclick="exportDeck('sem3')"    title="Export Data">⬇<span>Export</span></button>
+      </div>
+    </div>
+
+    <!-- Month Days -->
+    <div class="deck-card">
+      <div class="deck-card-header">
+        <div class="deck-card-icon">📅</div>
+        <div class="deck-card-info">
+          <div class="deck-card-name">Month Days</div>
+          <div class="deck-card-count">Georgian ABC · 33 items</div>
+        </div>
+        <div class="deck-card-mastery" id="mastery-months"></div>
+      </div>
+      <button class="deck-quiz-btn" onclick="showQuizConfig('months')">▶ Start Quiz</button>
+      <div class="deck-actions">
+        <button class="deck-action-btn" onclick="showDashboard('months')" title="Dashboard">📊<span>Stats</span></button>
+        <button class="deck-action-btn" onclick="showPreview('months')"   title="Preview Table">⊞<span>Preview</span></button>
+        <button class="deck-action-btn" onclick="showEditor('months')"    title="Edit Associations">✎<span>Edit</span></button>
+        <button class="deck-action-btn" onclick="exportDeck('months')"    title="Export Data">⬇<span>Export</span></button>
+      </div>
+    </div>
+
+    <!-- Famous Clocks -->
+    <div class="deck-card">
+      <div class="deck-card-header">
+        <div class="deck-card-icon">🕐</div>
+        <div class="deck-card-info">
+          <div class="deck-card-name">Famous Clocks</div>
+          <div class="deck-card-count">24 items</div>
+        </div>
+        <div class="deck-card-mastery" id="mastery-clocks"></div>
+      </div>
+      <button class="deck-quiz-btn" onclick="showQuizConfig('clocks')">▶ Start Quiz</button>
+      <div class="deck-actions">
+        <button class="deck-action-btn" onclick="showDashboard('clocks')" title="Dashboard">📊<span>Stats</span></button>
+        <button class="deck-action-btn" onclick="showPreview('clocks')"   title="Preview Table">⊞<span>Preview</span></button>
+        <button class="deck-action-btn" onclick="showEditor('clocks')"    title="Edit Associations">✎<span>Edit</span></button>
+        <button class="deck-action-btn" onclick="exportDeck('clocks')"    title="Export Data">⬇<span>Export</span></button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -141,7 +195,7 @@
 <!-- EDITOR -->
 <div id="editor" class="view">
   <div class="editor-header">
-    <div class="editor-title">Associations (0–99)</div>
+    <div class="editor-title" id="editor-title">Associations</div>
     <button class="btn btn-primary"   style="min-width:auto;padding:.5rem 1.2rem" onclick="saveEditor()">Save</button>
     <button class="btn btn-secondary" style="min-width:auto;padding:.5rem 1.2rem" onclick="showHome()">Back</button>
   </div>
@@ -156,9 +210,9 @@
 <script src="js/analytics.js"></script>
 <script src="js/quiz.js"></script>
 <script src="js/stats.js"></script>
-<script src="js/editor.js"></script>
+<script src="js/editor.js?v=2"></script>
 <script src="js/preview.js"></script>
-<script>loadData(); loadAnalytics();</script>
+<script>loadData(); loadAnalytics(); refreshHomeMastery();</script>
 
 </body>
 </html>
