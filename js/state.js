@@ -36,6 +36,7 @@ function loadWeights(deck) {
 
 function saveWeights(deck) {
   localStorage.setItem('weights_' + deck, JSON.stringify(weights));
+  if (window.fbSave && window.fbUser) window.fbSave('weights_' + deck, weights);
 }
 
 // Pick a random entry from pool biased by weights[key] (higher = more likely).

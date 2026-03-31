@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mnemonic Training</title>
-  <link rel="stylesheet" href="styles.css?v=2">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 
@@ -19,6 +19,15 @@
 <!-- HOME -->
 <div id="home" class="view active">
   <div class="logo">Mnemonic Training</div>
+  <div class="auth-bar">
+    <div id="auth-signed-out" style="display:flex">
+      <button class="btn btn-google" onclick="window.fbSignIn && window.fbSignIn()">Sign in with Google</button>
+    </div>
+    <div id="auth-signed-in" style="display:none;align-items:center;gap:0.75rem">
+      <span id="auth-name" class="auth-name"></span>
+      <button class="btn btn-secondary" style="min-width:auto;padding:.4rem 1rem;font-size:.85rem" onclick="window.fbSignOut()">Sign out</button>
+    </div>
+  </div>
   <div class="deck-section">
     <div class="deck-label">Major System</div>
     <button class="btn btn-primary"   onclick="showQuizConfig('major')">▶ Start Quiz</button>
@@ -109,6 +118,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script type="module" src="js/firebase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>
 <script src="js/quiz.js"></script>

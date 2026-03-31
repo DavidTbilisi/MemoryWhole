@@ -33,5 +33,6 @@ function saveEditor() {
     data[inp.dataset.num] = inp.value.trim();
   });
   localStorage.setItem(LS_KEY, JSON.stringify(data));
+  if (window.fbSave && window.fbUser) window.fbSave('major_assoc', data);
   showToast('Saved ✓');
 }
