@@ -190,7 +190,7 @@ function handleAnswer(clickedBtn, chosen) {
       replayQueue = replayQueue.filter(k => k !== currentNum);
       updateReplayBanner();
       if (replayQueue.length === 0) {
-        setTimeout(() => { isReplaying = false; setReplayBanner(false); showStats(); }, 900);
+        setTimeout(() => { isReplaying = false; setReplayBanner(false); recordQuizSession(activeDeck, numStats); showStats(); }, 900);
         return;
       }
     }
@@ -230,6 +230,7 @@ function finishQuiz() {
     setView('quiz');
     nextQuestion();
   } else {
+    recordQuizSession(activeDeck, numStats);
     showStats();
   }
 }

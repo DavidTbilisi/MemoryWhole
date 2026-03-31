@@ -16,6 +16,34 @@
   <div class="score-item">Avg: <span id="sc-avg">—</span></div>
 </div>
 
+<!-- DASHBOARD -->
+<div id="dashboard" class="view">
+  <div class="dashboard-header">
+    <div class="dashboard-title" id="dash-title">Dashboard</div>
+    <button class="btn btn-secondary" style="min-width:auto;padding:.5rem 1.2rem" onclick="showHome()">← Home</button>
+  </div>
+
+  <div class="dashboard-section">
+    <div class="section-label">Overall Stats</div>
+    <div class="dashboard-grid" id="dash-overall"></div>
+  </div>
+
+  <div class="dashboard-section">
+    <div class="section-label">Progress to Mastery</div>
+    <div id="dash-progress"></div>
+  </div>
+
+  <div class="dashboard-section">
+    <div class="section-label">Status Breakdown</div>
+    <div class="status-grid" id="dash-status"></div>
+  </div>
+
+  <div class="dashboard-section">
+    <div class="section-label">Weakest Areas (Top 10)</div>
+    <div id="dash-weak-table"></div>
+  </div>
+</div>
+
 <!-- HOME -->
 <div id="home" class="view active">
   <div class="logo">Mnemonic Training</div>
@@ -31,6 +59,7 @@
   <div class="deck-section">
     <div class="deck-label">Major System</div>
     <button class="btn btn-primary"   onclick="showQuizConfig('major')">▶ Start Quiz</button>
+    <button class="btn btn-secondary" onclick="showDashboard('major')">📊 Dashboard</button>
     <button class="btn btn-secondary" onclick="showPreview('major')">⊞ Preview Table</button>
     <button class="btn btn-secondary" onclick="showEditor()">✎ Edit Associations</button>
   </div>
@@ -38,18 +67,21 @@
   <div class="deck-section">
     <div class="deck-label">SEM3</div>
     <button class="btn btn-primary"   onclick="showQuizConfig('sem3')">▶ Start Quiz</button>
+    <button class="btn btn-secondary" onclick="showDashboard('sem3')">📊 Dashboard</button>
     <button class="btn btn-secondary" onclick="showPreview('sem3')">⊞ Preview Table</button>
   </div>
   <div class="home-divider"></div>
   <div class="deck-section">
     <div class="deck-label">Month Days (Georgian ABC)</div>
     <button class="btn btn-primary"   onclick="showQuizConfig('months')">▶ Start Quiz</button>
+    <button class="btn btn-secondary" onclick="showDashboard('months')">📊 Dashboard</button>
     <button class="btn btn-secondary" onclick="showPreview('months')">⊞ Preview Table</button>
   </div>
   <div class="home-divider"></div>
   <div class="deck-section">
     <div class="deck-label">Famous Clocks</div>
     <button class="btn btn-primary"   onclick="showQuizConfig('clocks')">▶ Start Quiz</button>
+    <button class="btn btn-secondary" onclick="showDashboard('clocks')">📊 Dashboard</button>
     <button class="btn btn-secondary" onclick="showPreview('clocks')">⊞ Preview Table</button>
   </div>
 </div>
@@ -121,11 +153,12 @@
 <script type="module" src="js/firebase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>
+<script src="js/analytics.js"></script>
 <script src="js/quiz.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/editor.js"></script>
 <script src="js/preview.js"></script>
-<script>loadData();</script>
+<script>loadData(); loadAnalytics();</script>
 
 </body>
 </html>
