@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mnemonic Training</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
 
@@ -21,39 +21,55 @@
   <div class="logo">Mnemonic Training</div>
   <div class="deck-section">
     <div class="deck-label">Major System</div>
-    <button class="btn btn-primary"   onclick="showQuiz('major')">▶ Start Quiz</button>
+    <button class="btn btn-primary"   onclick="showQuizConfig('major')">▶ Start Quiz</button>
     <button class="btn btn-secondary" onclick="showPreview('major')">⊞ Preview Table</button>
     <button class="btn btn-secondary" onclick="showEditor()">✎ Edit Associations</button>
   </div>
   <div class="home-divider"></div>
   <div class="deck-section">
     <div class="deck-label">SEM3</div>
-    <button class="btn btn-primary"   onclick="showQuiz('sem3')">▶ Start Quiz</button>
+    <button class="btn btn-primary"   onclick="showQuizConfig('sem3')">▶ Start Quiz</button>
     <button class="btn btn-secondary" onclick="showPreview('sem3')">⊞ Preview Table</button>
   </div>
   <div class="home-divider"></div>
   <div class="deck-section">
     <div class="deck-label">Month Days (Georgian ABC)</div>
-    <button class="btn btn-primary"   onclick="showQuiz('months')">▶ Start Quiz</button>
+    <button class="btn btn-primary"   onclick="showQuizConfig('months')">▶ Start Quiz</button>
     <button class="btn btn-secondary" onclick="showPreview('months')">⊞ Preview Table</button>
   </div>
   <div class="home-divider"></div>
   <div class="deck-section">
     <div class="deck-label">Famous Clocks</div>
-    <button class="btn btn-primary"   onclick="showQuiz('clocks')">▶ Start Quiz</button>
+    <button class="btn btn-primary"   onclick="showQuizConfig('clocks')">▶ Start Quiz</button>
     <button class="btn btn-secondary" onclick="showPreview('clocks')">⊞ Preview Table</button>
   </div>
 </div>
 
+<!-- QUIZ CONFIG -->
+<div id="quiz-config" class="view">
+  <div class="config-header">
+    <div class="config-title" id="config-title">Choose Subsets</div>
+    <button class="btn btn-secondary" style="min-width:auto;padding:.5rem 1.2rem" onclick="showHome()">← Back</button>
+  </div>
+  <div class="config-grid" id="config-grid"></div>
+  <button class="btn btn-secondary" style="width:100%;max-width:460px" onclick="configToggleAll()">Toggle All</button>
+  <button class="btn btn-primary"   style="width:100%;max-width:460px" onclick="startQuizFromConfig()">▶ Start Quiz</button>
+</div>
+
 <!-- QUIZ -->
 <div id="quiz" class="view">
+  <div id="replay-banner">
+    <span class="replay-label">Mistake Replay&nbsp;</span>
+    <span id="replay-progress">0 / 0</span>
+    <span>&nbsp;— keep going!</span>
+  </div>
   <div class="number-display" id="q-number">—</div>
   <div class="question-label">What's the word?</div>
   <div class="timer" id="q-timer">0.0s</div>
   <div class="feedback" id="q-feedback"></div>
   <div class="answers-grid" id="q-answers"></div>
   <button class="btn btn-secondary" style="margin-top:0.5rem" onclick="showHome()">← Back</button>
-  <button class="btn btn-primary"   style="margin-top:0.25rem" onclick="showStats()">⏹ Finish &amp; See Stats</button>
+  <button class="btn btn-primary"   style="margin-top:0.25rem" onclick="finishQuiz()">⏹ Finish &amp; See Stats</button>
 </div>
 
 <!-- PREVIEW -->

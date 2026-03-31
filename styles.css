@@ -332,6 +332,57 @@ body {
 .stat-err  { color: #ef4444; font-weight: 700; }
 .stat-time { color: #f59e0b; }
 
+/* ── Quiz Config ── */
+#quiz-config {
+  align-items: center;
+  padding: 2rem 1rem;
+  gap: 1.5rem;
+}
+.config-header { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; width: 100%; max-width: 460px; }
+.config-title  { font-size: 1.4rem; font-weight: 800; flex: 1; }
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 460px;
+}
+.subset-btn {
+  padding: 0.6rem 0.5rem;
+  border: 2px solid #2d3748;
+  border-radius: 10px;
+  background: #16213e;
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.subset-btn.active {
+  border-color: #7c3aed;
+  background: #2e1065;
+  color: #e0e0e0;
+}
+.subset-btn:hover { border-color: #7c3aed; color: #e0e0e0; }
+
+/* ── Replay banner ── */
+#replay-banner {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: #451a03;
+  border: 1px solid #f59e0b;
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fde68a;
+  width: 100%;
+  max-width: 460px;
+}
+#replay-banner .replay-label { color: #f59e0b; }
+
 /* ── Toast ── */
 .toast {
   position: fixed;

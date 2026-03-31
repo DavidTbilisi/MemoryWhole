@@ -8,6 +8,9 @@ let answering = false;
 let questionStartTime = 0;
 let timerInterval = null;
 let numStats = {};
+let weights = {}; // { key: number } — higher = appears more often
+let isReplaying = false;
+let replayQueue = [];
 
 // ── Data loading ───────────────────────────────────────────────────────────
 // Always start from DEFAULTS; overlay with any non-empty user edits in localStorage.
@@ -22,6 +25,44 @@ function loadData() {
       }
     } catch (e) {}
   }
+}
+
+// ── Weights (spaced-repetition-lite) ──────────────────────────────────────
+function loadWeights(deck) {
+  try {
+    weights = JSON.parse(localStorage.getItem('weights_' + deck) || '{}');
+  } catch (e) { weights = {}; }
+}
+
+function saveWeights(deck) {
+  localStorage.setItem('weights_' + deck, JSON.stringify(weights));
+}
+
+// Pick a random entry from pool biased by weights[key] (higher = more likely).
+function weightedRandom(pool) {
+  const total = pool.reduce((sum, [k]) => sum + (weights[k] || 1), 0);
+  let r = Math.random() * total;
+  for (const entry of pool) {
+    r -= weights[entry[0]] || 1;
+    if (r <= 0) return entry;
+  }
+  return pool[pool.length - 1];
+}
+
+// Adjust weight for key after an answer.
+//   Wrong             → ×2   (max 16)
+//   Correct but slow  → ×1.3 (max 16)
+//   Correct and fast  → ×0.7 (min 1)
+function updateWeight(key, isCorrect, elapsed) {
+  const sessionAvg = score.times.length
+    ? score.times.reduce((a, b) => a + b, 0) / score.times.length
+    : 4;                              // fallback threshold: 4 s
+  const slow = elapsed > sessionAvg * 1.5;
+  const w = weights[key] || 1;
+
+  if (!isCorrect)     weights[key] = Math.min(w * 2,   16);
+  else if (slow)      weights[key] = Math.min(w * 1.3, 16);
+  else                weights[key] = Math.max(w * 0.7,  1);
 }
 
 // ── Utilities ──────────────────────────────────────────────────────────────
