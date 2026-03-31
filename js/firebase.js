@@ -52,10 +52,15 @@ async function pullOrPush() {
   ]);
 
   if (assoc) {
-    localStorage.setItem(LS_KEY, JSON.stringify(assoc));
+    // Cloud wins — but only store non-empty values so DEFAULTS fill in gaps
+    const clean = Object.fromEntries(Object.entries(assoc).filter(([, v]) => v && v.trim()));
+    localStorage.setItem(LS_KEY, JSON.stringify(clean));
   } else {
+    // First sign-in: push DEFAULTS merged with any local edits to cloud
     const local = localStorage.getItem(LS_KEY);
-    if (local) window.fbSave('major_assoc', JSON.parse(local));
+    const toSave = { ...DEFAULTS, ...(local ? JSON.parse(local) : {}) };
+    window.fbSave('major_assoc', toSave);
+    localStorage.setItem(LS_KEY, JSON.stringify(toSave));
   }
 
   DECKS.forEach((d, i) => {

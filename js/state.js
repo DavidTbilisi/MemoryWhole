@@ -21,7 +21,7 @@ function loadData() {
     try {
       const stored = JSON.parse(saved);
       for (const [k, v] of Object.entries(stored)) {
-        if (Object.prototype.hasOwnProperty.call(stored, k)) data[k] = v;
+        if (v && v.trim()) data[k] = v;
       }
     } catch (e) {}
   }
