@@ -1,0 +1,13 @@
+{
+  "name": "mnemonic-training",
+  "version": "1.0.0",
+  "description": "Web app for training mnemonic systems (Major System, SEM3, Month Days, Famous Clocks)",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}
