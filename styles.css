@@ -95,7 +95,7 @@ body {
   padding: 1.5rem;
   gap: 1.5rem;
   overflow-y: auto;
-  align-items: stretch;
+  align-items: center;
 }
 .home-header {
   display: flex;
@@ -103,6 +103,8 @@ body {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
+  width: 100%;
+  max-width: 620px;
 }
 .logo {
   font-size: 2rem;
@@ -118,8 +120,10 @@ body {
 /* ── Deck Cards Grid ── */
 .deck-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
+  width: 100%;
+  max-width: 620px;
 }
 .deck-card {
   background: #16213e;
