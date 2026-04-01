@@ -12,19 +12,39 @@ let weights = {}; // { key: number } — higher = appears more often
 let isReplaying = false;
 let replayQueue = [];
 
-// ── Data loading ───────────────────────────────────────────────────────────
-// Always start from DEFAULTS; overlay with any non-empty user edits in localStorage.
-function loadData() {
-  data = { ...DEFAULTS };
-  const saved = localStorage.getItem(LS_KEY);
-  if (saved) {
+// ── Per-deck localStorage keys ─────────────────────────────────────────────
+const DECK_LS_KEYS = {
+  major:  LS_KEY,            // 'majorSystemData_v2'
+  sem3:   'sem3Edits_v1',
+  months: 'monthsEdits_v1',
+  clocks: 'clocksEdits_v1',
+};
+
+const DECK_BASE = {
+  major:  () => ({ ...DEFAULTS }),
+  sem3:   () => ({ ...SEM3_DATA }),
+  months: () => ({ ...MONTHS_DATA }),
+  clocks: () => ({ ...CLOCKS_DATA }),
+};
+
+// Load base data for a deck, overlaid with any user edits from localStorage.
+function loadDeckData(deck) {
+  const base = DECK_BASE[deck]?.() ?? {};
+  const key  = DECK_LS_KEYS[deck];
+  if (key) {
     try {
-      const stored = JSON.parse(saved);
+      const stored = JSON.parse(localStorage.getItem(key) || '{}');
       for (const [k, v] of Object.entries(stored)) {
-        if (v && v.trim()) data[k] = v;
+        if (v && v.trim()) base[k] = v;
       }
     } catch (e) {}
   }
+  return base;
+}
+
+// ── Data loading ───────────────────────────────────────────────────────────
+function loadData() {
+  data = loadDeckData('major');
 }
 
 // ── Weights (spaced-repetition-lite) ──────────────────────────────────────

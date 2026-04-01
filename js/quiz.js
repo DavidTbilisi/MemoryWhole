@@ -68,8 +68,7 @@ function startQuizFromConfig() {
 // ── Quiz ───────────────────────────────────────────────────────────────────
 function showQuiz(deck, subsetKeys) {
   activeDeck = deck || activeDeck;
-  const deckMap = { sem3: SEM3_DATA, months: MONTHS_DATA, clocks: CLOCKS_DATA };
-  if (deckMap[activeDeck]) { data = deckMap[activeDeck]; } else { loadData(); }
+  data = loadDeckData(activeDeck);
 
   // Apply subset filter
   if (subsetKeys && subsetKeys.length) {

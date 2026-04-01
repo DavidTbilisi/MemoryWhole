@@ -43,29 +43,45 @@ onAuthStateChanged(auth, async user => {
   if (user) await pullOrPush(user);
 });
 
-const DECKS = ['major', 'sem3', 'months', 'clocks'];
+const DECKS         = ['major', 'sem3', 'months', 'clocks'];
+const NON_MAJOR     = ['sem3', 'months', 'clocks'];
 
 async function pullOrPush() {
-  const [assoc, ...wts] = await Promise.all([
+  // Fetch major assoc + non-major edits + weights all at once
+  const [majorAssoc, ...rest] = await Promise.all([
     window.fbLoad('major_assoc'),
-    ...DECKS.map(d => window.fbLoad('weights_' + d)),
+    ...NON_MAJOR.map(d  => window.fbLoad(d + '_edits')),
+    ...DECKS.map(d      => window.fbLoad('weights_' + d)),
   ]);
+  const nonMajorEdits = rest.slice(0, NON_MAJOR.length);
+  const cloudWeights  = rest.slice(NON_MAJOR.length);
 
-  if (assoc) {
-    // Cloud wins — but only store non-empty values so DEFAULTS fill in gaps
-    const clean = Object.fromEntries(Object.entries(assoc).filter(([, v]) => v && v.trim()));
+  // ── Major associations ──────────────────────────────────────────────────
+  if (majorAssoc) {
+    const clean = Object.fromEntries(Object.entries(majorAssoc).filter(([, v]) => v && v.trim()));
     localStorage.setItem(LS_KEY, JSON.stringify(clean));
   } else {
-    // First sign-in: push DEFAULTS merged with any local edits to cloud
-    const local = localStorage.getItem(LS_KEY);
+    const local  = localStorage.getItem(LS_KEY);
     const toSave = { ...DEFAULTS, ...(local ? JSON.parse(local) : {}) };
     window.fbSave('major_assoc', toSave);
     localStorage.setItem(LS_KEY, JSON.stringify(toSave));
   }
 
+  // ── Non-major deck edits (sem3 / months / clocks) ───────────────────────
+  NON_MAJOR.forEach((d, i) => {
+    const lsKey = DECK_LS_KEYS[d];
+    if (nonMajorEdits[i]) {
+      localStorage.setItem(lsKey, JSON.stringify(nonMajorEdits[i]));
+    } else {
+      const local = localStorage.getItem(lsKey);
+      if (local) window.fbSave(d + '_edits', JSON.parse(local));
+    }
+  });
+
+  // ── Weights ─────────────────────────────────────────────────────────────
   DECKS.forEach((d, i) => {
-    if (wts[i]) {
-      localStorage.setItem('weights_' + d, JSON.stringify(wts[i]));
+    if (cloudWeights[i]) {
+      localStorage.setItem('weights_' + d, JSON.stringify(cloudWeights[i]));
     } else {
       const local = localStorage.getItem('weights_' + d);
       if (local) window.fbSave('weights_' + d, JSON.parse(local));
