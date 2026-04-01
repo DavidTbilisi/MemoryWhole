@@ -197,6 +197,10 @@
   <div class="editor-header">
     <div class="editor-title" id="editor-title">Associations</div>
     <button class="btn btn-primary"   style="min-width:auto;padding:.5rem 1.2rem" onclick="saveEditor()">Save</button>
+    <label  class="btn btn-secondary" style="min-width:auto;padding:.5rem 1.2rem;cursor:pointer" title="Import JSON">
+      ⬆ Import
+      <input type="file" accept=".json" style="display:none" onchange="importDeck(event)">
+    </label>
     <button class="btn btn-secondary" style="min-width:auto;padding:.5rem 1.2rem" onclick="showHome()">Back</button>
   </div>
   <div class="editor-grid" id="editor-grid"></div>

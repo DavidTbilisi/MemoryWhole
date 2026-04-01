@@ -71,6 +71,48 @@ function saveEditor() {
   showToast('Saved ✓');
 }
 
+// ── Import ─────────────────────────────────────────────────────────────────
+function importDeck(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+
+      // Accept both the full export envelope {deck, data:{}} and a bare {key: value} object
+      const incoming = (parsed.data && typeof parsed.data === 'object') ? parsed.data : parsed;
+
+      // Validate: must be a flat key→string map
+      const entries = Object.entries(incoming);
+      if (entries.length === 0) throw new Error('No entries found');
+      const invalid = entries.find(([, v]) => typeof v !== 'string');
+      if (invalid) throw new Error(`Value for "${invalid[0]}" is not a string`);
+
+      // Merge into current editor fields (imported value wins, preserves unmentioned keys)
+      let applied = 0;
+      entries.forEach(([key, val]) => {
+        const input = document.querySelector(`.word-input[data-num="${key}"]`);
+        if (input) { input.value = val.trim(); applied++; }
+      });
+
+      // Reset file input so same file can be re-imported if needed
+      event.target.value = '';
+
+      if (applied === 0) {
+        showToast('No matching keys found');
+      } else {
+        showToast(`Imported ${applied} / ${entries.length} items — click Save to apply`);
+      }
+    } catch (err) {
+      showToast('Import failed: ' + err.message);
+      event.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
 // ── Export ─────────────────────────────────────────────────────────────────
 function exportDeck(deck) {
   const merged = loadDeckData(deck);
