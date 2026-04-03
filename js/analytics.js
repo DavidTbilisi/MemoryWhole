@@ -208,7 +208,7 @@ function recordQuizSession(deck, sessionStats) {
 
 // Render tiny mastery badge on each home card
 function refreshHomeMastery() {
-  const decks = ['major', 'sem3', 'months', 'clocks'];
+  const decks = ['major', 'sem3', 'months', 'clocks', 'calendar'];
   decks.forEach(deck => {
     const el = document.getElementById('mastery-' + deck);
     if (!el) return;

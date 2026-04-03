@@ -2,10 +2,11 @@
 const EDITOR_KEYS = DECK_LS_KEYS;
 
 const EDITOR_TITLES = {
-  major:  'Major System (0–99)',
-  sem3:   'SEM3',
-  months: 'Month Days (Georgian ABC)',
-  clocks: 'Famous Clocks',
+  major:    'Major System (0–99)',
+  sem3:     'SEM3',
+  months:   'Month Days (Georgian ABC)',
+  clocks:   'Famous Clocks',
+  calendar: 'Calendar Months (1–12)',
 };
 
 // Uses DECK_BASE and loadDeckData from state.js

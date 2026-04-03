@@ -22,11 +22,15 @@ const CONFIG_GROUPS = {
     { label: '12–17', keys: ['12:00','13:00','14:00','15:00','16:00','17:00'] },
     { label: '18–23', keys: ['18:00','19:00','20:00','21:00','22:00','23:00'] },
   ],
+  calendar: [
+    { label: 'All Months', keys: Array.from({ length: 12 }, (_, i) => String(i + 1)) },
+  ],
 };
 
 const DECK_NAMES = {
   major: 'Major System', sem3: 'SEM3',
-  months: 'Month Days', clocks: 'Famous Clocks'
+  months: 'Month Days', clocks: 'Famous Clocks',
+  calendar: 'Calendar Months'
 };
 
 // ── Quiz config screen ─────────────────────────────────────────────────────
