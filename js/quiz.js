@@ -44,6 +44,18 @@ const CONFIG_GROUPS = {
     { label: 'General 58–65',        keys: ['58','59','60','61','62','63','64','65'] },
     { label: 'Revelation 66',        keys: ['66'] },
   ],
+  pao: [
+    { label: 'Mononoke 0–10',       keys: ['0','1','2','3','4','5','6','7','8','9','10'] },
+    { label: 'Death Note 11–20',    keys: ['11','12','13','14','15','16','17','18','19','20'] },
+    { label: 'Naruto 21–30',        keys: ['21','22','23','24','25','26','27','28','29','30'] },
+    { label: 'Avatar 31–40',        keys: ['31','32','33','34','35','36','37','38','39','40'] },
+    { label: 'Mortal Combat 41–50', keys: ['41','42','43','44','45','46','47','48','49','50'] },
+    { label: 'Sherlock 51–60',      keys: ['51','52','53','54','55','56','57','58','59','60'] },
+    { label: 'Harry Potter 61–70',  keys: ['61','62','63','64','65','66','67','68','69','70'] },
+    { label: 'Matrix 71–80',        keys: ['71','72','73','74','75','76','77','78','79','80'] },
+    { label: 'Caribbean 81–90',     keys: ['81','82','83','84','85','86','87','88','89','90'] },
+    { label: 'GOT 91–99',           keys: ['91','92','93','94','95','96','97','98','99'] },
+  ],
 };
 
 const DECK_NAMES = {
@@ -52,7 +64,19 @@ const DECK_NAMES = {
   calendar: 'Calendar Months',
   bibleoverview: 'Bible Overview',
   biblebooks: 'Bible Books',
-  binary: 'Binary (4-bit)'
+  binary: 'Binary (4-bit)',
+  pao: 'PAO System'
+};
+
+const DECK_QUESTION_LABELS = {
+  major:         "What's the word?",
+  sem3:          "What's the image?",
+  clocks:        "Which clock?",
+  calendar:      "What's the icon?",
+  binary:        "What's the image?",
+  biblebooks:    "Which book?",
+  bibleoverview: "Which section?",
+  pao:           "Who is it?",
 };
 
 // ── Quiz config screen ─────────────────────────────────────────────────────
@@ -240,6 +264,8 @@ function nextQuestion() {
   const numEl = document.getElementById('q-number');
   numEl.textContent = num;
   numEl.className = 'number-display' + (String(num).length > 2 ? ' long' : '');
+  document.getElementById('q-label').textContent =
+    DECK_QUESTION_LABELS[activeDeck] || "What's the word?";
 
   const wrongs = fullPool
     .filter(([n]) => n !== num)

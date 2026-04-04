@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mnemonic Training</title>
-  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
 
@@ -137,6 +137,25 @@
       </div>
     </div>
 
+    <!-- PAO System -->
+    <div class="deck-card">
+      <div class="deck-card-header">
+        <div class="deck-card-icon">🎭</div>
+        <div class="deck-card-info">
+          <div class="deck-card-name">PAO System</div>
+          <div class="deck-card-count">100 items · 10 franchises</div>
+        </div>
+        <div class="deck-card-mastery" id="mastery-pao"></div>
+      </div>
+      <button class="deck-quiz-btn" onclick="showQuizConfig('pao')">▶ Start Quiz</button>
+      <div class="deck-actions">
+        <button class="deck-action-btn" onclick="showDashboard('pao')" title="Dashboard">📊<span>Stats</span></button>
+        <button class="deck-action-btn" onclick="showPreview('pao')"   title="Preview Table">⊞<span>Preview</span></button>
+        <button class="deck-action-btn" onclick="showEditor('pao')"    title="Edit Associations">✎<span>Edit</span></button>
+        <button class="deck-action-btn" onclick="exportDeck('pao')"    title="Export Data">⬇<span>Export</span></button>
+      </div>
+    </div>
+
     <!-- Binary 4-bit -->
     <div class="deck-card">
       <div class="deck-card-header">
@@ -246,7 +265,7 @@
     <span>&nbsp;— keep going!</span>
   </div>
   <div class="number-display" id="q-number">—</div>
-  <div class="question-label">What's the word?</div>
+  <div class="question-label" id="q-label">What's the word?</div>
   <div class="timer" id="q-timer">0.0s</div>
   <div class="feedback" id="q-feedback"></div>
   <div class="answers-grid" id="q-answers"></div>
@@ -306,13 +325,13 @@
 <div class="toast" id="toast"></div>
 
 <script type="module" src="js/firebase.js"></script>
-<script src="js/data.js?v=3"></script>
+<script src="js/data.js?v=5"></script>
 <script src="js/state.js?v=2"></script>
 <script src="js/analytics.js"></script>
-<script src="js/quiz.js?v=2"></script>
+<script src="js/quiz.js?v=3"></script>
 <script src="js/stats.js"></script>
 <script src="js/editor.js?v=3"></script>
-<script src="js/preview.js?v=2"></script>
+<script src="js/preview.js?v=3"></script>
 <script>loadData(); loadAnalytics(); refreshHomeMastery();</script>
 
 </body>
