@@ -9,6 +9,7 @@ const EDITOR_TITLES = {
   calendar:      'Calendar Months (1–12)',
   bibleoverview: 'Bible Overview (10 Sections)',
   biblebooks:    'Bible Books (1–66)',
+  binary:        'Binary 4-bit (0000–1111)',
 };
 
 // Uses DECK_BASE and loadDeckData from state.js

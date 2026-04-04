@@ -333,6 +333,104 @@ body {
 .ans-btn.correct-ans { background: #064e3b; border-color: #10b981; color: #10b981; }
 .ans-btn.wrong-ans   { background: #450a0a; border-color: #ef4444; color: #ef4444; }
 
+/* ── Speed Drill ── */
+.btn-drill {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn-drill:hover  { opacity: 0.88; }
+.btn-drill:active { transform: scale(0.97); }
+
+/* Drill HUD — hidden until .is-drill is set on #quiz */
+#drill-hud {
+  display: none;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 460px;
+  background: #0f0f23;
+  border-radius: 14px;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid #2d3748;
+}
+.drill-countdown {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #10b981;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  transition: color 0.3s;
+}
+.drill-countdown.urgent { color: #ef4444; animation: pulse 0.5s infinite alternate; }
+@keyframes pulse { to { opacity: 0.5; } }
+
+#drill-score-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+#drill-score-val {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #f59e0b;
+  font-variant-numeric: tabular-nums;
+}
+.drill-pts { font-size: 0.8rem; color: #6b7280; margin-right: 0.3rem; }
+.drill-mult {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4b5563;
+  background: #1a2540;
+  border-radius: 6px;
+  padding: 0.1rem 0.4rem;
+  transition: color 0.2s, background 0.2s;
+}
+.drill-mult.active { color: #f59e0b; background: #422006; }
+
+/* Show HUD, hide normal timer when in drill mode */
+#quiz.is-drill #drill-hud    { display: flex; }
+#quiz.is-drill #q-timer      { display: none; }
+#quiz.is-drill #replay-banner{ display: none !important; }
+#quiz.is-drill .btn-primary[onclick="finishQuiz()"] { display: none; }
+
+/* Drill result overlay */
+#drill-result {
+  display: none;
+  position: absolute;
+  inset: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: rgba(10, 10, 30, 0.96);
+  z-index: 10;
+  border-radius: 16px;
+}
+#drill-result.visible { display: flex; }
+.drill-result-label { font-size: 1rem; color: #6b7280; letter-spacing: 0.1em; text-transform: uppercase; }
+.drill-result-score {
+  font-size: 5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+.drill-result-sub { color: #6b7280; font-size: 0.9rem; margin-top: -0.75rem; }
+.drill-result-correct { color: #9ca3af; font-size: 0.95rem; margin-bottom: 0.5rem; }
+
+/* quiz view needs position:relative for overlay */
+#quiz { position: relative; }
+
 /* ── Editor ── */
 #editor { padding: 1.5rem; gap: 1rem; }
 .editor-header {

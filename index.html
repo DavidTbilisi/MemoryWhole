@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mnemonic Training</title>
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
 
@@ -137,6 +137,25 @@
       </div>
     </div>
 
+    <!-- Binary 4-bit -->
+    <div class="deck-card">
+      <div class="deck-card-header">
+        <div class="deck-card-icon">⬛</div>
+        <div class="deck-card-info">
+          <div class="deck-card-name">Binary (4-bit)</div>
+          <div class="deck-card-count">16 patterns</div>
+        </div>
+        <div class="deck-card-mastery" id="mastery-binary"></div>
+      </div>
+      <button class="deck-quiz-btn" onclick="showQuizConfig('binary')">▶ Start Quiz</button>
+      <div class="deck-actions">
+        <button class="deck-action-btn" onclick="showDashboard('binary')" title="Dashboard">📊<span>Stats</span></button>
+        <button class="deck-action-btn" onclick="showPreview('binary')"   title="Preview Table">⊞<span>Preview</span></button>
+        <button class="deck-action-btn" onclick="showEditor('binary')"    title="Edit Associations">✎<span>Edit</span></button>
+        <button class="deck-action-btn" onclick="exportDeck('binary')"    title="Export Data">⬇<span>Export</span></button>
+      </div>
+    </div>
+
     <!-- Calendar Months -->
     <div class="deck-card">
       <div class="deck-card-header">
@@ -203,11 +222,24 @@
   </div>
   <div class="config-grid" id="config-grid"></div>
   <button class="btn btn-secondary" style="width:100%;max-width:460px" onclick="configToggleAll()">Toggle All</button>
-  <button class="btn btn-primary"   style="width:100%;max-width:460px" onclick="startQuizFromConfig()">▶ Start Quiz</button>
+  <div style="display:flex;gap:0.75rem;width:100%;max-width:460px">
+    <button class="btn btn-primary"   style="flex:1" onclick="startQuizFromConfig()">▶ Start Quiz</button>
+    <button class="btn btn-drill"     style="flex:1" onclick="startSpeedDrillFromConfig()">⚡ Speed Drill</button>
+  </div>
 </div>
 
 <!-- QUIZ -->
 <div id="quiz" class="view">
+
+  <!-- Speed Drill HUD (visible only in drill mode) -->
+  <div id="drill-hud">
+    <div id="drill-countdown" class="drill-countdown">60.0s</div>
+    <div id="drill-score-wrap">
+      <span id="drill-score-val">0</span><span class="drill-pts">pts</span>
+      <span id="drill-mult" class="drill-mult">×1</span>
+    </div>
+  </div>
+
   <div id="replay-banner">
     <span class="replay-label">Mistake Replay&nbsp;</span>
     <span id="replay-progress">0 / 0</span>
@@ -220,6 +252,16 @@
   <div class="answers-grid" id="q-answers"></div>
   <button class="btn btn-secondary" style="margin-top:0.5rem" onclick="showHome()">← Back</button>
   <button class="btn btn-primary"   style="margin-top:0.25rem" onclick="finishQuiz()">⏹ Finish &amp; See Stats</button>
+
+  <!-- Speed Drill result overlay -->
+  <div id="drill-result">
+    <div class="drill-result-label">⚡ Speed Drill</div>
+    <div id="drill-result-score" class="drill-result-score">0</div>
+    <div class="drill-result-sub">points</div>
+    <div id="drill-result-correct" class="drill-result-correct"></div>
+    <button class="btn btn-primary"   style="min-width:180px" onclick="startSpeedDrillFromConfig()">↺ Drill Again</button>
+    <button class="btn btn-secondary" style="min-width:180px" onclick="showHome()">← Home</button>
+  </div>
 </div>
 
 <!-- PREVIEW -->
@@ -264,10 +306,10 @@
 <div class="toast" id="toast"></div>
 
 <script type="module" src="js/firebase.js"></script>
-<script src="js/data.js?v=2"></script>
-<script src="js/state.js"></script>
+<script src="js/data.js?v=3"></script>
+<script src="js/state.js?v=2"></script>
 <script src="js/analytics.js"></script>
-<script src="js/quiz.js"></script>
+<script src="js/quiz.js?v=2"></script>
 <script src="js/stats.js"></script>
 <script src="js/editor.js?v=3"></script>
 <script src="js/preview.js?v=2"></script>

@@ -12,6 +12,12 @@ let weights = {}; // { key: number } — higher = appears more often
 let isReplaying = false;
 let replayQueue = [];
 
+// ── Speed Drill state ──────────────────────────────────────────────────────
+let isSpeedDrill  = false;
+let drillScore    = 0;
+let drillTimeLeft = 60;
+let drillInterval = null;
+
 // ── Per-deck localStorage keys ─────────────────────────────────────────────
 const DECK_LS_KEYS = {
   major:         LS_KEY,            // 'majorSystemData_v2'
@@ -21,6 +27,7 @@ const DECK_LS_KEYS = {
   calendar:      'calendarEdits_v1',
   bibleoverview: 'bibleOverviewEdits_v1',
   biblebooks:    'bibleBooksEdits_v1',
+  binary:        'binaryEdits_v1',
 };
 
 const DECK_BASE = {
@@ -31,6 +38,7 @@ const DECK_BASE = {
   calendar:      () => ({ ...CALENDAR_DATA }),
   bibleoverview: () => ({ ...BIBLE_OVERVIEW_DATA }),
   biblebooks:    () => ({ ...BIBLE_BOOKS_DATA }),
+  binary:        () => ({ ...BINARY_DATA }),
 };
 
 // Load base data for a deck, overlaid with any user edits from localStorage.
