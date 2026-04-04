@@ -58,6 +58,33 @@ function showPreview(deck) {
       td.innerHTML = `<span class="cell-word" style="white-space:normal">${MONTHS_FULL[key] || '—'}</span>`;
     }
 
+  } else if (deck === 'pao') {
+    document.getElementById('preview-title').textContent = 'PAO System (0–99)';
+
+    addTableHeaders(table, ['Franchise', 'Person', 'Action', 'Object']);
+    const tbody = table.createTBody();
+
+    let lastCat = null;
+    PAO_META.forEach(({ num, cat, person, action, obj }) => {
+      if (cat !== lastCat) {
+        lastCat = cat;
+        const divRow = tbody.insertRow();
+        const td = divRow.insertCell();
+        td.colSpan = 5;
+        td.style.cssText = 'background:#1a2540;color:#7c3aed;font-weight:700;font-size:0.8rem;padding:0.4rem 0.8rem;letter-spacing:.06em;text-transform:uppercase;';
+        td.textContent = cat;
+      }
+      const row = tbody.insertRow();
+      addRowHead(row, num);
+      [cat, person, action, obj].forEach((val, i) => {
+        const td = row.insertCell();
+        const style = i === 0 ? 'display:none' :
+                      i === 1 ? 'font-weight:700;color:#e0e0e0;' :
+                      i === 2 ? 'color:#7c3aed;' : 'color:#6b7280;font-style:italic;';
+        td.innerHTML = `<span class="cell-word" style="${style}">${val}</span>`;
+      });
+    });
+
   } else if (deck === 'binary') {
     document.getElementById('preview-title').textContent = 'Binary 4-bit (0000–1111)';
 

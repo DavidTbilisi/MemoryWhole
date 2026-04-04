@@ -10,6 +10,7 @@ const EDITOR_TITLES = {
   bibleoverview: 'Bible Overview (10 Sections)',
   biblebooks:    'Bible Books (1–66)',
   binary:        'Binary 4-bit (0000–1111)',
+  pao:           'PAO System (0–99)',
 };
 
 // Uses DECK_BASE and loadDeckData from state.js
@@ -17,7 +18,7 @@ const EDITOR_TITLES = {
 let editorDeck = 'major';
 
 // Decks whose values are long phrases — use a single-column wide layout
-const WIDE_DECKS = new Set(['clocks', 'bibleoverview', 'biblebooks']);
+const WIDE_DECKS = new Set(['clocks', 'bibleoverview', 'biblebooks', 'pao']);
 
 function showEditor(deck) {
   editorDeck = deck || 'major';
