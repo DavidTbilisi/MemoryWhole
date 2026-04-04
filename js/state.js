@@ -29,6 +29,7 @@ const DECK_LS_KEYS = {
   biblebooks:    'bibleBooksEdits_v1',
   binary:        'binaryEdits_v1',
   pao:           'paoEdits_v1',
+  pegmatrix:     'pegmatrixEdits_v1',
 };
 
 const DECK_BASE = {
@@ -41,6 +42,7 @@ const DECK_BASE = {
   biblebooks:    () => ({ ...BIBLE_BOOKS_DATA }),
   binary:        () => ({ ...BINARY_DATA }),
   pao:           () => ({ ...PAO_DATA }),
+  pegmatrix:     () => ({ ...PEG_MATRIX_DATA }),
 };
 
 // Load base data for a deck, overlaid with any user edits from localStorage.

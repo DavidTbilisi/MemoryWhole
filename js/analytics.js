@@ -210,7 +210,7 @@ function recordQuizSession(deck, sessionStats) {
 
 // ── Global stats bar ───────────────────────────────────────────────────────
 function refreshGlobalStats() {
-  const allDecks = ['major','sem3','months','clocks','pao','binary','calendar','bibleoverview','biblebooks'];
+  const allDecks = ['major','sem3','months','clocks','pao','binary','calendar','bibleoverview','biblebooks','pegmatrix'];
 
   let totalAttempts = 0, totalCorrect = 0, totalSessions = 0, knowledgePoints = 0;
 
@@ -271,7 +271,7 @@ window.loadAnalyticsFromCloud = loadAnalyticsFromCloud;
 
 // Render tiny mastery badge on each home card
 function refreshHomeMastery() {
-  const decks = ['major', 'sem3', 'months', 'clocks', 'pao', 'binary', 'calendar', 'bibleoverview', 'biblebooks'];
+  const decks = ['major', 'sem3', 'months', 'clocks', 'pao', 'binary', 'calendar', 'bibleoverview', 'biblebooks', 'pegmatrix'];
   decks.forEach(deck => {
     const el = document.getElementById('mastery-' + deck);
     if (!el) return;

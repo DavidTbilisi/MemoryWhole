@@ -253,6 +253,25 @@
       </div>
     </div>
 
+    <!-- Peg Matrix -->
+    <div class="deck-card">
+      <div class="deck-card-header">
+        <div class="deck-card-icon">🔲</div>
+        <div class="deck-card-info">
+          <div class="deck-card-name">Peg Matrix</div>
+          <div class="deck-card-count">100 items · Audio × Visual</div>
+        </div>
+        <div class="deck-card-mastery" id="mastery-pegmatrix"></div>
+      </div>
+      <button class="deck-quiz-btn" onclick="showQuizConfig('pegmatrix')">▶ Start Quiz</button>
+      <div class="deck-actions">
+        <button class="deck-action-btn" onclick="showDashboard('pegmatrix')" title="Dashboard">📊<span>Stats</span></button>
+        <button class="deck-action-btn" onclick="showPreview('pegmatrix')"   title="Preview Table">⊞<span>Preview</span></button>
+        <button class="deck-action-btn" onclick="showEditor('pegmatrix')"    title="Edit Associations">✎<span>Edit</span></button>
+        <button class="deck-action-btn" onclick="exportDeck('pegmatrix')"    title="Export Data">⬇<span>Export</span></button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -348,7 +367,16 @@
 <div class="toast" id="toast"></div>
 
 <script type="module" src="js/firebase.js"></script>
-<script src="js/data.js?v=5"></script>
+<script src="js/data/major-system.js"></script>
+<script src="js/data/sem3.js"></script>
+<script src="js/data/month-days.js"></script>
+<script src="js/data/pao.js"></script>
+<script src="js/data/binary.js"></script>
+<script src="js/data/calendar.js"></script>
+<script src="js/data/bible-overview.js"></script>
+<script src="js/data/bible-books.js"></script>
+<script src="js/data/clocks.js"></script>
+<script src="js/data/peg-matrix.js"></script>
 <script src="js/state.js?v=3"></script>
 <script src="js/analytics.js?v=2"></script>
 <script src="js/quiz.js?v=3"></script>

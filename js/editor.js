@@ -11,6 +11,7 @@ const EDITOR_TITLES = {
   biblebooks:    'Bible Books (1–66)',
   binary:        'Binary 4-bit (0000–1111)',
   pao:           'PAO System (0–99)',
+  pegmatrix:     'Peg Matrix (00–99)',
 };
 
 // Uses DECK_BASE and loadDeckData from state.js

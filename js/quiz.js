@@ -44,6 +44,10 @@ const CONFIG_GROUPS = {
     { label: 'General 58–65',        keys: ['58','59','60','61','62','63','64','65'] },
     { label: 'Revelation 66',        keys: ['66'] },
   ],
+  pegmatrix: Array.from({ length: 10 }, (_, r) => ({
+    label: `${PEG_AUDIO[r]} ${r * 10}–${r * 10 + 9}`,
+    keys:  Array.from({ length: 10 }, (_, c) => String(r * 10 + c).padStart(2, '0'))
+  })),
   pao: [
     { label: 'Mononoke 0–10',       keys: ['0','1','2','3','4','5','6','7','8','9','10'] },
     { label: 'Death Note 11–20',    keys: ['11','12','13','14','15','16','17','18','19','20'] },
@@ -65,7 +69,8 @@ const DECK_NAMES = {
   bibleoverview: 'Bible Overview',
   biblebooks: 'Bible Books',
   binary: 'Binary (4-bit)',
-  pao: 'PAO System'
+  pao: 'PAO System',
+  pegmatrix: 'Peg Matrix'
 };
 
 const DECK_QUESTION_LABELS = {
@@ -77,6 +82,7 @@ const DECK_QUESTION_LABELS = {
   biblebooks:    "Which book?",
   bibleoverview: "Which section?",
   pao:           "Who is it?",
+  pegmatrix:     "Audio + Visual peg?",
 };
 
 // ── Quiz config screen ─────────────────────────────────────────────────────
