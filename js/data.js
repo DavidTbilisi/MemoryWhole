@@ -127,6 +127,62 @@ const CALENDAR_DATA = {
   "12":"Santa"        // December – Christmas
 };
 
+// ── Bible Overview ───────────────────────────────────────────────────────
+// Quiz answer = section name + range  (key = section number 1-10)
+const BIBLE_OVERVIEW_DATA = {
+   "1":"📖 Torah — Books 1–5 (5)",
+   "2":"⚔️ History — Books 6–17 (12)",
+   "3":"📜 Wisdom — Books 18–22 (5)",
+   "4":"🔥 Major Prophets — Books 23–27 (5)",
+   "5":"🌪️ Minor Prophets — Books 28–39 (12)",
+   "6":"✝️ Gospels — Books 40–43 (4)",
+   "7":"🚶 Acts — Book 44 (1)",
+   "8":"✉️ Pauline Letters — Books 45–57 (13)",
+   "9":"📩 General Letters — Books 58–65 (8)",
+  "10":"🔥 Revelation — Book 66 (1)"
+};
+
+// ── Bible Books ───────────────────────────────────────────────────────────
+// Quiz answer = book name  (key = canonical book number 1-66)
+const BIBLE_BOOKS_DATA = {
+  // ── Torah (1–5) ──────────────────────────────────────────────────────
+   "1":"Genesis",        "2":"Exodus",          "3":"Leviticus",
+   "4":"Numbers",        "5":"Deuteronomy",
+  // ── History (6–17) ──────────────────────────────────────────────────
+   "6":"Joshua",         "7":"Judges",          "8":"Ruth",
+   "9":"1 Samuel",      "10":"2 Samuel",       "11":"1 Kings",
+  "12":"2 Kings",       "13":"1 Chronicles",   "14":"2 Chronicles",
+  "15":"Ezra",          "16":"Nehemiah",        "17":"Esther",
+  // ── Wisdom (18–22) ──────────────────────────────────────────────────
+  "18":"Job",           "19":"Psalms",          "20":"Proverbs",
+  "21":"Ecclesiastes",  "22":"Song of Solomon",
+  // ── Major Prophets (23–27) ──────────────────────────────────────────
+  "23":"Isaiah",        "24":"Jeremiah",        "25":"Lamentations",
+  "26":"Ezekiel",       "27":"Daniel",
+  // ── Minor Prophets (28–39) ──────────────────────────────────────────
+  "28":"Hosea",         "29":"Joel",            "30":"Amos",
+  "31":"Obadiah",       "32":"Jonah",           "33":"Micah",
+  "34":"Nahum",         "35":"Habakkuk",        "36":"Zephaniah",
+  "37":"Haggai",        "38":"Zechariah",       "39":"Malachi",
+  // ── Gospels (40–43) ─────────────────────────────────────────────────
+  "40":"Matthew",       "41":"Mark",            "42":"Luke",
+  "43":"John",
+  // ── Acts (44) ───────────────────────────────────────────────────────
+  "44":"Acts",
+  // ── Pauline Letters (45–57) ─────────────────────────────────────────
+  "45":"Romans",        "46":"1 Corinthians",   "47":"2 Corinthians",
+  "48":"Galatians",     "49":"Ephesians",       "50":"Philippians",
+  "51":"Colossians",    "52":"1 Thessalonians", "53":"2 Thessalonians",
+  "54":"1 Timothy",     "55":"2 Timothy",       "56":"Titus",
+  "57":"Philemon",
+  // ── General Letters (58–65) ─────────────────────────────────────────
+  "58":"Hebrews",       "59":"James",           "60":"1 Peter",
+  "61":"2 Peter",       "62":"1 John",          "63":"2 John",
+  "64":"3 John",        "65":"Jude",
+  // ── Revelation (66) ─────────────────────────────────────────────────
+  "66":"Revelation"
+};
+
 // ── Clocks ────────────────────────────────────────────────────────────────
 // Quiz answer = clock name
 const CLOCKS_DATA = {

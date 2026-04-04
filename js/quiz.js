@@ -25,12 +25,29 @@ const CONFIG_GROUPS = {
   calendar: [
     { label: 'All Months', keys: Array.from({ length: 12 }, (_, i) => String(i + 1)) },
   ],
+  bibleoverview: [
+    { label: 'All Sections', keys: Array.from({ length: 10 }, (_, i) => String(i + 1)) },
+  ],
+  biblebooks: [
+    { label: 'Torah 1–5',            keys: ['1','2','3','4','5'] },
+    { label: 'History 6–17',         keys: ['6','7','8','9','10','11','12','13','14','15','16','17'] },
+    { label: 'Wisdom 18–22',         keys: ['18','19','20','21','22'] },
+    { label: 'Maj. Prophets 23–27',  keys: ['23','24','25','26','27'] },
+    { label: 'Min. Prophets 28–39',  keys: ['28','29','30','31','32','33','34','35','36','37','38','39'] },
+    { label: 'Gospels 40–43',        keys: ['40','41','42','43'] },
+    { label: 'Acts 44',              keys: ['44'] },
+    { label: 'Pauline 45–57',        keys: ['45','46','47','48','49','50','51','52','53','54','55','56','57'] },
+    { label: 'General 58–65',        keys: ['58','59','60','61','62','63','64','65'] },
+    { label: 'Revelation 66',        keys: ['66'] },
+  ],
 };
 
 const DECK_NAMES = {
   major: 'Major System', sem3: 'SEM3',
   months: 'Month Days', clocks: 'Famous Clocks',
-  calendar: 'Calendar Months'
+  calendar: 'Calendar Months',
+  bibleoverview: 'Bible Overview',
+  biblebooks: 'Bible Books'
 };
 
 // ── Quiz config screen ─────────────────────────────────────────────────────

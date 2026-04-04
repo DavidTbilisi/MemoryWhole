@@ -14,19 +14,23 @@ let replayQueue = [];
 
 // ── Per-deck localStorage keys ─────────────────────────────────────────────
 const DECK_LS_KEYS = {
-  major:    LS_KEY,            // 'majorSystemData_v2'
-  sem3:     'sem3Edits_v1',
-  months:   'monthsEdits_v1',
-  clocks:   'clocksEdits_v1',
-  calendar: 'calendarEdits_v1',
+  major:         LS_KEY,            // 'majorSystemData_v2'
+  sem3:          'sem3Edits_v1',
+  months:        'monthsEdits_v1',
+  clocks:        'clocksEdits_v1',
+  calendar:      'calendarEdits_v1',
+  bibleoverview: 'bibleOverviewEdits_v1',
+  biblebooks:    'bibleBooksEdits_v1',
 };
 
 const DECK_BASE = {
-  major:    () => ({ ...DEFAULTS }),
-  sem3:     () => ({ ...SEM3_DATA }),
-  months:   () => ({ ...MONTHS_DATA }),
-  clocks:   () => ({ ...CLOCKS_DATA }),
-  calendar: () => ({ ...CALENDAR_DATA }),
+  major:         () => ({ ...DEFAULTS }),
+  sem3:          () => ({ ...SEM3_DATA }),
+  months:        () => ({ ...MONTHS_DATA }),
+  clocks:        () => ({ ...CLOCKS_DATA }),
+  calendar:      () => ({ ...CALENDAR_DATA }),
+  bibleoverview: () => ({ ...BIBLE_OVERVIEW_DATA }),
+  biblebooks:    () => ({ ...BIBLE_BOOKS_DATA }),
 };
 
 // Load base data for a deck, overlaid with any user edits from localStorage.

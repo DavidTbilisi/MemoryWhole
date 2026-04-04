@@ -2,11 +2,13 @@
 const EDITOR_KEYS = DECK_LS_KEYS;
 
 const EDITOR_TITLES = {
-  major:    'Major System (0–99)',
-  sem3:     'SEM3',
-  months:   'Month Days (Georgian ABC)',
-  clocks:   'Famous Clocks',
-  calendar: 'Calendar Months (1–12)',
+  major:         'Major System (0–99)',
+  sem3:          'SEM3',
+  months:        'Month Days (Georgian ABC)',
+  clocks:        'Famous Clocks',
+  calendar:      'Calendar Months (1–12)',
+  bibleoverview: 'Bible Overview (10 Sections)',
+  biblebooks:    'Bible Books (1–66)',
 };
 
 // Uses DECK_BASE and loadDeckData from state.js
