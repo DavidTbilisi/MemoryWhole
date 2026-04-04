@@ -11,7 +11,8 @@
       "Bash(npm test:*)",
       "Bash(git checkout:*)",
       "Bash(git merge:*)",
-      "Bash(npx playwright:*)"
+      "Bash(npx playwright:*)",
+      "Bash(npm --version)"
     ]
   }
 }

@@ -28,6 +28,10 @@ const CONFIG_GROUPS = {
   bibleoverview: [
     { label: 'All Sections', keys: Array.from({ length: 10 }, (_, i) => String(i + 1)) },
   ],
+  binary: [
+    { label: '0000–0111', keys: ['0000','0001','0010','0011','0100','0101','0110','0111'] },
+    { label: '1000–1111', keys: ['1000','1001','1010','1011','1100','1101','1110','1111'] },
+  ],
   biblebooks: [
     { label: 'Torah 1–5',            keys: ['1','2','3','4','5'] },
     { label: 'History 6–17',         keys: ['6','7','8','9','10','11','12','13','14','15','16','17'] },
@@ -47,7 +51,8 @@ const DECK_NAMES = {
   months: 'Month Days', clocks: 'Famous Clocks',
   calendar: 'Calendar Months',
   bibleoverview: 'Bible Overview',
-  biblebooks: 'Bible Books'
+  biblebooks: 'Bible Books',
+  binary: 'Binary (4-bit)'
 };
 
 // ── Quiz config screen ─────────────────────────────────────────────────────
@@ -86,6 +91,84 @@ function startQuizFromConfig() {
   showQuiz(activeDeck, subsetKeys);
 }
 
+// ── Speed Drill ────────────────────────────────────────────────────────────
+function getMultiplier(streak) {
+  if (streak >= 9) return 4;
+  if (streak >= 6) return 3;
+  if (streak >= 3) return 2;
+  return 1;
+}
+
+function updateDrillHUD() {
+  const secs = Math.max(0, drillTimeLeft);
+  const el = document.getElementById('drill-countdown');
+  el.textContent = secs.toFixed(1) + 's';
+  el.className = 'drill-countdown' + (secs <= 10 ? ' urgent' : '');
+  document.getElementById('drill-score-val').textContent = drillScore;
+  const mult = getMultiplier(score.streak);
+  const mEl = document.getElementById('drill-mult');
+  mEl.textContent = '×' + mult;
+  mEl.className = 'drill-mult' + (mult > 1 ? ' active' : '');
+}
+
+function startSpeedDrillFromConfig() {
+  const selected = [...document.querySelectorAll('.subset-btn.active')];
+  const subsetKeys = selected.flatMap(b => JSON.parse(b.dataset.keys));
+  if (subsetKeys.length < 6) { alert('Select at least 6 items.'); return; }
+  startSpeedDrill(activeDeck, subsetKeys);
+}
+
+function startSpeedDrill(deck, subsetKeys) {
+  activeDeck = deck || activeDeck;
+  data = loadDeckData(activeDeck);
+
+  if (subsetKeys && subsetKeys.length) {
+    const keySet = new Set(subsetKeys.map(String));
+    data = Object.fromEntries(Object.entries(data).filter(([k]) => keySet.has(k)));
+  }
+
+  if (Object.values(data).filter(v => v && v.trim()).length < 6) {
+    alert('Need at least 6 associations.'); return;
+  }
+
+  isSpeedDrill  = true;
+  drillScore    = 0;
+  drillTimeLeft = 60;
+  isReplaying   = false;
+  replayQueue   = [];
+  score         = { correct: 0, wrong: 0, streak: 0, times: [] };
+  numStats      = {};
+
+  document.getElementById('score-bar').classList.remove('visible');
+  document.getElementById('drill-result').classList.remove('visible');
+  document.getElementById('quiz').classList.add('is-drill');
+  updateDrillHUD();
+
+  clearInterval(drillInterval);
+  drillInterval = setInterval(() => {
+    drillTimeLeft -= 0.1;
+    updateDrillHUD();
+    if (drillTimeLeft <= 0) endSpeedDrill();
+  }, 100);
+
+  setView('quiz');
+  nextQuestion();
+}
+
+function endSpeedDrill() {
+  clearInterval(drillInterval);
+  clearInterval(timerInterval);
+  drillInterval = null;
+  timerInterval = null;
+  isSpeedDrill  = false;
+
+  document.querySelectorAll('.ans-btn').forEach(b => (b.disabled = true));
+  document.getElementById('drill-result-score').textContent = drillScore;
+  document.getElementById('drill-result-correct').textContent =
+    score.correct + ' correct · ' + score.wrong + ' wrong';
+  document.getElementById('drill-result').classList.add('visible');
+}
+
 // ── Quiz ───────────────────────────────────────────────────────────────────
 function showQuiz(deck, subsetKeys) {
   activeDeck = deck || activeDeck;
@@ -103,13 +186,16 @@ function showQuiz(deck, subsetKeys) {
     return;
   }
 
-  isReplaying = false;
-  replayQueue = [];
+  isSpeedDrill = false;
+  isReplaying  = false;
+  replayQueue  = [];
   loadWeights(activeDeck);
-  score = { correct: 0, wrong: 0, streak: 0, times: [] };
+  score    = { correct: 0, wrong: 0, streak: 0, times: [] };
   numStats = {};
   updateScoreBar();
   setReplayBanner(false);
+  document.getElementById('quiz').classList.remove('is-drill');
+  document.getElementById('drill-result').classList.remove('visible');
   document.getElementById('score-bar').classList.add('visible');
   setView('quiz');
   nextQuestion();
@@ -199,12 +285,21 @@ function handleAnswer(clickedBtn, chosen) {
   const fb = document.getElementById('q-feedback');
   if (isCorrect) {
     clickedBtn.classList.add('correct-ans');
-    fb.textContent = `✓ Correct! (${elapsed.toFixed(1)}s)`;
-    fb.className = 'feedback correct';
     score.correct++;
     score.streak++;
     numStats[currentNum].correct++;
-    updateScoreBar();
+
+    if (isSpeedDrill) {
+      const mult = getMultiplier(score.streak);
+      drillScore += 10 * mult;
+      updateDrillHUD();
+      fb.textContent = `+${10 * mult} pts ×${mult}`;
+      fb.className = 'feedback correct';
+    } else {
+      fb.textContent = `✓ Correct! (${elapsed.toFixed(1)}s)`;
+      fb.className = 'feedback correct';
+      updateScoreBar();
+    }
 
     if (isReplaying) {
       replayQueue = replayQueue.filter(k => k !== currentNum);
@@ -221,18 +316,26 @@ function handleAnswer(clickedBtn, chosen) {
     document.querySelectorAll('.ans-btn').forEach(b => {
       if (b.textContent === currentAnswer) b.classList.add('correct-ans');
     });
-    fb.textContent = `✗ It was: ${currentAnswer} (${elapsed.toFixed(1)}s)`;
-    fb.className = 'feedback wrong';
     score.wrong++;
     score.streak = 0;
     numStats[currentNum].wrong++;
-    updateScoreBar();
-    setTimeout(nextQuestion, 1600);
+
+    if (isSpeedDrill) {
+      updateDrillHUD();
+      fb.textContent = `✗ ${currentAnswer}`;
+      fb.className = 'feedback wrong';
+    } else {
+      fb.textContent = `✗ It was: ${currentAnswer} (${elapsed.toFixed(1)}s)`;
+      fb.className = 'feedback wrong';
+      updateScoreBar();
+    }
+    setTimeout(nextQuestion, isSpeedDrill ? 800 : 1600);
   }
 }
 
 // ── Finish & mistake replay ────────────────────────────────────────────────
 function finishQuiz() {
+  if (isSpeedDrill) { endSpeedDrill(); return; }
   clearInterval(timerInterval);
   timerInterval = null;
 

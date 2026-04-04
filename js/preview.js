@@ -58,6 +58,23 @@ function showPreview(deck) {
       td.innerHTML = `<span class="cell-word" style="white-space:normal">${MONTHS_FULL[key] || '—'}</span>`;
     }
 
+  } else if (deck === 'binary') {
+    document.getElementById('preview-title').textContent = 'Binary 4-bit (0000–1111)';
+
+    addTableHeaders(table, ['Syllable', 'Image', '']);
+    const tbody = table.createTBody();
+    BINARY_META.forEach(({ bits, syllable, image, emoji }) => {
+      const row = tbody.insertRow();
+      addRowHead(row, bits);
+      const syl = row.insertCell();
+      syl.innerHTML = `<span class="cell-word" style="font-size:1.1rem;font-weight:700;color:#7c3aed">${syllable}</span>`;
+      const img = row.insertCell();
+      img.innerHTML = `<span class="cell-word">${image}</span>`;
+      const em = row.insertCell();
+      em.style.fontSize = '1.5rem';
+      em.textContent = emoji;
+    });
+
   } else if (deck === 'biblebooks') {
     document.getElementById('preview-title').textContent = 'Bible Books (1–66)';
 
