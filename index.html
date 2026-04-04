@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mnemonic Training</title>
-  <link rel="stylesheet" href="styles.css?v=11">
+  <link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body>
 
@@ -56,6 +56,29 @@
         <span id="auth-name" class="auth-name"></span>
         <button class="btn btn-secondary" style="min-width:auto;padding:.4rem 1rem;font-size:.85rem" onclick="window.fbSignOut()">Sign out</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Global Stats Bar -->
+  <div id="global-stats-bar">
+    <div class="gstat">
+      <div class="gstat-val" id="gs-kp">0</div>
+      <div class="gstat-lbl">🧠 Knowledge Pts</div>
+    </div>
+    <div class="gstat-divider"></div>
+    <div class="gstat">
+      <div class="gstat-val" id="gs-acc">—</div>
+      <div class="gstat-lbl">🎯 Accuracy</div>
+    </div>
+    <div class="gstat-divider"></div>
+    <div class="gstat">
+      <div class="gstat-val" id="gs-sessions">0</div>
+      <div class="gstat-lbl">📅 Sessions</div>
+    </div>
+    <div class="gstat-divider"></div>
+    <div class="gstat">
+      <div class="gstat-val" id="gs-attempts">0</div>
+      <div class="gstat-lbl">⚡ Attempts</div>
     </div>
   </div>
 
@@ -326,8 +349,8 @@
 
 <script type="module" src="js/firebase.js"></script>
 <script src="js/data.js?v=5"></script>
-<script src="js/state.js?v=2"></script>
-<script src="js/analytics.js"></script>
+<script src="js/state.js?v=3"></script>
+<script src="js/analytics.js?v=2"></script>
 <script src="js/quiz.js?v=3"></script>
 <script src="js/stats.js"></script>
 <script src="js/editor.js?v=3"></script>

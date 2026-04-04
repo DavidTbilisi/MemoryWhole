@@ -13,6 +13,7 @@ function loadAnalytics() {
     allTimeStats = {};
     deckStats = {};
   }
+  refreshGlobalStats();
 }
 
 function saveAnalytics() {
@@ -204,7 +205,69 @@ function showDashboard(deck) {
 function recordQuizSession(deck, sessionStats) {
   recordSessionStats(deck, sessionStats);
   refreshHomeMastery();
+  refreshGlobalStats();
 }
+
+// ── Global stats bar ───────────────────────────────────────────────────────
+function refreshGlobalStats() {
+  const allDecks = ['major','sem3','months','clocks','pao','binary','calendar','bibleoverview','biblebooks'];
+
+  let totalAttempts = 0, totalCorrect = 0, totalSessions = 0, knowledgePoints = 0;
+
+  allDecks.forEach(deck => {
+    const at = allTimeStats[deck];
+    if (at) {
+      totalAttempts += at.totalAttempts || 0;
+      totalCorrect  += at.totalCorrect  || 0;
+      totalSessions += at.totalSessions || 0;
+    }
+    const items = getDeckStats(deck);
+    items.forEach(item => {
+      if (item.attempts >= 5 && parseFloat(item.accuracy) >= 95) knowledgePoints++;
+    });
+  });
+
+  const accuracy = totalAttempts > 0
+    ? (totalCorrect / totalAttempts * 100).toFixed(1) + '%'
+    : '—';
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('gs-kp',       knowledgePoints);
+  set('gs-acc',      accuracy);
+  set('gs-sessions', totalSessions);
+  set('gs-attempts', totalAttempts);
+}
+
+// ── Cloud analytics sync ───────────────────────────────────────────────────
+// Called by firebase.js after sign-in to push/pull analytics from Firestore.
+// Strategy: cloud wins if it has more attempts (trained on another device);
+// otherwise push local data up to cloud.
+function loadAnalyticsFromCloud(cloudAll, cloudDeck) {
+  const localAttempts = Object.values(allTimeStats)
+    .reduce((s, d) => s + (d?.totalAttempts || 0), 0);
+  const cloudAttempts = Object.values(cloudAll || {})
+    .reduce((s, d) => s + (d?.totalAttempts || 0), 0);
+
+  if (cloudAll && cloudAttempts >= localAttempts) {
+    // Cloud is ahead (or equal) — use cloud
+    allTimeStats = cloudAll;
+    localStorage.setItem(ANALYTICS_KEY, JSON.stringify(allTimeStats));
+  } else if (Object.keys(allTimeStats).length > 0) {
+    // Local is ahead — push up
+    window.fbSave?.('analytics', allTimeStats);
+  }
+
+  if (cloudDeck && cloudAttempts >= localAttempts) {
+    deckStats = cloudDeck;
+    localStorage.setItem(DECK_ANALYTICS_KEY, JSON.stringify(deckStats));
+  } else if (Object.keys(deckStats).length > 0) {
+    window.fbSave?.('deckStats', deckStats);
+  }
+
+  refreshHomeMastery();
+  refreshGlobalStats();
+}
+window.loadAnalyticsFromCloud = loadAnalyticsFromCloud;
 
 // Render tiny mastery badge on each home card
 function refreshHomeMastery() {
