@@ -43,15 +43,17 @@ onAuthStateChanged(auth, async user => {
   if (user) await pullOrPush(user);
 });
 
-const DECKS         = ['major', 'sem3', 'months', 'clocks'];
-const NON_MAJOR     = ['sem3', 'months', 'clocks'];
+const ALL_DECKS  = ['major','sem3','months','clocks','calendar','bibleoverview','biblebooks','binary','pao'];
+const NON_MAJOR  = ALL_DECKS.filter(d => d !== 'major');
 
 async function pullOrPush() {
-  // Fetch major assoc + non-major edits + weights all at once
-  const [majorAssoc, ...rest] = await Promise.all([
+  // Fetch everything in one round-trip
+  const [majorAssoc, cloudAnalytics, cloudDeckStats, ...rest] = await Promise.all([
     window.fbLoad('major_assoc'),
-    ...NON_MAJOR.map(d  => window.fbLoad(d + '_edits')),
-    ...DECKS.map(d      => window.fbLoad('weights_' + d)),
+    window.fbLoad('analytics'),
+    window.fbLoad('deckStats'),
+    ...NON_MAJOR.map(d => window.fbLoad(d + '_edits')),
+    ...ALL_DECKS.map(d => window.fbLoad('weights_' + d)),
   ]);
   const nonMajorEdits = rest.slice(0, NON_MAJOR.length);
   const cloudWeights  = rest.slice(NON_MAJOR.length);
@@ -67,7 +69,7 @@ async function pullOrPush() {
     localStorage.setItem(LS_KEY, JSON.stringify(toSave));
   }
 
-  // ── Non-major deck edits (sem3 / months / clocks) ───────────────────────
+  // ── Non-major deck edits ────────────────────────────────────────────────
   NON_MAJOR.forEach((d, i) => {
     const lsKey = DECK_LS_KEYS[d];
     if (nonMajorEdits[i]) {
@@ -79,7 +81,7 @@ async function pullOrPush() {
   });
 
   // ── Weights ─────────────────────────────────────────────────────────────
-  DECKS.forEach((d, i) => {
+  ALL_DECKS.forEach((d, i) => {
     if (cloudWeights[i]) {
       localStorage.setItem('weights_' + d, JSON.stringify(cloudWeights[i]));
     } else {
@@ -88,8 +90,13 @@ async function pullOrPush() {
     }
   });
 
+  // ── Analytics (cross-device sync) ──────────────────────────────────────
+  if (window.loadAnalyticsFromCloud) {
+    window.loadAnalyticsFromCloud(cloudAnalytics, cloudDeckStats);
+  }
+
   loadData();
-  showToast('Synced from cloud ☁');
+  showToast('Synced ☁');
 }
 
 function updateAuthUI(user) {
