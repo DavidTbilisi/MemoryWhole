@@ -349,6 +349,17 @@ body {
   overflow-y: auto;
   flex: 1;
 }
+/* Long-value decks (clocks, bible…) — two readable columns */
+.editor-grid[data-mode="wide"] {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+.editor-grid[data-mode="wide"] .num-badge {
+  min-width: 2.4rem;
+  font-size: 0.85rem;
+}
+.editor-grid[data-mode="wide"] .word-input {
+  font-size: 0.95rem;
+}
 .editor-row {
   display: flex;
   align-items: center;

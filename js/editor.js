@@ -15,9 +15,14 @@ const EDITOR_TITLES = {
 
 let editorDeck = 'major';
 
+// Decks whose values are long phrases — use a single-column wide layout
+const WIDE_DECKS = new Set(['clocks', 'bibleoverview', 'biblebooks']);
+
 function showEditor(deck) {
   editorDeck = deck || 'major';
   document.getElementById('editor-title').textContent = EDITOR_TITLES[editorDeck];
+  const grid = document.getElementById('editor-grid');
+  grid.dataset.mode = WIDE_DECKS.has(editorDeck) ? 'wide' : 'compact';
   buildEditor(loadDeckData(editorDeck));
   setView('editor');
 }
