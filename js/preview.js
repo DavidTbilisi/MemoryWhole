@@ -58,6 +58,32 @@ function showPreview(deck) {
       td.innerHTML = `<span class="cell-word" style="white-space:normal">${MONTHS_FULL[key] || '—'}</span>`;
     }
 
+  } else if (deck === 'biblebooks') {
+    document.getElementById('preview-title').textContent = 'Bible Books (1–66)';
+
+    addTableHeaders(table, ['Book', 'Ch.', 'Major', 'Mnemonic']);
+    const tbody = table.createTBody();
+
+    let lastSection = null;
+    BIBLE_BOOKS_META.forEach(({ order, book, ch, section, major, mnemonic }) => {
+      // Section divider row
+      if (section !== lastSection) {
+        lastSection = section;
+        const divRow = tbody.insertRow();
+        const td = divRow.insertCell();
+        td.colSpan = 5;
+        td.style.cssText = 'background:#1a2540;color:#7c3aed;font-weight:700;font-size:0.8rem;padding:0.4rem 0.8rem;letter-spacing:.06em;text-transform:uppercase;';
+        td.textContent = section;
+      }
+      const row = tbody.insertRow();
+      addRowHead(row, order);
+      [book, ch, major, mnemonic].forEach((val, i) => {
+        const td = row.insertCell();
+        const style = i === 3 ? 'white-space:normal;font-style:italic;color:#a0aec0;' : '';
+        td.innerHTML = `<span class="cell-word" style="${style}">${val}</span>`;
+      });
+    });
+
   } else if (deck === 'clocks') {
     document.getElementById('preview-title').textContent = 'Famous Clocks';
 

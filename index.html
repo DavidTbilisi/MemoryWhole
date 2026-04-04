@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mnemonic Training</title>
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
 
@@ -186,6 +186,7 @@
       <button class="deck-quiz-btn" onclick="showQuizConfig('biblebooks')">▶ Start Quiz</button>
       <div class="deck-actions">
         <button class="deck-action-btn" onclick="showDashboard('biblebooks')" title="Dashboard">📊<span>Stats</span></button>
+        <button class="deck-action-btn" onclick="showPreview('biblebooks')"   title="Preview Table">⊞<span>Preview</span></button>
         <button class="deck-action-btn" onclick="showEditor('biblebooks')"    title="Edit Associations">✎<span>Edit</span></button>
         <button class="deck-action-btn" onclick="exportDeck('biblebooks')"    title="Export Data">⬇<span>Export</span></button>
       </div>
@@ -263,13 +264,13 @@
 <div class="toast" id="toast"></div>
 
 <script type="module" src="js/firebase.js"></script>
-<script src="js/data.js"></script>
+<script src="js/data.js?v=2"></script>
 <script src="js/state.js"></script>
 <script src="js/analytics.js"></script>
 <script src="js/quiz.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/editor.js?v=3"></script>
-<script src="js/preview.js"></script>
+<script src="js/preview.js?v=2"></script>
 <script>loadData(); loadAnalytics(); refreshHomeMastery();</script>
 
 </body>
