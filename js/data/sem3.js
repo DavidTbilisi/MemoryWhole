@@ -1,0 +1,38 @@
+// ── SEM3 (0–99, 4-digit keys: sense×100 + sequence) ─────────────────────────
+// Quiz answer = "Sense - Association"
+
+const SEM3_DATA = {
+  "0100":"Vision - Dinosaur",  "0200":"Vision - Nobility",   "0300":"Vision - Moonlight",
+  "0400":"Vision - Ravine",    "0500":"Vision - Lightning",   "0600":"Vision - Church",
+  "0700":"Vision - Concorde",  "0800":"Vision - Fire",        "0900":"Vision - Painting",
+  "1000":"Sound - Sing",       "1100":"Sound - Drum",         "1200":"Sound - Neigh",
+  "1300":"Sound - Moan",       "1400":"Sound - Roar",         "1500":"Sound - Lap",
+  "1600":"Sound - Shh",        "1700":"Sound - Gong",         "1800":"Sound - Violine",
+  "1900":"Sound - Piano",      "2000":"Smell - Seaweed",      "2100":"Smell - Tar",
+  "2200":"Smell - Nutmeg",     "2300":"Smell - Mint",         "2400":"Smell - Rose",
+  "2500":"Smell - Leather",    "2600":"Smell - Cheese",       "2700":"Smell - Coffee",
+  "2800":"Smell - Forest",     "2900":"Smell - Bread",        "3000":"Taste - Spaghetti",
+  "3100":"Taste - Tomato",     "3200":"Taste - Nuts",         "3300":"Taste - Mango",
+  "3400":"Taste - Rhubarb",    "3500":"Taste - Lemon",        "3600":"Taste - Cherry",
+  "3700":"Taste - Custard",    "3800":"Taste - Fudge",        "3900":"Taste - Banana",
+  "4000":"Touch - Sand",       "4100":"Touch - Dump",         "4200":"Touch - Newspaper",
+  "4300":"Touch - Mud",        "4400":"Touch - Rock",         "4500":"Touch - Lather",
+  "4600":"Touch - Jelly",      "4700":"Touch - Grass",        "4800":"Touch - Velvet",
+  "4900":"Touch - Bark",       "5000":"Sensation - Swim",     "5100":"Sensation - Dancing",
+  "5200":"Sensation - Nuzzling","5300":"Sensation - Mingling","5400":"Sensation - Rubbing",
+  "5500":"Sensation - Loving", "5600":"Sensation - Shaking",  "5700":"Sensation - Climbing",
+  "5800":"Sensation - Flying", "5900":"Sensation - Peace",    "6000":"Animals - Zebra",
+  "6100":"Animals - Deer",     "6200":"Animals - Newt",       "6300":"Animals - Monkey",
+  "6400":"Animals - Rhino",    "6500":"Animals - Elephant",   "6600":"Animals - Giraffe",
+  "6700":"Animals - Kangaroo", "6800":"Animals - Fox",        "6900":"Animals - Bear",
+  "7000":"Birds - Seagull",    "7100":"Birds - Duck",         "7200":"Birds - Nighteagle",
+  "7300":"Birds - Magpie",     "7400":"Birds - Robin",        "7500":"Birds - Lark",
+  "7600":"Birds - Chicken",    "7700":"Birds - Kingfisher",   "7800":"Birds - Flamingo",
+  "7900":"Birds - Peacock",    "8000":"Rainbow - Red",        "8100":"Rainbow - Orange",
+  "8200":"Rainbow - Yellow",   "8300":"Rainbow - Green",      "8400":"Rainbow - Blue",
+  "8500":"Rainbow - Indigo",   "8600":"Rainbow - Violet",     "8700":"Rainbow - Black",
+  "8800":"Rainbow - Gray",     "8900":"Rainbow - White",      "9000":"Solar-System - Sun",
+  "9100":"Solar-System - Mercury","9200":"Solar-System - Venus","9300":"Solar-System - Earth",
+  "9400":"Solar-System - Mars","9500":"Solar-System - Jupiter","9600":"Solar-System - Saturn",
+  "9700":"Solar-System - Uranus","9800":"Solar-System - Neptune","9900":"Solar-System - Pluto"
+};

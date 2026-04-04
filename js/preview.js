@@ -128,6 +128,22 @@ function showPreview(deck) {
       });
     });
 
+  } else if (deck === 'pegmatrix') {
+    document.getElementById('preview-title').textContent = 'Peg Matrix (00–99)';
+
+    // Column headers = Visual pegs (shape-based)
+    addTableHeaders(table, Object.values(PEG_VISUAL));
+    const tbody = table.createTBody();
+    // Rows = Audio pegs (rhyme-based)
+    for (let r = 0; r <= 9; r++) {
+      const row = tbody.insertRow();
+      addRowHead(row, PEG_AUDIO[r]);
+      for (let c = 0; c <= 9; c++) {
+        const key = String(r * 10 + c).padStart(2, '0');
+        addCell(row, key, '');
+      }
+    }
+
   } else if (deck === 'clocks') {
     document.getElementById('preview-title').textContent = 'Famous Clocks';
 
