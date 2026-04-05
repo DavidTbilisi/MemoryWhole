@@ -237,6 +237,14 @@ function showQuiz(deck, subsetKeys) {
   nextQuestion();
 }
 
+function onAnswerKey(e) {
+  const n = parseInt(e.key);
+  if (n >= 1 && n <= 6) {
+    const btn = document.querySelector(`.ans-btn[data-index="${n - 1}"]`);
+    if (btn && !btn.disabled) btn.click();
+  }
+}
+
 function startTimer() {
   clearInterval(timerInterval);
   questionStartTime = Date.now();
@@ -245,11 +253,13 @@ function startTimer() {
   timerInterval = setInterval(() => {
     el.textContent = ((Date.now() - questionStartTime) / 1000).toFixed(1) + 's';
   }, 100);
+  document.addEventListener('keydown', onAnswerKey);
 }
 
 function stopTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
+  document.removeEventListener('keydown', onAnswerKey);
   return (Date.now() - questionStartTime) / 1000;
 }
 
@@ -288,10 +298,11 @@ function nextQuestion() {
   const options = shuffle([currentAnswer, ...wrongs]);
   const grid = document.getElementById('q-answers');
   grid.innerHTML = '';
-  options.forEach(opt => {
+  options.forEach((opt, i) => {
     const btn = document.createElement('button');
     btn.className = 'ans-btn';
     btn.textContent = opt;
+    btn.dataset.index = i;
     btn.onclick = () => handleAnswer(btn, opt);
     grid.appendChild(btn);
   });
