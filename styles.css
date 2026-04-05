@@ -388,6 +388,21 @@ body {
 .ans-btn.correct-ans { background: #064e3b; border-color: #10b981; color: #10b981; }
 .ans-btn.wrong-ans   { background: #450a0a; border-color: #ef4444; color: #ef4444; }
 
+/* ── Peg Matrix images ── */
+#q-peg-images {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 0.5rem 0;
+}
+#q-peg-images img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #1a1a2e;
+}
+
 /* ── Speed Drill ── */
 .btn-drill {
   background: linear-gradient(135deg, #f59e0b, #ef4444);

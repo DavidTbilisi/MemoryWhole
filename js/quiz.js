@@ -289,6 +289,18 @@ function nextQuestion() {
   document.getElementById('q-label').textContent =
     DECK_QUESTION_LABELS[activeDeck] || "What's the word?";
 
+  const pegImgEl = document.getElementById('q-peg-images');
+  if (activeDeck === 'pegmatrix' && typeof PEG_IMAGES !== 'undefined') {
+    const n = parseInt(num, 10);
+    const audioIdx = Math.floor(n / 10);
+    const visualIdx = n % 10;
+    document.getElementById('q-peg-audio-img').src = PEG_IMAGES.audio[audioIdx] || '';
+    document.getElementById('q-peg-visual-img').src = PEG_IMAGES.visual[visualIdx] || '';
+    pegImgEl.style.display = 'flex';
+  } else {
+    pegImgEl.style.display = 'none';
+  }
+
   const wrongs = fullPool
     .filter(([n]) => n !== num)
     .sort(() => Math.random() - 0.5)
