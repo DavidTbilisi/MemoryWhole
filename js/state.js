@@ -30,6 +30,7 @@ const DECK_LS_KEYS = {
   binary:        'binaryEdits_v1',
   pao:           'paoEdits_v1',
   pegmatrix:     'pegmatrixEdits_v1',
+  pegmatrixru:   'pegmatrixruEdits_v1',
 };
 
 const DECK_BASE = {
@@ -43,6 +44,7 @@ const DECK_BASE = {
   binary:        () => ({ ...BINARY_DATA }),
   pao:           () => ({ ...PAO_DATA }),
   pegmatrix:     () => ({ ...PEG_MATRIX_DATA }),
+  pegmatrixru:   () => ({ ...PEG_MATRIX_RU_DATA }),
 };
 
 // Load base data for a deck, overlaid with any user edits from localStorage.

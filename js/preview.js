@@ -144,6 +144,22 @@ function showPreview(deck) {
       }
     }
 
+  } else if (deck === 'pegmatrixru') {
+    document.getElementById('preview-title').textContent = 'Пег Матрица RU (00–99)';
+
+    // Column headers = Visual pegs (shape-based, Russian)
+    addTableHeaders(table, Object.values(PEG_VISUAL_RU));
+    const tbody = table.createTBody();
+    // Rows = Audio pegs (rhyme-based, Russian)
+    for (let r = 0; r <= 9; r++) {
+      const row = tbody.insertRow();
+      addRowHead(row, PEG_AUDIO_RU[r]);
+      for (let c = 0; c <= 9; c++) {
+        const key = String(r * 10 + c).padStart(2, '0');
+        addCell(row, key, '');
+      }
+    }
+
   } else if (deck === 'clocks') {
     document.getElementById('preview-title').textContent = 'Famous Clocks';
 
