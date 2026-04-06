@@ -289,35 +289,66 @@ function nextQuestion() {
   document.getElementById('q-label').textContent =
     DECK_QUESTION_LABELS[activeDeck] || "What's the word?";
 
-  const pegImgEl = document.getElementById('q-peg-images');
-  if (activeDeck === 'pegmatrix' && typeof PEG_IMAGES !== 'undefined') {
-    const n = parseInt(num, 10);
-    const audioIdx = Math.floor(n / 10);
-    const visualIdx = n % 10;
-    document.getElementById('q-peg-audio-img').src = PEG_IMAGES.audio[audioIdx] || '';
-    document.getElementById('q-peg-visual-img').src = PEG_IMAGES.visual[visualIdx] || '';
-    pegImgEl.style.display = 'flex';
-  } else {
-    pegImgEl.style.display = 'none';
-  }
+  document.getElementById('q-peg-images').style.display = 'none';
 
-  const wrongs = fullPool
-    .filter(([n]) => n !== num)
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 5)
-    .map(([, v]) => v.trim());
-
-  const options = shuffle([currentAnswer, ...wrongs]);
   const grid = document.getElementById('q-answers');
   grid.innerHTML = '';
-  options.forEach((opt, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'ans-btn';
-    btn.textContent = opt;
-    btn.dataset.index = i;
-    btn.onclick = () => handleAnswer(btn, opt);
-    grid.appendChild(btn);
-  });
+
+  if (activeDeck === 'pegmatrix' && typeof PEG_IMAGES !== 'undefined') {
+    const wrongNums = fullPool
+      .filter(([k]) => k !== num)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 5)
+      .map(([k]) => k);
+
+    const optionNums = shuffle([num, ...wrongNums]);
+    optionNums.forEach((optNum, i) => {
+      const n = parseInt(optNum, 10);
+      const audioIdx = Math.floor(n / 10);
+      const visualIdx = n % 10;
+      const optValue = data[optNum].trim();
+
+      const btn = document.createElement('button');
+      btn.className = 'ans-btn ans-btn-image';
+      btn.dataset.index = i;
+      btn.dataset.answer = optValue;
+      btn.onclick = () => handleAnswer(btn, optValue);
+
+      const makeImgWrap = (src, label) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'peg-img-wrap';
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = '';
+        const span = document.createElement('span');
+        span.textContent = label;
+        wrap.appendChild(img);
+        wrap.appendChild(span);
+        return wrap;
+      };
+
+      btn.appendChild(makeImgWrap(PEG_IMAGES.audio[audioIdx] || '', PEG_AUDIO[audioIdx]));
+      btn.appendChild(makeImgWrap(PEG_IMAGES.visual[visualIdx] || '', PEG_VISUAL[visualIdx]));
+      grid.appendChild(btn);
+    });
+  } else {
+    const wrongs = fullPool
+      .filter(([k]) => k !== num)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 5)
+      .map(([, v]) => v.trim());
+
+    const options = shuffle([currentAnswer, ...wrongs]);
+    options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'ans-btn';
+      btn.textContent = opt;
+      btn.dataset.index = i;
+      btn.dataset.answer = opt;
+      btn.onclick = () => handleAnswer(btn, opt);
+      grid.appendChild(btn);
+    });
+  }
 
   startTimer();
 }
@@ -375,7 +406,7 @@ function handleAnswer(clickedBtn, chosen) {
   } else {
     clickedBtn.classList.add('wrong-ans');
     document.querySelectorAll('.ans-btn').forEach(b => {
-      if (b.textContent === currentAnswer) b.classList.add('correct-ans');
+      if (b.dataset.answer === currentAnswer) b.classList.add('correct-ans');
     });
     score.wrong++;
     score.streak = 0;
