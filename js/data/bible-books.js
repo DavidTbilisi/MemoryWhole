@@ -119,3 +119,40 @@ const BIBLE_BOOKS_META = [
   // ── Revelation ─────────────────────────────────────────────────────────
   { order:66, book:"Revelation",      ch:22,  section:"Revelation",     major:"Nun",      mnemonic:"End revealed by nun" },
 ];
+
+// Images use the Major System mnemonic image for each book's associated word.
+// book → major word → MAJOR_IMAGES key (number)
+// Genesis→Lace(50), Exodus→Race(40), Leviticus→Nag(27), Numbers→Mash(36), Deuteronomy→Mare(34)
+// Joshua→Nero(24), Judges→Net(21), Ruth→Ra(4), 1Sam→Mat(31), 2Sam→Nero(24)
+// 1Kings→Nun(22), 2Kings→Nail(25), 1Chr→Nab(29), 2Chr→Mash(36), Ezra→Daze(10)
+// Nehemiah→Dome(13), Esther→Daze(10), Job→Rain(42), Psalms→Day(1)+Lace(50)→use Lace(50)
+// Proverbs→Mat(31), Ecclesiastes→DNA(12), SongOfSol→Ava(8)
+// Isaiah→Cha-cha(66), Jeremiah→Lane(52), Lamentations→Law(5), Ezekiel→Rafia(48), Daniel→DNA(12)
+// Hosea→Dairy(14), Joel→Mew(3), Amos→Bay(9), Obadiah→Day(1), Jonah→Ra(4)
+// Micah→Key(7), Nahum→Mew(3), Habakkuk→Mew(3), Zephaniah→Mew(3), Haggai→Noah(2)
+// Zechariah→Dairy(14), Malachi→Ra(4)
+// Matthew→Navy(28), Mark→Dash(16), Luke→Nero(24), John→Net(21), Acts→Navy(28)
+// Romans→Dash(16), 1Cor→Dash(16), 2Cor→Dome(13), Galatians→Jaw(6), Ephesians→Jaw(6)
+// Philippians→Ra(4), Colossians→Ra(4), 1Thes→Law(5), 2Thes→Mew(3), 1Tim→Jaw(6)
+// 2Tim→Ra(4), Titus→Mew(3), Philemon→Day(1)
+// Hebrews→Dome(13), James→Law(5), 1Pet→Law(5), 2Pet→Mew(3), 1John→Law(5)
+// 2John→Day(1), 3John→Day(1), Jude→Day(1), Revelation→Nun(22)
+const BIBLE_BOOKS_IMAGES = (() => {
+  const M = typeof MAJOR_IMAGES !== 'undefined' ? MAJOR_IMAGES : {};
+  return {
+    "1": M[50],  "2": M[40],  "3": M[27],  "4": M[36],  "5": M[34],
+    "6": M[24],  "7": M[21],  "8": M[4],   "9": M[31],  "10": M[24],
+    "11": M[22], "12": M[25], "13": M[29], "14": M[36], "15": M[10],
+    "16": M[13], "17": M[10], "18": M[42], "19": M[50], "20": M[31],
+    "21": M[12], "22": M[8],  "23": M[66], "24": M[52], "25": M[5],
+    "26": M[48], "27": M[12], "28": M[14], "29": M[3],  "30": M[9],
+    "31": M[1],  "32": M[4],  "33": M[7],  "34": M[3],  "35": M[3],
+    "36": M[3],  "37": M[2],  "38": M[14], "39": M[4],  "40": M[28],
+    "41": M[16], "42": M[24], "43": M[21], "44": M[28], "45": M[16],
+    "46": M[16], "47": M[13], "48": M[6],  "49": M[6],  "50": M[4],
+    "51": M[4],  "52": M[5],  "53": M[3],  "54": M[6],  "55": M[4],
+    "56": M[3],  "57": M[1],  "58": M[13], "59": M[5],  "60": M[5],
+    "61": M[3],  "62": M[5],  "63": M[1],  "64": M[1],  "65": M[1],
+    "66": M[22],
+  };
+})();

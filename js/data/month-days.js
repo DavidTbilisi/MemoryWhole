@@ -49,3 +49,40 @@ const MONTHS_FULL = {
   "32":"ჯიხვი ჯეინი ჯანსაღ ჯემში",
   "33":"ჰიპოპოტამი ჰექტორი ჰარმონიულ ჰოლში"
 };
+
+
+const MONTHS_IMAGES = {
+  1: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Eagles_together.jpg/330px-Eagles_together.jpg",
+  2: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Bubo_bubo_sibiricus_-_01.JPG/330px-Bubo_bubo_sibiricus_-_01.JPG",
+  3: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Pig_farm_Vampula_1.jpg/330px-Pig_farm_Vampula_1.jpg",
+  4: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Sinosauropteryxfossil.jpg/330px-Sinosauropteryxfossil.jpg",
+  5: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Raccoon_in_Central_Park_%2835264%29.jpg/330px-Raccoon_in_Central_Park_%2835264%29.jpg",
+  6: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Southern_right_whale.jpg/330px-Southern_right_whale.jpg",
+  7: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Plains_Zebra_Equus_quagga_cropped.jpg/330px-Plains_Zebra_Equus_quagga_cropped.jpg",
+  8: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Kret_mole.jpg/330px-Kret_mole.jpg",
+  9: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Family_Cervidae_five_species.jpg/330px-Family_Cervidae_five_species.jpg",
+  10: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Cat_August_2010-4.jpg/330px-Cat_August_2010-4.jpg",
+  11: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Snail.jpg/330px-Snail.jpg",
+  12: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Eurasian_wolf_2.jpg/330px-Eurasian_wolf_2.jpg",
+  13: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Nile_crocodile_head.jpg/330px-Nile_crocodile_head.jpg",
+  14: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Upupa_epops_Madrid_01.jpg/330px-Upupa_epops_Madrid_01.jpg",
+  15: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Fesoj_-_Papilio_machaon_%28by%29.jpg/330px-Fesoj_-_Papilio_machaon_%28by%29.jpg",
+  16: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Giraffe_Mikumi_National_Park.jpg/330px-Giraffe_Mikumi_National_Park.jpg",
+  17: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Samuel_e_david.jpg/330px-Samuel_e_david.jpg",
+  18: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/African_Bush_Elephant.jpg/330px-African_Bush_Elephant.jpg",
+  19: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/F5_tornado_Elie_Manitoba_2007.jpg/330px-F5_tornado_Elie_Manitoba_2007.jpg",
+  20: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Momo_260905.jpg/330px-Momo_260905.jpg",
+  21: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Flamingos_Laguna_Colorada.jpg/330px-Flamingos_Laguna_Colorada.jpg",
+  22: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Chamaeleonidae-01.jpg/330px-Chamaeleonidae-01.jpg",
+  23: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Big-eared-townsend-fledermaus.jpg/330px-Big-eared-townsend-fledermaus.jpg",
+  24: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Corvus_corone_-near_Canford_Cliffs%2C_Poole%2C_England-8.jpg/330px-Corvus_corone_-near_Canford_Cliffs%2C_Poole%2C_England-8.jpg",
+  25: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Roe_deer_%28Capreolus_capreolus%29_young_male_Cumnor.jpg/330px-Roe_deer_%28Capreolus_capreolus%29_young_male_Cumnor.jpg",
+  26: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Bird_Diversity_2013.png/330px-Bird_Diversity_2013.png",
+  27: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Flock_of_sheep.jpg/330px-Flock_of_sheep.jpg",
+  28: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Cow_%28Fleckvieh_breed%29_Oeschinensee_Slaunger_2009-07-07.jpg/330px-Cow_%28Fleckvieh_breed%29_Oeschinensee_Slaunger_2009-07-07.jpg",
+  29: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Yellow-faced-honeyeater_edit2.jpg/330px-Yellow-faced-honeyeater_edit2.jpg",
+  30: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Chilopoda_collage.png/330px-Chilopoda_collage.png",
+  31: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/A_Friesian_Bull%2C_Llandeilo_Graban_-_geograph.org.uk_-_579885.jpg/330px-A_Friesian_Bull%2C_Llandeilo_Graban_-_geograph.org.uk_-_579885.jpg",
+  32: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Capra_ibex_ibex.jpg/330px-Capra_ibex_ibex.jpg",
+  33: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Portrait_Hippopotamus_in_the_water.jpg/330px-Portrait_Hippopotamus_in_the_water.jpg"
+};

@@ -39,3 +39,23 @@ const BINARY_META = [
   { bits:"1110", syllable:"sta", image:"star",     emoji:"⭐" },
   { bits:"1111", syllable:"sho", image:"shoe",     emoji:"👟" },
 ];
+
+
+const BINARY_IMAGES = {
+  "1000": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Large_bonfire.jpg/330px-Large_bonfire.jpg",
+  "1001": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Saarlouis_Bombe.jpg/330px-Saarlouis_Bombe.jpg",
+  "1010": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/330px-Grosser_Panda.JPG",
+  "1011": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Sinosauropteryxfossil.jpg/330px-Sinosauropteryxfossil.jpg",
+  "1100": "https://upload.wikimedia.org/wikipedia/en/thumb/0/02/Hammersmith_Ghost.PNG/330px-Hammersmith_Ghost.PNG",
+  "1101": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Snail.jpg/330px-Snail.jpg",
+  "1110": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/The_Sun_in_white_light.jpg/330px-The_Sun_in_white_light.jpg",
+  "1111": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Air_Jordan_1_Banned.jpg/330px-Air_Jordan_1_Banned.jpg",
+  "0000": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Colubridae-01.jpg/330px-Colubridae-01.jpg",
+  "0001": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Target_223_Savage_10FP_25_shot.jpg/330px-Target_223_Savage_10FP_25_shot.jpg",
+  "0010": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Blausen_0657_MultipolarNeuron.png/330px-Blausen_0657_MultipolarNeuron.png",
+  "0011": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/FullMoon2010.jpg/330px-FullMoon2010.jpg",
+  "0100": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/The_Sun_in_white_light.jpg/330px-The_Sun_in_white_light.jpg",
+  "0101": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Padlock_kl%C3%B3dka_ubt.JPG/330px-Padlock_kl%C3%B3dka_ubt.JPG",
+  "0110": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Goblin_illustration_from_19th_century.png/330px-Goblin_illustration_from_19th_century.png",
+  "0111": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Damascus_Bowie.jpg/330px-Damascus_Bowie.jpg"
+};

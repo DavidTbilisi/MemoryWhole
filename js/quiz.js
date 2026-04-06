@@ -294,7 +294,42 @@ function nextQuestion() {
   const grid = document.getElementById('q-answers');
   grid.innerHTML = '';
 
-  if (activeDeck === 'pegmatrix' && typeof PEG_IMAGES !== 'undefined') {
+  // Peg Matrix: two images per option (audio peg + visual peg)
+  const pegImageDefs = activeDeck === 'pegmatrix' && typeof PEG_IMAGES !== 'undefined'
+    ? { images: PEG_IMAGES, audio: PEG_AUDIO, visual: PEG_VISUAL }
+    : activeDeck === 'pegmatrixru' && typeof PEG_IMAGES_RU !== 'undefined'
+    ? { images: PEG_IMAGES_RU, audio: PEG_AUDIO_RU, visual: PEG_VISUAL_RU }
+    : null;
+
+  // Single-image decks: key → image URL
+  const singleImageMap = {
+    sem3:          typeof SEM3_IMAGES           !== 'undefined' ? SEM3_IMAGES           : null,
+    major:         typeof MAJOR_IMAGES          !== 'undefined' ? MAJOR_IMAGES          : null,
+    months:        typeof MONTHS_IMAGES         !== 'undefined' ? MONTHS_IMAGES         : null,
+    clocks:        typeof CLOCKS_IMAGES         !== 'undefined' ? CLOCKS_IMAGES         : null,
+    pao:           typeof PAO_IMAGES            !== 'undefined' ? PAO_IMAGES            : null,
+    binary:        typeof BINARY_IMAGES         !== 'undefined' ? BINARY_IMAGES         : null,
+    calendar:      typeof CALENDAR_IMAGES       !== 'undefined' ? CALENDAR_IMAGES       : null,
+    biblebooks:    typeof BIBLE_BOOKS_IMAGES    !== 'undefined' ? BIBLE_BOOKS_IMAGES    : null,
+    bibleoverview: typeof BIBLE_OVERVIEW_IMAGES !== 'undefined' ? BIBLE_OVERVIEW_IMAGES : null,
+  };
+  const singleImages = singleImageMap[activeDeck] || null;
+
+  const makeImgWrap = (src, label) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'peg-img-wrap';
+    const img = document.createElement('img');
+    img.src = src || '';
+    img.alt = '';
+    const span = document.createElement('span');
+    span.textContent = label;
+    wrap.appendChild(img);
+    wrap.appendChild(span);
+    return wrap;
+  };
+
+  if (pegImageDefs) {
+    const { images, audio: pegAudio, visual: pegVisual } = pegImageDefs;
     const wrongNums = fullPool
       .filter(([k]) => k !== num)
       .sort(() => Math.random() - 0.5)
@@ -314,21 +349,29 @@ function nextQuestion() {
       btn.dataset.answer = optValue;
       btn.onclick = () => handleAnswer(btn, optValue);
 
-      const makeImgWrap = (src, label) => {
-        const wrap = document.createElement('div');
-        wrap.className = 'peg-img-wrap';
-        const img = document.createElement('img');
-        img.src = src;
-        img.alt = '';
-        const span = document.createElement('span');
-        span.textContent = label;
-        wrap.appendChild(img);
-        wrap.appendChild(span);
-        return wrap;
-      };
+      btn.appendChild(makeImgWrap(images.audio[audioIdx] || '', pegAudio[audioIdx]));
+      btn.appendChild(makeImgWrap(images.visual[visualIdx] || '', pegVisual[visualIdx]));
+      grid.appendChild(btn);
+    });
+  } else if (singleImages) {
+    const wrongNums = fullPool
+      .filter(([k]) => k !== num)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 5)
+      .map(([k]) => k);
 
-      btn.appendChild(makeImgWrap(PEG_IMAGES.audio[audioIdx] || '', PEG_AUDIO[audioIdx]));
-      btn.appendChild(makeImgWrap(PEG_IMAGES.visual[visualIdx] || '', PEG_VISUAL[visualIdx]));
+    const optionNums = shuffle([num, ...wrongNums]);
+    optionNums.forEach((optNum, i) => {
+      const optValue = data[optNum].trim();
+      const imgUrl = singleImages[optNum] || singleImages[parseInt(optNum, 10)] || '';
+
+      const btn = document.createElement('button');
+      btn.className = 'ans-btn ans-btn-image ans-btn-single';
+      btn.dataset.index = i;
+      btn.dataset.answer = optValue;
+      btn.onclick = () => handleAnswer(btn, optValue);
+
+      btn.appendChild(makeImgWrap(imgUrl, optValue));
       grid.appendChild(btn);
     });
   } else {
