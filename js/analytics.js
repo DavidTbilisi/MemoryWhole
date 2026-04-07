@@ -501,50 +501,57 @@ function refreshGlobalStats() {
 // Merges per deck: for each deck independently, the side with more attempts
 // for that deck wins. This means Device A can be ahead on 'major' while
 // Device B is ahead on 'sem3' — both sets of progress are preserved.
+// fbSave is called at most once per data store after the full merge is done.
 function loadAnalyticsFromCloud(cloudAll, cloudDeck) {
-  const allDecks = Object.keys(DECK_NAMES || {});
-  let changed = false;
+  // ── allTimeStats merge ────────────────────────────────────────────────────
+  const allDecks = new Set([
+    ...Object.keys(allTimeStats),
+    ...Object.keys(cloudAll || {}),
+  ]);
+  let allChanged   = false;
+  let allNeedsPush = false;
 
   allDecks.forEach(deck => {
     const local  = allTimeStats[deck];
-    const cloud  = cloudAll?.[deck];
-    const localA = local?.totalAttempts  || 0;
-    const cloudA = cloud?.totalAttempts  || 0;
+    const cloud  = (cloudAll || {})[deck];
+    const localA = local?.totalAttempts || 0;
+    const cloudA = cloud?.totalAttempts || 0;
 
     if (cloud && cloudA > localA) {
-      // Cloud is ahead for this deck — use cloud
       allTimeStats[deck] = cloud;
-      changed = true;
-    } else if (local && localA > cloudA) {
-      // Local is ahead for this deck — push to cloud
-      window.fbSave?.('analytics', allTimeStats);
+      allChanged = true;
+    } else if (localA > cloudA) {
+      allNeedsPush = true;
     }
-    // Equal: no action needed
   });
 
-  if (changed) {
-    localStorage.setItem(ANALYTICS_KEY, JSON.stringify(allTimeStats));
-  }
+  if (allChanged)   localStorage.setItem(ANALYTICS_KEY, JSON.stringify(allTimeStats));
+  if (allNeedsPush) window.fbSave?.('analytics', allTimeStats);
 
-  // Per-item deck stats — same per-deck logic
-  let deckChanged = false;
-  allDecks.forEach(deck => {
-    const localItems  = deckStats[deck];
-    const cloudItems  = cloudDeck?.[deck];
-    const localTotal  = localItems  ? Object.values(localItems).reduce((s, i) => s + i.attempts, 0) : 0;
-    const cloudTotal  = cloudItems  ? Object.values(cloudItems).reduce((s, i) => s + i.attempts, 0) : 0;
+  // ── deckStats merge ───────────────────────────────────────────────────────
+  const deckKeys = new Set([
+    ...Object.keys(deckStats),
+    ...Object.keys(cloudDeck || {}),
+  ]);
+  let deckChanged   = false;
+  let deckNeedsPush = false;
+
+  deckKeys.forEach(deck => {
+    const localItems = deckStats[deck];
+    const cloudItems = (cloudDeck || {})[deck];
+    const localTotal = localItems ? Object.values(localItems).reduce((s, i) => s + i.attempts, 0) : 0;
+    const cloudTotal = cloudItems ? Object.values(cloudItems).reduce((s, i) => s + i.attempts, 0) : 0;
 
     if (cloudItems && cloudTotal > localTotal) {
       deckStats[deck] = cloudItems;
       deckChanged = true;
-    } else if (localItems && localTotal > cloudTotal) {
-      window.fbSave?.('deckStats', deckStats);
+    } else if (localTotal > cloudTotal) {
+      deckNeedsPush = true;
     }
   });
 
-  if (deckChanged) {
-    localStorage.setItem(DECK_ANALYTICS_KEY, JSON.stringify(deckStats));
-  }
+  if (deckChanged)   localStorage.setItem(DECK_ANALYTICS_KEY, JSON.stringify(deckStats));
+  if (deckNeedsPush) window.fbSave?.('deckStats', deckStats);
 
   refreshHomeMastery();
   refreshGlobalStats();
@@ -553,6 +560,7 @@ window.loadAnalyticsFromCloud = loadAnalyticsFromCloud;
 
 // Merge drill records per deck: take the best records from each device,
 // combine history by merging both arrays and deduplicating by timestamp.
+// fbSave is called at most once after the full merge is complete.
 function loadDrillRecordsFromCloud(cloudData) {
   if (!cloudData) {
     if (Object.keys(drillRecords).length > 0) window.fbSave?.('drillRecords', drillRecords);
@@ -560,24 +568,18 @@ function loadDrillRecordsFromCloud(cloudData) {
   }
 
   const allDecks = new Set([...Object.keys(drillRecords), ...Object.keys(cloudData)]);
-  let changed = false;
+  let changed   = false;
+  let needsPush = false;
 
   allDecks.forEach(deck => {
     const local = drillRecords[deck];
     const cloud = cloudData[deck];
 
-    if (!local && cloud) {
-      drillRecords[deck] = cloud;
-      changed = true;
-      return;
-    }
-    if (local && !cloud) {
-      window.fbSave?.('drillRecords', drillRecords);
-      return;
-    }
+    if (!local && cloud) { drillRecords[deck] = cloud; changed = true; return; }
+    if (local && !cloud) { needsPush = true; return; }
     if (!local && !cloud) return;
 
-    // Both exist — merge: take best of each record, combine histories
+    // Both exist — merge: take best of each field, combine histories
     const merged = {
       bestScore:    Math.max(local.bestScore    || 0, cloud.bestScore    || 0),
       bestAccuracy: Math.max(local.bestAccuracy || 0, cloud.bestAccuracy || 0),
@@ -585,7 +587,6 @@ function loadDrillRecordsFromCloud(cloudData) {
       mostCorrect:  Math.max(local.mostCorrect  || 0, cloud.mostCorrect  || 0),
       totalDrills:  Math.max(local.totalDrills  || 0, cloud.totalDrills  || 0),
       totalScore:   Math.max(local.totalScore   || 0, cloud.totalScore   || 0),
-      // Merge histories: combine, deduplicate by timestamp, sort newest first, cap at 50
       history: _mergeHistories(local.history || [], cloud.history || []),
     };
 
@@ -595,7 +596,7 @@ function loadDrillRecordsFromCloud(cloudData) {
     }
   });
 
-  if (changed) {
+  if (changed || needsPush) {
     localStorage.setItem(DRILL_RECORDS_KEY, JSON.stringify(drillRecords));
     window.fbSave?.('drillRecords', drillRecords);
   }
@@ -609,7 +610,7 @@ function _mergeHistories(a, b) {
     return true;
   });
   combined.sort((x, y) => y.ts - x.ts);
-  combined.length = Math.min(combined.length, 50);
+  if (combined.length > 50) combined.length = 50;
   return combined;
 }
 

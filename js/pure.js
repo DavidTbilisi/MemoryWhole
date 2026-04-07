@@ -172,6 +172,139 @@ export function logActivity(type, activityLog, todayKey) {
   if (type === 'session') activityLog[todayKey].sessions++;
 }
 
+// ── Sync merge helpers ─────────────────────────────────────────────────────
+
+/**
+ * Merge allTimeStats per deck: for each deck, whichever side has more
+ * totalAttempts wins for that deck. Returns { merged, needsPush }.
+ * needsPush = true when local was ahead on at least one deck (should push to cloud).
+ */
+export function mergeAllTimeStats(local, cloud) {
+  const merged = { ...local };
+  let needsPush = false;
+  let changed   = false;
+
+  const allDecks = new Set([...Object.keys(local), ...Object.keys(cloud || {})]);
+  allDecks.forEach(deck => {
+    const l = local[deck];
+    const c = (cloud || {})[deck];
+    const lA = l?.totalAttempts || 0;
+    const cA = c?.totalAttempts || 0;
+
+    if (c && cA > lA) {
+      merged[deck] = c;
+      changed = true;
+    } else if (lA > cA) {
+      needsPush = true;
+    }
+  });
+
+  return { merged, changed, needsPush };
+}
+
+/**
+ * Merge deckStats per deck per item: for each deck, whichever side has more
+ * total attempts for that deck wins. Returns { merged, needsPush }.
+ */
+export function mergeDeckStats(local, cloud) {
+  const merged = { ...local };
+  let needsPush = false;
+  let changed   = false;
+
+  const allDecks = new Set([...Object.keys(local), ...Object.keys(cloud || {})]);
+  allDecks.forEach(deck => {
+    const lItems = local[deck];
+    const cItems = (cloud || {})[deck];
+    const lTotal = lItems ? Object.values(lItems).reduce((s, i) => s + i.attempts, 0) : 0;
+    const cTotal = cItems ? Object.values(cItems).reduce((s, i) => s + i.attempts, 0) : 0;
+
+    if (cItems && cTotal > lTotal) {
+      merged[deck] = cItems;
+      changed = true;
+    } else if (lTotal > cTotal) {
+      needsPush = true;
+    }
+  });
+
+  return { merged, changed, needsPush };
+}
+
+/**
+ * Merge drill records per deck: take Math.max for all best-* fields,
+ * combine histories (deduplicate by timestamp, newest first, cap 50).
+ * Returns { merged, needsPush }.
+ */
+export function mergeDrillRecords(local, cloud) {
+  const merged = { ...local };
+  let needsPush = false;
+  let changed   = false;
+
+  const allDecks = new Set([...Object.keys(local), ...Object.keys(cloud || {})]);
+  allDecks.forEach(deck => {
+    const l = local[deck];
+    const c = (cloud || {})[deck];
+
+    if (!l && c)  { merged[deck] = c; changed = true; return; }
+    if (l && !c)  { needsPush = true; return; }
+    if (!l && !c) return;
+
+    const mergedDeck = {
+      bestScore:    Math.max(l.bestScore    || 0, c.bestScore    || 0),
+      bestAccuracy: Math.max(l.bestAccuracy || 0, c.bestAccuracy || 0),
+      bestStreak:   Math.max(l.bestStreak   || 0, c.bestStreak   || 0),
+      mostCorrect:  Math.max(l.mostCorrect  || 0, c.mostCorrect  || 0),
+      totalDrills:  Math.max(l.totalDrills  || 0, c.totalDrills  || 0),
+      totalScore:   Math.max(l.totalScore   || 0, c.totalScore   || 0),
+      history: mergeHistories(l.history || [], c.history || []),
+    };
+
+    if (JSON.stringify(mergedDeck) !== JSON.stringify(l)) {
+      merged[deck] = mergedDeck;
+      changed = true;
+    }
+  });
+
+  return { merged, changed, needsPush: needsPush || changed };
+}
+
+/**
+ * Merge two drill history arrays: deduplicate by ts, sort newest first, cap 50.
+ */
+export function mergeHistories(a, b) {
+  const seen = new Set();
+  const combined = [...a, ...b].filter(entry => {
+    if (seen.has(entry.ts)) return false;
+    seen.add(entry.ts);
+    return true;
+  });
+  combined.sort((x, y) => y.ts - x.ts);
+  if (combined.length > 50) combined.length = 50;
+  return combined;
+}
+
+/**
+ * Merge activity logs by date: for each date, take Math.max per counter.
+ * This avoids double-counting when the same device syncs twice.
+ * Returns merged log.
+ */
+export function mergeActivityLog(local, cloud) {
+  const merged = { ...(cloud || {}) };
+
+  for (const [date, day] of Object.entries(local)) {
+    if (!merged[date]) {
+      merged[date] = { ...day };
+    } else {
+      merged[date] = {
+        drills:   Math.max(merged[date].drills   || 0, day.drills   || 0),
+        sessions: Math.max(merged[date].sessions || 0, day.sessions || 0),
+        attempts: Math.max(merged[date].attempts || 0, day.attempts || 0),
+      };
+    }
+  }
+
+  return merged;
+}
+
 // ── router.js ──────────────────────────────────────────────────────────────
 export const ROUTES = [
   { pattern: /^\/home$/,               name: 'home'      },

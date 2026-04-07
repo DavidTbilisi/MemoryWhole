@@ -161,6 +161,81 @@ function _mergeActivityLog(cloudLog) {
   window.fbSave('activityLog', merged);
 }
 
+// ── Debug helper ───────────────────────────────────────────────────────────
+// Usage in DevTools: await syncInspect()
+window.syncInspect = async function () {
+  if (!window.fbUser) { console.warn('syncInspect: not signed in'); return; }
+
+  const [cloudAll, cloudDeck, cloudDrill, cloudActivity] = await Promise.all([
+    window.fbLoad('analytics'),
+    window.fbLoad('deckStats'),
+    window.fbLoad('drillRecords'),
+    window.fbLoad('activityLog'),
+  ]);
+
+  let localAll, localDeck, localDrill, localActivity;
+  try { localAll      = JSON.parse(localStorage.getItem('analytics_v1')    || '{}'); } catch { localAll = {}; }
+  try { localDeck     = JSON.parse(localStorage.getItem('deckStats_v1')    || '{}'); } catch { localDeck = {}; }
+  try { localDrill    = JSON.parse(localStorage.getItem('drillRecords_v1') || '{}'); } catch { localDrill = {}; }
+  try { localActivity = JSON.parse(localStorage.getItem('activityLog_v1')  || '{}'); } catch { localActivity = {}; }
+
+  const report = {};
+
+  // allTimeStats per deck
+  const allDecks = new Set([
+    ...Object.keys(localAll), ...Object.keys(cloudAll || {}),
+    ...Object.keys(localDeck), ...Object.keys((cloudDeck) || {}),
+  ]);
+
+  allDecks.forEach(deck => {
+    const lA = localAll[deck]?.totalAttempts || 0;
+    const cA = (cloudAll || {})[deck]?.totalAttempts || 0;
+    const lD = localDeck[deck] ? Object.values(localDeck[deck]).reduce((s, i) => s + i.attempts, 0) : 0;
+    const cD = (cloudDeck || {})[deck] ? Object.values((cloudDeck || {})[deck]).reduce((s, i) => s + i.attempts, 0) : 0;
+    const lDr = localDrill[deck]?.totalDrills || 0;
+    const cDr = (cloudDrill || {})[deck]?.totalDrills || 0;
+    report[deck] = {
+      allTimeStats:  { local: lA,  cloud: cA,  winner: lA > cA ? 'LOCAL' : cA > lA ? 'CLOUD' : 'TIE' },
+      deckStatItems: { local: lD,  cloud: cD,  winner: lD > cD ? 'LOCAL' : cD > lD ? 'CLOUD' : 'TIE' },
+      drillRecords:  { local: lDr, cloud: cDr, winner: lDr > cDr ? 'LOCAL' : cDr > lDr ? 'CLOUD' : 'TIE' },
+    };
+  });
+
+  // Activity log
+  const allDates = new Set([...Object.keys(localActivity), ...Object.keys(cloudActivity || {})]);
+  const activityDiff = [];
+  allDates.forEach(date => {
+    const l = localActivity[date];
+    const c = (cloudActivity || {})[date];
+    if (JSON.stringify(l) !== JSON.stringify(c)) {
+      activityDiff.push({ date, local: l, cloud: c });
+    }
+  });
+
+  console.group('🔍 syncInspect — per-deck comparison');
+  console.table(Object.fromEntries(Object.entries(report).map(([k, v]) => [k, {
+    'allTime local': v.allTimeStats.local,
+    'allTime cloud': v.allTimeStats.cloud,
+    'allTime winner': v.allTimeStats.winner,
+    'deckStat local': v.deckStatItems.local,
+    'deckStat cloud': v.deckStatItems.cloud,
+    'deckStat winner': v.deckStatItems.winner,
+    'drills local': v.drillRecords.local,
+    'drills cloud': v.drillRecords.cloud,
+    'drills winner': v.drillRecords.winner,
+  }])));
+  if (activityDiff.length) {
+    console.group('📅 Activity log differences');
+    console.table(activityDiff);
+    console.groupEnd();
+  } else {
+    console.log('📅 Activity log: in sync');
+  }
+  console.groupEnd();
+
+  return { report, activityDiff, raw: { localAll, cloudAll, localDeck, cloudDeck, localDrill, cloudDrill, localActivity, cloudActivity } };
+};
+
 function updateAuthUI(user) {
   const signedOut = document.getElementById('auth-signed-out');
   const signedIn  = document.getElementById('auth-signed-in');
