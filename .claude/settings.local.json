@@ -12,7 +12,25 @@
       "Bash(git checkout:*)",
       "Bash(git merge:*)",
       "Bash(npx playwright:*)",
-      "Bash(npm --version)"
+      "Bash(npm --version)",
+      "Bash(wc -l /d/Code/MemoryWhole/js/*.js)",
+      "Bash(head -30 /d/Code/MemoryWhole/tests/*.spec.js)",
+      "Bash(node -e ':*)",
+      "Bash(grep)",
+      "Bash(node /tmp/fetch-deck-images.mjs)",
+      "Bash(node --input-type=module)",
+      "Bash(cmd /c \"echo %TEMP%\")",
+      "Bash(cmd /c \"dir %TEMP%\\\\fetch*\")",
+      "Bash(node -e: \"*)",
+      "Bash(node \"C:/Users/David/AppData/Local/Temp/fetch-deck-images.mjs\")",
+      "Bash(node \"C:/Users/David/AppData/Local/Temp/fetch-deck-retry.mjs\")",
+      "Bash(node \"C:/Users/David/AppData/Local/Temp/fetch-deck-retry2.mjs\")",
+      "Bash(grep \"still null\\\\|^.*null$\" \"C:/Users/David/AppData/Local/Temp/retry2-progress.txt\")",
+      "Bash(node \"C:/Users/David/AppData/Local/Temp/fetch-all-final.mjs\")",
+      "Bash(grep \"null$\" \"C:/Users/David/AppData/Local/Temp/final-progress.txt\")",
+      "Bash(node \"C:/Users/David/AppData/Local/Temp/fetch-patch3.mjs\")",
+      "Bash(node \"C:/Users/David/AppData/Local/Temp/fetch-complete-final.mjs\")",
+      "Bash(grep \"null$\" \"C:/Users/David/AppData/Local/Temp/complete-final-progress.txt\")"
     ]
   }
 }

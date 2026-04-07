@@ -1,0 +1,1 @@
+Every time you need to know about project, just read readme.md

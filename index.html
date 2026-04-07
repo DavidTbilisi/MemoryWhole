@@ -46,6 +46,11 @@
     <div class="section-label">Weakest Areas (Top 10)</div>
     <div id="dash-weak-table"></div>
   </div>
+
+  <div class="dashboard-section">
+    <div class="section-label">⚡ Speed Drill Records</div>
+    <div id="dash-drill"></div>
+  </div>
 </div>
 
 <!-- HOME -->
@@ -61,6 +66,18 @@
         <button class="btn btn-secondary" style="min-width:auto;padding:.4rem 1rem;font-size:.85rem" onclick="window.fbSignOut()">Sign out</button>
       </div>
     </div>
+  </div>
+
+  <!-- Global Rank Badge -->
+  <div id="global-rank-badge"></div>
+
+  <!-- Activity Heatmap -->
+  <div class="activity-section">
+    <div class="activity-header">
+      <span class="section-label" style="margin:0">Activity</span>
+      <span id="activity-streak"></span>
+    </div>
+    <div id="activity-heatmap"></div>
   </div>
 
   <!-- Global Stats Bar -->
@@ -348,7 +365,11 @@
     <div class="drill-result-label">⚡ Speed Drill</div>
     <div id="drill-result-score" class="drill-result-score">0</div>
     <div class="drill-result-sub">points</div>
+    <div id="drill-result-pb" style="color:#6b7280;font-size:0.85rem;margin-top:0.25rem"></div>
+    <div id="drill-result-badge" style="display:none;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-weight:800;font-size:0.85rem;padding:0.35rem 1rem;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase;margin:0.5rem 0"></div>
+    <div id="drill-result-rank-up" style="display:none;font-weight:800;font-size:1.1rem;margin:0.25rem 0"></div>
     <div id="drill-result-correct" class="drill-result-correct"></div>
+    <div id="drill-result-streak" style="color:#f59e0b;font-size:0.85rem;font-weight:700;margin-bottom:0.5rem"></div>
     <button class="btn btn-primary"   style="min-width:180px" onclick="startSpeedDrillFromConfig()">↺ Drill Again</button>
     <button class="btn btn-secondary" style="min-width:180px" onclick="showHome()">← Home</button>
   </div>
@@ -407,12 +428,13 @@
 <script src="js/data/clocks.js"></script>
 <script src="js/data/peg-matrix.js"></script>
 <script src="js/data/peg-matrix-ru.js"></script>
-<script src="js/state.js?v=3"></script>
-<script src="js/analytics.js?v=2"></script>
-<script src="js/quiz.js?v=3"></script>
+<script src="js/state.js?v=4"></script>
+<script src="js/analytics.js?v=3"></script>
+<script src="js/quiz.js?v=4"></script>
 <script src="js/stats.js"></script>
 <script src="js/editor.js?v=3"></script>
 <script src="js/preview.js?v=3"></script>
+<script src="js/router.js?v=1"></script>
 <script>loadData(); loadAnalytics(); refreshHomeMastery();</script>
 
 </body>

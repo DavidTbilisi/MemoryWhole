@@ -872,3 +872,78 @@ body {
   .number-display  { font-size: 4rem; }
   .number-display.long { font-size: 3rem; }
 }
+
+/* ── Global Rank Badge ── */
+#global-rank-badge {
+  width: 100%;
+  max-width: 620px;
+}
+.rank-badge-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0f0f23;
+  border: 1px solid #2d3748;
+  border-radius: 16px;
+  padding: 0.85rem 1.4rem;
+  gap: 1rem;
+}
+.rank-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+.rank-value {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.rank-sss-plus {
+  animation: rank-glow 2s ease-in-out infinite;
+}
+@keyframes rank-glow {
+  0%, 100% { filter: drop-shadow(0 0 6px #ffd700); }
+  50%       { filter: drop-shadow(0 0 18px #ff8c00); }
+}
+
+/* ── Activity Heatmap ── */
+.activity-section {
+  width: 100%;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.activity-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#activity-streak {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #10b981;
+}
+.activity-grid {
+  display: grid;
+  grid-template-columns: repeat(84, 1fr);
+  gap: 2px;
+  width: 100%;
+}
+.activity-cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  cursor: default;
+  transition: filter 0.15s;
+}
+.activity-cell:hover { filter: brightness(1.5); }
+
+@media (max-width: 480px) {
+  .activity-grid { gap: 1px; }
+  .rank-value    { font-size: 1.6rem; }
+}

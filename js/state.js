@@ -17,6 +17,7 @@ let isSpeedDrill  = false;
 let drillScore    = 0;
 let drillTimeLeft = 60;
 let drillInterval = null;
+let drillMaxStreak = 0;
 
 // ── Per-deck localStorage keys ─────────────────────────────────────────────
 const DECK_LS_KEYS = {

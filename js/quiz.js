@@ -167,10 +167,11 @@ function startSpeedDrill(deck, subsetKeys) {
     alert('Need at least 6 associations.'); return;
   }
 
-  isSpeedDrill  = true;
-  drillScore    = 0;
-  drillTimeLeft = 60;
-  isReplaying   = false;
+  isSpeedDrill   = true;
+  drillScore     = 0;
+  drillMaxStreak = 0;
+  drillTimeLeft  = 60;
+  isReplaying    = false;
   replayQueue   = [];
   score         = { correct: 0, wrong: 0, streak: 0, times: [] };
   numStats      = {};
@@ -199,9 +200,54 @@ function endSpeedDrill() {
   isSpeedDrill  = false;
 
   document.querySelectorAll('.ans-btn').forEach(b => (b.disabled = true));
+
+  // Capture rank before recording result
+  const rankBefore = getRankTier(calculateRankScore());
+
+  // Record result and detect new bests
+  const result = recordDrillResult(activeDeck, drillScore, score.correct, score.wrong, drillMaxStreak);
+  logActivity('drill');
+
+  // Rank after
+  const rankAfter = getRankTier(calculateRankScore());
+
+  const rec = drillRecords[activeDeck] || {};
+
+  // Update overlay
   document.getElementById('drill-result-score').textContent = drillScore;
   document.getElementById('drill-result-correct').textContent =
-    score.correct + ' correct · ' + score.wrong + ' wrong';
+    score.correct + ' correct · ' + score.wrong + ' wrong · streak ' + drillMaxStreak;
+
+  const pbEl = document.getElementById('drill-result-pb');
+  if (pbEl) pbEl.textContent = 'Best: ' + (rec.bestScore || drillScore) + ' pts';
+
+  const streakEl = document.getElementById('drill-result-streak');
+  if (streakEl) streakEl.textContent = 'Max streak: ' + drillMaxStreak;
+
+  const badgeEl = document.getElementById('drill-result-badge');
+  if (badgeEl) {
+    if (result.isNewBest) {
+      const labels = result.newRecords.map(r =>
+        ({ score: 'Score', accuracy: 'Accuracy', streak: 'Streak', correct: 'Correct' })[r]
+      ).filter(Boolean);
+      badgeEl.textContent = 'NEW RECORD: ' + labels.join(' + ') + '!';
+      badgeEl.style.display = 'block';
+    } else {
+      badgeEl.style.display = 'none';
+    }
+  }
+
+  const rankUpEl = document.getElementById('drill-result-rank-up');
+  if (rankUpEl) {
+    if (rankBefore.rank !== rankAfter.rank) {
+      rankUpEl.textContent = rankBefore.rank + ' → ' + rankAfter.rank + ' ↑';
+      rankUpEl.style.color = rankAfter.color || '#ffd700';
+      rankUpEl.style.display = 'block';
+    } else {
+      rankUpEl.style.display = 'none';
+    }
+  }
+
   document.getElementById('drill-result').classList.add('visible');
 }
 
@@ -423,6 +469,7 @@ function handleAnswer(clickedBtn, chosen) {
     score.correct++;
     score.streak++;
     numStats[currentNum].correct++;
+    if (isSpeedDrill && score.streak > drillMaxStreak) drillMaxStreak = score.streak;
 
     if (isSpeedDrill) {
       const mult = getMultiplier(score.streak);
