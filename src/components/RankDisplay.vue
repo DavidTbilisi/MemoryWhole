@@ -98,31 +98,30 @@
       <ActivityHeatmapChart />
     </div>
 
-    <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-4">
-      <div class="mb-2 text-xs text-slate-300">{{ nextStepLine }}</div>
-      <div class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-emerald-300">What Raises Score Next</div>
-      <div class="space-y-1.5">
-        <button
-          v-for="(hint, index) in globalHints"
-          :key="`hint-${index}`"
-          class="block w-full rounded-md px-2 py-1.5 text-left text-xs text-slate-200 transition hover:bg-slate-800/70"
-          @click="runHintAction(hint.action)"
-        >
-          <span class="mr-1 text-emerald-300">↗</span>{{ hint.text }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Learn More Section -->
-    <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-6">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+    <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-5">
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-center">
         <div>
-          <h3 class="text-lg font-bold text-slate-100">Want to understand ranking better?</h3>
-          <p class="text-sm text-slate-400 mt-1">Learn how Global Rank and Synthetic Rank work, and get tips to improve.</p>
+          <div class="mb-2 text-xs text-slate-300">{{ nextStepLine }}</div>
+          <div class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-emerald-300">What Raises Score Next</div>
+          <div class="space-y-1.5">
+            <button
+              v-for="(hint, index) in globalHints"
+              :key="`hint-${index}`"
+              class="block w-full rounded-md px-2 py-1.5 text-left text-xs text-slate-200 transition hover:bg-slate-800/70"
+              @click="runHintAction(hint.action)"
+            >
+              <span class="mr-1 text-emerald-300">↗</span>{{ hint.text }}
+            </button>
+          </div>
         </div>
-        <button @click="goToRankingInfo" class="mt-3 w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-700 hover:to-cyan-700 rounded-lg font-semibold text-slate-100 transition-all">
-          Learn More →
-        </button>
+
+        <div class="lg:border-l lg:border-slate-700/50 lg:pl-5">
+          <h3 class="text-lg font-bold text-slate-100">Want to understand ranking better?</h3>
+          <p class="mt-1 text-sm text-slate-400">Learn how Global Rank and Synthetic Rank work, and get tips to improve.</p>
+          <button @click="goToRankingInfo" class="mt-4 w-full px-4 py-2 bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-700 hover:to-cyan-700 rounded-lg font-semibold text-slate-100 transition-all">
+            Learn More →
+          </button>
+        </div>
       </div>
     </div>
   </div>
