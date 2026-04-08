@@ -126,8 +126,7 @@ test.describe('Quiz Gameplay', () => {
     const correctBtn = page.locator('.ans-btn', { hasText: correctAnswer }).first();
 
     await correctBtn.click();
-    const hasCorrectClass = await correctBtn.evaluate(el => el.classList.contains('correct-ans'));
-    expect(hasCorrectClass).toBe(true);
+    await expect(correctBtn).toHaveClass(/correct-ans/, { timeout: 2000 });
   });
 
   test('wrong answer shows red highlight', async ({ page }) => {
@@ -143,8 +142,7 @@ test.describe('Quiz Gameplay', () => {
     }));
 
     await wrongBtn.click();
-    const hasWrongClass = await wrongBtn.evaluate(el => el.classList.contains('wrong-ans'));
-    expect(hasWrongClass).toBe(true);
+    await expect(page.locator('.ans-btn.wrong-ans')).toBeVisible({ timeout: 2000 });
   });
 
   test('wrong answer shows correct answer in green', async ({ page }) => {
@@ -161,9 +159,7 @@ test.describe('Quiz Gameplay', () => {
 
     await wrongBtn.click();
 
-    const correctBtn = page.locator('.ans-btn', { hasText: correctAnswer }).first();
-    const hasCorrectClass = await correctBtn.evaluate(el => el.classList.contains('correct-ans'));
-    expect(hasCorrectClass).toBe(true);
+    await expect(page.locator('.ans-btn.correct-ans')).toBeVisible({ timeout: 2000 });
   });
 
   test('buttons disabled after answer', async ({ page }) => {
@@ -175,8 +171,7 @@ test.describe('Quiz Gameplay', () => {
     const correctBtn = page.locator('.ans-btn', { hasText: correctAnswer }).first();
 
     await correctBtn.click();
-    const isDisabled = await correctBtn.evaluate(el => el.disabled);
-    expect(isDisabled).toBe(true);
+    await expect(correctBtn).toBeDisabled({ timeout: 2000 });
   });
 
   test('timer increments during question', async ({ page }) => {
@@ -237,6 +232,8 @@ test.describe('Quiz Gameplay', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.locator('.deck-card').first().locator('button').first().click();
     await page.locator('button:has-text("Start Quiz")').last().click();
+    // Ensure streak starts at 0 for test isolation
+    await page.evaluate(() => { score = { correct: 0, wrong: 0, streak: 0, times: [] }; updateScoreBar(); });
 
     // Answer 2 correctly
     for (let i = 0; i < 2; i++) {
@@ -446,8 +443,7 @@ test.describe('Mistake Replay', () => {
     await page.locator('button:has-text("Finish")').click();
 
     const banner = page.locator('#replay-banner');
-    const isVisible = await banner.isVisible().catch(() => false);
-    expect(isVisible).toBe(true);
+    await expect(banner).toBeVisible({ timeout: 3000 });
   });
 
   test('replay shows progress', async ({ page }) => {
@@ -466,6 +462,8 @@ test.describe('Mistake Replay', () => {
 
     await page.locator('button:has-text("Finish")').click();
 
+    const banner = page.locator('#replay-banner');
+    await expect(banner).toBeVisible({ timeout: 3000 });
     const progress = await page.locator('#replay-progress').textContent();
     expect(progress).toMatch(/^\d+ \/ \d+$/);
   });

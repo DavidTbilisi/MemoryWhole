@@ -2,25 +2,25 @@
 const CONFIG_GROUPS = {
   major: Array.from({ length: 10 }, (_, i) => ({
     label: `${i * 10}–${i * 10 + 9}`,
-    keys:  Array.from({ length: 10 }, (_, j) => String(i * 10 + j))
+    keys: Array.from({ length: 10 }, (_, j) => String(i * 10 + j))
   })),
   sem3: [
-    ['Vision','0'],['Sound','1'],['Smell','2'],['Taste','3'],['Touch','4'],
-    ['Sensation','5'],['Animals','6'],['Birds','7'],['Rainbow','8'],['Solar-System','9']
+    ['Vision', '0'], ['Sound', '1'], ['Smell', '2'], ['Taste', '3'], ['Touch', '4'],
+    ['Sensation', '5'], ['Animals', '6'], ['Birds', '7'], ['Rainbow', '8'], ['Solar-System', '9']
   ].map(([label, prefix]) => ({
     label,
     keys: Object.keys(SEM3_DATA).filter(k => k[0] === prefix)
   })),
   months: [
-    { label: '1–11',  keys: Array.from({ length: 11 }, (_, i) => String(i + 1))  },
+    { label: '1–11', keys: Array.from({ length: 11 }, (_, i) => String(i + 1)) },
     { label: '12–22', keys: Array.from({ length: 11 }, (_, i) => String(i + 12)) },
     { label: '23–33', keys: Array.from({ length: 11 }, (_, i) => String(i + 23)) },
   ],
   clocks: [
-    { label: '00–05', keys: ['00:00','01:00','02:00','03:00','04:00','05:00'] },
-    { label: '06–11', keys: ['06:00','07:00','08:00','09:00','10:00','11:00'] },
-    { label: '12–17', keys: ['12:00','13:00','14:00','15:00','16:00','17:00'] },
-    { label: '18–23', keys: ['18:00','19:00','20:00','21:00','22:00','23:00'] },
+    { label: '00–05', keys: ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00'] },
+    { label: '06–11', keys: ['06:00', '07:00', '08:00', '09:00', '10:00', '11:00'] },
+    { label: '12–17', keys: ['12:00', '13:00', '14:00', '15:00', '16:00', '17:00'] },
+    { label: '18–23', keys: ['18:00', '19:00', '20:00', '21:00', '22:00', '23:00'] },
   ],
   calendar: [
     { label: 'All Months', keys: Array.from({ length: 12 }, (_, i) => String(i + 1)) },
@@ -29,40 +29,40 @@ const CONFIG_GROUPS = {
     { label: 'All Sections', keys: Array.from({ length: 10 }, (_, i) => String(i + 1)) },
   ],
   binary: [
-    { label: '0000–0111', keys: ['0000','0001','0010','0011','0100','0101','0110','0111'] },
-    { label: '1000–1111', keys: ['1000','1001','1010','1011','1100','1101','1110','1111'] },
+    { label: '0000–0111', keys: ['0000', '0001', '0010', '0011', '0100', '0101', '0110', '0111'] },
+    { label: '1000–1111', keys: ['1000', '1001', '1010', '1011', '1100', '1101', '1110', '1111'] },
   ],
   biblebooks: [
-    { label: 'Torah 1–5',            keys: ['1','2','3','4','5'] },
-    { label: 'History 6–17',         keys: ['6','7','8','9','10','11','12','13','14','15','16','17'] },
-    { label: 'Wisdom 18–22',         keys: ['18','19','20','21','22'] },
-    { label: 'Maj. Prophets 23–27',  keys: ['23','24','25','26','27'] },
-    { label: 'Min. Prophets 28–39',  keys: ['28','29','30','31','32','33','34','35','36','37','38','39'] },
-    { label: 'Gospels 40–43',        keys: ['40','41','42','43'] },
-    { label: 'Acts 44',              keys: ['44'] },
-    { label: 'Pauline 45–57',        keys: ['45','46','47','48','49','50','51','52','53','54','55','56','57'] },
-    { label: 'General 58–65',        keys: ['58','59','60','61','62','63','64','65'] },
-    { label: 'Revelation 66',        keys: ['66'] },
+    { label: 'Torah 1–5', keys: ['1', '2', '3', '4', '5'] },
+    { label: 'History 6–17', keys: ['6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17'] },
+    { label: 'Wisdom 18–22', keys: ['18', '19', '20', '21', '22'] },
+    { label: 'Maj. Prophets 23–27', keys: ['23', '24', '25', '26', '27'] },
+    { label: 'Min. Prophets 28–39', keys: ['28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39'] },
+    { label: 'Gospels 40–43', keys: ['40', '41', '42', '43'] },
+    { label: 'Acts 44', keys: ['44'] },
+    { label: 'Pauline 45–57', keys: ['45', '46', '47', '48', '49', '50', '51', '52', '53', '54', '55', '56', '57'] },
+    { label: 'General 58–65', keys: ['58', '59', '60', '61', '62', '63', '64', '65'] },
+    { label: 'Revelation 66', keys: ['66'] },
   ],
   pegmatrix: Array.from({ length: 10 }, (_, r) => ({
     label: `${PEG_AUDIO[r]} ${r * 10}–${r * 10 + 9}`,
-    keys:  Array.from({ length: 10 }, (_, c) => String(r * 10 + c).padStart(2, '0'))
+    keys: Array.from({ length: 10 }, (_, c) => String(r * 10 + c).padStart(2, '0'))
   })),
   pegmatrixru: Array.from({ length: 10 }, (_, r) => ({
     label: `${PEG_AUDIO_RU[r]} ${r * 10}–${r * 10 + 9}`,
-    keys:  Array.from({ length: 10 }, (_, c) => String(r * 10 + c).padStart(2, '0'))
+    keys: Array.from({ length: 10 }, (_, c) => String(r * 10 + c).padStart(2, '0'))
   })),
   pao: [
-    { label: 'Mononoke 0–10',       keys: ['0','1','2','3','4','5','6','7','8','9','10'] },
-    { label: 'Death Note 11–20',    keys: ['11','12','13','14','15','16','17','18','19','20'] },
-    { label: 'Naruto 21–30',        keys: ['21','22','23','24','25','26','27','28','29','30'] },
-    { label: 'Avatar 31–40',        keys: ['31','32','33','34','35','36','37','38','39','40'] },
-    { label: 'Mortal Combat 41–50', keys: ['41','42','43','44','45','46','47','48','49','50'] },
-    { label: 'Sherlock 51–60',      keys: ['51','52','53','54','55','56','57','58','59','60'] },
-    { label: 'Harry Potter 61–70',  keys: ['61','62','63','64','65','66','67','68','69','70'] },
-    { label: 'Matrix 71–80',        keys: ['71','72','73','74','75','76','77','78','79','80'] },
-    { label: 'Caribbean 81–90',     keys: ['81','82','83','84','85','86','87','88','89','90'] },
-    { label: 'GOT 91–99',           keys: ['91','92','93','94','95','96','97','98','99'] },
+    { label: 'Mononoke 0–10', keys: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] },
+    { label: 'Death Note 11–20', keys: ['11', '12', '13', '14', '15', '16', '17', '18', '19', '20'] },
+    { label: 'Naruto 21–30', keys: ['21', '22', '23', '24', '25', '26', '27', '28', '29', '30'] },
+    { label: 'Avatar 31–40', keys: ['31', '32', '33', '34', '35', '36', '37', '38', '39', '40'] },
+    { label: 'Mortal Combat 41–50', keys: ['41', '42', '43', '44', '45', '46', '47', '48', '49', '50'] },
+    { label: 'Sherlock 51–60', keys: ['51', '52', '53', '54', '55', '56', '57', '58', '59', '60'] },
+    { label: 'Harry Potter 61–70', keys: ['61', '62', '63', '64', '65', '66', '67', '68', '69', '70'] },
+    { label: 'Matrix 71–80', keys: ['71', '72', '73', '74', '75', '76', '77', '78', '79', '80'] },
+    { label: 'Caribbean 81–90', keys: ['81', '82', '83', '84', '85', '86', '87', '88', '89', '90'] },
+    { label: 'GOT 91–99', keys: ['91', '92', '93', '94', '95', '96', '97', '98', '99'] },
   ],
 };
 
@@ -74,21 +74,21 @@ const DECK_NAMES = {
   biblebooks: 'Bible Books',
   binary: 'Binary (4-bit)',
   pao: 'PAO System',
-  pegmatrix:   'Peg Matrix',
+  pegmatrix: 'Peg Matrix',
   pegmatrixru: 'Пег Матрица RU'
 };
 
 const DECK_QUESTION_LABELS = {
-  major:         "What's the word?",
-  sem3:          "What's the image?",
-  clocks:        "Which clock?",
-  calendar:      "What's the icon?",
-  binary:        "What's the image?",
-  biblebooks:    "Which book?",
+  major: "What's the word?",
+  sem3: "What's the image?",
+  clocks: "Which clock?",
+  calendar: "What's the icon?",
+  binary: "What's the image?",
+  biblebooks: "Which book?",
   bibleoverview: "Which section?",
-  pao:           "Who is it?",
-  pegmatrix:     "Audio + Visual peg?",
-  pegmatrixru:   "Звук + Образ?",
+  pao: "Who is it?",
+  pegmatrix: "Audio + Visual peg?",
+  pegmatrixru: "Звук + Образ?",
 };
 
 // ── Quiz config screen ─────────────────────────────────────────────────────
@@ -167,14 +167,14 @@ function startSpeedDrill(deck, subsetKeys) {
     alert('Need at least 6 associations.'); return;
   }
 
-  isSpeedDrill   = true;
-  drillScore     = 0;
+  isSpeedDrill = true;
+  drillScore = 0;
   drillMaxStreak = 0;
-  drillTimeLeft  = 60;
-  isReplaying    = false;
-  replayQueue   = [];
-  score         = { correct: 0, wrong: 0, streak: 0, times: [] };
-  numStats      = {};
+  drillTimeLeft = 60;
+  isReplaying = false;
+  replayQueue = [];
+  score = { correct: 0, wrong: 0, streak: 0, times: [] };
+  numStats = {};
 
   document.getElementById('score-bar').classList.remove('visible');
   document.getElementById('drill-result').classList.remove('visible');
@@ -197,7 +197,7 @@ function endSpeedDrill() {
   clearInterval(timerInterval);
   drillInterval = null;
   timerInterval = null;
-  isSpeedDrill  = false;
+  isSpeedDrill = false;
 
   document.querySelectorAll('.ans-btn').forEach(b => (b.disabled = true));
 
@@ -269,10 +269,10 @@ function showQuiz(deck, subsetKeys) {
   }
 
   isSpeedDrill = false;
-  isReplaying  = false;
-  replayQueue  = [];
+  isReplaying = false;
+  replayQueue = [];
   loadWeights(activeDeck);
-  score    = { correct: 0, wrong: 0, streak: 0, times: [] };
+  score = { correct: 0, wrong: 0, streak: 0, times: [] };
   numStats = {};
   updateScoreBar();
   setReplayBanner(false);
@@ -344,19 +344,19 @@ function nextQuestion() {
   const pegImageDefs = activeDeck === 'pegmatrix' && typeof PEG_IMAGES !== 'undefined'
     ? { images: PEG_IMAGES, audio: PEG_AUDIO, visual: PEG_VISUAL }
     : activeDeck === 'pegmatrixru' && typeof PEG_IMAGES_RU !== 'undefined'
-    ? { images: PEG_IMAGES_RU, audio: PEG_AUDIO_RU, visual: PEG_VISUAL_RU }
-    : null;
+      ? { images: PEG_IMAGES_RU, audio: PEG_AUDIO_RU, visual: PEG_VISUAL_RU }
+      : null;
 
   // Single-image decks: key → image URL
   const singleImageMap = {
-    sem3:          typeof SEM3_IMAGES           !== 'undefined' ? SEM3_IMAGES           : null,
-    major:         typeof MAJOR_IMAGES          !== 'undefined' ? MAJOR_IMAGES          : null,
-    months:        typeof MONTHS_IMAGES         !== 'undefined' ? MONTHS_IMAGES         : null,
-    clocks:        typeof CLOCKS_IMAGES         !== 'undefined' ? CLOCKS_IMAGES         : null,
-    pao:           typeof PAO_IMAGES            !== 'undefined' ? PAO_IMAGES            : null,
-    binary:        typeof BINARY_IMAGES         !== 'undefined' ? BINARY_IMAGES         : null,
-    calendar:      typeof CALENDAR_IMAGES       !== 'undefined' ? CALENDAR_IMAGES       : null,
-    biblebooks:    typeof BIBLE_BOOKS_IMAGES    !== 'undefined' ? BIBLE_BOOKS_IMAGES    : null,
+    sem3: typeof SEM3_IMAGES !== 'undefined' ? SEM3_IMAGES : null,
+    major: typeof MAJOR_IMAGES !== 'undefined' ? MAJOR_IMAGES : null,
+    months: typeof MONTHS_IMAGES !== 'undefined' ? MONTHS_IMAGES : null,
+    clocks: typeof CLOCKS_IMAGES !== 'undefined' ? CLOCKS_IMAGES : null,
+    pao: typeof PAO_IMAGES !== 'undefined' ? PAO_IMAGES : null,
+    binary: typeof BINARY_IMAGES !== 'undefined' ? BINARY_IMAGES : null,
+    calendar: typeof CALENDAR_IMAGES !== 'undefined' ? CALENDAR_IMAGES : null,
+    biblebooks: typeof BIBLE_BOOKS_IMAGES !== 'undefined' ? BIBLE_BOOKS_IMAGES : null,
     bibleoverview: typeof BIBLE_OVERVIEW_IMAGES !== 'undefined' ? BIBLE_OVERVIEW_IMAGES : null,
   };
   const singleImages = singleImageMap[activeDeck] || null;
@@ -531,8 +531,10 @@ function finishQuiz() {
     replayQueue = wrongKeys;
     score = { correct: 0, wrong: 0, streak: 0, times: [] };
     updateScoreBar();
-    setReplayBanner(true, wrongKeys.length);
+    // Ensure the quiz view is active before showing the banner so layout
+    // calculations treat the banner as visible (avoids race with view toggling)
     setView('quiz');
+    setReplayBanner(true, wrongKeys.length);
     nextQuestion();
   } else {
     recordQuizSession(activeDeck, numStats);
@@ -542,12 +544,13 @@ function finishQuiz() {
 
 function setReplayBanner(visible, total) {
   const banner = document.getElementById('replay-banner');
-  banner.style.display = visible ? 'flex' : 'none';
+  if (!banner) return;
+  banner.classList.toggle('visible', !!visible);
   if (visible) updateReplayBanner(total);
 }
 
 function updateReplayBanner() {
   const total = Object.entries(numStats).filter(([, s]) => s.wrong > 0).length;
-  const done  = total - replayQueue.length;
+  const done = total - replayQueue.length;
   document.getElementById('replay-progress').textContent = `${done} / ${total}`;
 }
