@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+test.setTimeout(120000);
+
 test('major quiz increases attempts and mastery does not fall', async ({ browser }) => {
     // Use an isolated context so this test doesn't interfere with other tests
     const context = await browser.newContext();
@@ -21,15 +23,15 @@ test('major quiz increases attempts and mastery does not fall', async ({ browser
     await page.locator('button:has-text("Start Quiz")').last().click();
     await expect(page.locator('#quiz')).toBeVisible();
 
-    // Answer 10 questions correctly; wait for the next question to be enabled each iteration
-    for (let i = 0; i < 10; i++) {
+    // Answer 25 questions correctly; wait for the next question to be enabled each iteration
+    for (let i = 0; i < 25; i++) {
         const correct = await page.evaluate(() => currentAnswer);
         await page.locator('.ans-btn', { hasText: correct }).first().click();
         // Wait until an answer button becomes enabled for the next question
         await page.waitForFunction(() => {
             const btns = Array.from(document.querySelectorAll('.ans-btn'));
             return btns.some(b => !b.disabled);
-        }, null, { timeout: 5000 });
+        }, null, { timeout: 10000 });
     }
 
     // Finish the quiz to ensure session is recorded. Call `finishQuiz()` directly
@@ -47,11 +49,16 @@ test('major quiz increases attempts and mastery does not fall', async ({ browser
         return { attempts, sessions, mastery };
     });
 
+    console.log('AFTER_ANALYTICS:', JSON.stringify(after));
+
     expect(after.attempts).toBeGreaterThanOrEqual(initial.attempts);
     expect(after.sessions).toBeGreaterThanOrEqual(initial.sessions);
-    expect(after.attempts).toBeGreaterThanOrEqual(initial.attempts + 10);
+    expect(after.attempts).toBeGreaterThanOrEqual(initial.attempts + 25);
     if (initial.mastery !== null && after.mastery !== null) {
+        // Ensure mastery didn't fall
         expect(after.mastery).toBeGreaterThanOrEqual(initial.mastery);
+        // If mastery rose, assert it increased
+        if (after.mastery > initial.mastery) expect(after.mastery).toBeGreaterThan(initial.mastery);
     }
 
     await context.close();

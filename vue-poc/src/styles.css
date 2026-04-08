@@ -1,0 +1,597 @@
+:root{
+  --bg:#0f1724;
+  --panel:#0f1724;
+  --muted:#6b7280;
+  --accent-from:#7c3aed;
+  --accent-to:#06b6d4;
+  --success:#10b981;
+  --danger:#ef4444;
+  --card:#0f1724;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body{
+  background:linear-gradient(180deg,var(--bg),#07101a 60%);
+  color:#e6eef8;
+  font-family: Inter, 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  min-height:100vh;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
+}
+
+/* Layout wrapper to center content with mobile-first width */
+.app-shell{width:100%;max-width:1100px;margin:0 auto;padding:1rem}
+
+/* Ensure body centers the app-shell horizontally on all viewports */
+body{display:flex;justify-content:center;align-items:flex-start}
+
+/* Keep the Vue root from shrinking to content width (fixes phone-width desktop layout). */
+#app{width:100%;min-height:100vh}
+
+/* Header */
+.app-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.6rem 0}
+.logo{font-weight:800;font-size:1.25rem;letter-spacing:-0.3px;background:linear-gradient(90deg,var(--accent-from),var(--accent-to));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+/* Score bar visible on mobile as compact strip */
+#score-bar{display:flex;gap:1rem;align-items:center;justify-content:space-between;padding:.5rem;background:rgba(255,255,255,0.02);border-radius:12px;margin:0.5rem 0}
+.score-item{font-size:.9rem;color:var(--muted)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.6rem 1rem;border-radius:12px;border:none;font-weight:700}
+.btn-primary{background:linear-gradient(90deg,var(--accent-from),var(--accent-to));color:white;box-shadow:0 6px 18px rgba(124,58,237,0.12)}
+.btn-secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#cbd5e1}
+.btn:active{transform:translateY(1px)}
+
+/* Home / Deck grid */
+.deck-grid{display:grid;grid-template-columns:1fr;gap:1rem;margin-top:1rem}
+.deck-card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:14px;padding:1rem;display:flex;flex-direction:column;gap:.8rem;border:1px solid rgba(255,255,255,0.03)}
+.deck-card-header{display:flex;align-items:center;gap:.75rem}
+.deck-card-icon{font-size:1.5rem}
+.deck-card-name{font-weight:800}
+.deck-card-count{font-size:.85rem;color:var(--muted)}
+.deck-quiz-btn{width:100%;padding:.8rem;border-radius:10px}
+.deck-actions{display:flex;gap:.4rem;flex-wrap:wrap}
+
+/* HomeBadge: migrated to component-level Tailwind classes; global rules removed. */
+
+/* Quiz */
+#quiz{padding:1rem 0}
+.number-display{font-weight:900;font-size:4rem;background:linear-gradient(90deg,var(--accent-from),var(--accent-to));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.question-label{color:var(--muted)}
+.answers-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.6rem}
+.ans-btn{padding:.9rem;border-radius:12px;border:1px solid rgba(255,255,255,0.03);background:#081322;color:#dff6ff;font-weight:700}
+.ans-btn.correct-ans{background:var(--success);color:#042015}
+.ans-btn.wrong-ans{background:var(--danger);color:#2b0707}
+
+/* Cards subtle elevation */
+@media (min-width:720px){
+  .deck-grid{grid-template-columns:repeat(2,1fr)}
+  .app-shell{padding:2rem}
+  .number-display{font-size:5.5rem}
+}
+
+@media (min-width:1000px){
+  .deck-grid{grid-template-columns:repeat(3,1fr)}
+}
+
+/* Utility small tweaks */
+.muted{color:var(--muted)}
+.center{display:flex;align-items:center;justify-content:center}
+
+/* Improve touch targets on mobile */
+button, .btn, .ans-btn{min-height:44px}
+
+
+/* ── Global Stats Bar ── */
+#global-stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 620px;
+  background: #0f0f23;
+  border: 1px solid #2d3748;
+  border-radius: 16px;
+  padding: 0.9rem 1.4rem;
+  gap: 0.5rem;
+}
+
+.gstat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  gap: 0.2rem;
+}
+
+.gstat-val {
+  font-size: 1.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #7c3aed, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.gstat-lbl {
+  font-size: 0.7rem;
+  color: #6b7280;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.gstat-divider {
+  width: 1px;
+  height: 2.5rem;
+  background: #2d3748;
+  flex-shrink: 0;
+}
+
+/* Deck card styles migrated to component-level Tailwind classes. Global rules removed. */
+
+/* ── Preview table ── */
+#preview {
+  padding: 1.2rem;
+  gap: 1rem;
+  overflow: auto;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.preview-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  flex: 1;
+}
+
+.preview-wrap {
+  overflow: auto;
+  flex: 1;
+}
+
+.assoc-table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 0.85rem;
+}
+
+.assoc-table th {
+  background: #0f0f23;
+  color: #7c3aed;
+  font-weight: 700;
+  padding: 0.4rem 0.6rem;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 2px solid #2d3748;
+  white-space: nowrap;
+}
+
+.assoc-table th.row-head {
+  left: 0;
+  z-index: 3;
+  text-align: left;
+  min-width: 3.5rem;
+}
+
+.assoc-table td {
+  padding: 0.35rem 0.55rem;
+  border: 1px solid #1e293b;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.assoc-table tr:nth-child(even) td {
+  background: #16213e;
+}
+
+.assoc-table tr:nth-child(odd) td {
+  background: #1a1a2e;
+}
+
+.assoc-table td.row-head {
+  background: #0f0f23 !important;
+  color: #7c3aed;
+  font-weight: 700;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  border-right: 2px solid #2d3748;
+}
+
+.cell-num {
+  color: #4b5563;
+  font-size: 0.7rem;
+  display: block;
+  line-height: 1;
+}
+
+.cell-word {
+  color: #e0e0e0;
+  font-weight: 600;
+}
+
+/* ── Quiz ── */
+#quiz {
+  align-items: center;
+  padding: 2rem 1rem;
+  gap: 1.5rem;
+}
+
+.number-display {
+  font-size: 7rem;
+  font-weight: 900;
+  line-height: 1;
+  background: linear-gradient(135deg, #7c3aed, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.number-display.long {
+  font-size: 4.5rem;
+}
+
+.question-label {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin-top: -1rem;
+}
+
+.timer {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #4b5563;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+.feedback {
+  height: 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.feedback.correct {
+  color: #10b981;
+}
+
+.feedback.wrong {
+  color: #ef4444;
+}
+
+.answers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 460px;
+}
+
+.ans-btn {
+  padding: 1rem 0.5rem;
+  border: 2px solid #2d3748;
+  border-radius: 12px;
+  background: #16213e;
+  color: #e0e0e0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  text-align: center;
+  touch-action: manipulation;
+}
+
+.ans-btn:hover:not(:disabled) {
+  border-color: #7c3aed;
+  background: #1e1e3f;
+}
+
+.ans-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.ans-btn:disabled {
+  cursor: default;
+}
+
+.ans-btn.correct-ans {
+  background: #064e3b;
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.ans-btn.wrong-ans {
+  background: #450a0a;
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+/* ── Peg Matrix image answer options ── */
+.ans-btn-image {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem;
+}
+
+.peg-img-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.peg-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #1a1a2e;
+  pointer-events: none;
+  display: block;
+}
+
+.peg-img-wrap span {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2px 4px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.ans-btn-image.correct-ans .peg-img-wrap {
+  outline: 2px solid #10b981;
+}
+
+.ans-btn-image.wrong-ans .peg-img-wrap {
+  outline: 2px solid #ef4444;
+}
+
+/* Single-image option buttons */
+.ans-btn-single {
+  flex-direction: column;
+  padding: 0.3rem;
+}
+
+.ans-btn-single .peg-img-wrap {
+  width: 100%;
+  height: 90px;
+}
+
+/* ── Peg Matrix images ── */
+#q-peg-images {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 0.5rem 0;
+}
+
+#q-peg-images img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #1a1a2e;
+}
+
+/* ── Speed Drill ── */
+.btn-drill {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  touch-action: manipulation;
+}
+
+.btn-drill:hover {
+  opacity: 0.88;
+}
+
+.btn-drill:active {
+  transform: scale(0.97);
+}
+
+/* Drill HUD — hidden until .is-drill is set on #quiz */
+#drill-hud {
+  display: none;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 460px;
+  background: #0f0f23;
+  border-radius: 14px;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid #2d3748;
+}
+
+.drill-countdown {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #10b981;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  transition: color 0.3s;
+}
+
+.drill-countdown.urgent {
+  color: #ef4444;
+  animation: pulse 0.5s infinite alternate;
+}
+
+@keyframes pulse {
+  to {
+    opacity: 0.5;
+  }
+}
+
+#drill-score-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+#drill-score-val {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #f59e0b;
+  font-variant-numeric: tabular-nums;
+}
+
+.drill-pts {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-right: 0.3rem;
+}
+
+.drill-mult {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4b5563;
+  background: #1a2540;
+  border-radius: 6px;
+  padding: 0.1rem 0.4rem;
+  transition: color 0.2s, background 0.2s;
+}
+
+.drill-mult.active {
+  color: #f59e0b;
+  background: #422006;
+}
+
+/* Show HUD, hide normal timer when in drill mode */
+#quiz.is-drill #drill-hud {
+  display: flex;
+}
+
+#quiz.is-drill #q-timer {
+  display: none;
+}
+
+#quiz.is-drill #replay-banner {
+  display: none !important;
+}
+
+#quiz.is-drill .btn-primary[onclick="finishQuiz()"] {
+  display: none;
+}
+
+/* Drill result overlay */
+#drill-result {
+  display: none;
+  position: absolute;
+  inset: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: rgba(10, 10, 30, 0.96);
+  z-index: 10;
+  border-radius: 16px;
+}
+
+#drill-result.visible {
+  display: flex;
+}
+
+.drill-result-label {
+  font-size: 1rem;
+  color: #6b7280;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.drill-result-score {
+  font-size: 5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.drill-result-sub {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin-top: -0.75rem;
+}
+
+.drill-result-correct {
+  color: #9ca3af;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+/* quiz view needs position:relative for overlay */
+#quiz {
+  position: relative;
+}
+
+/* ── Editor ── */
+#editor {
+  padding: 1.5rem;
+  gap: 1rem;
+}
+
+.editor-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.editor-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  flex: 1;
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Long-value decks (clocks, bible…) — two readable columns */
+.editor-grid[data-mode="wide"] {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+.editor-grid[data-mode="wide"] .num-badge {
+  min-width: 2.4rem;
+  font-size: 0.85rem;
+}
+

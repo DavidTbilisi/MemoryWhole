@@ -1,15 +1,18 @@
 <template>
-  <div class="home-badge">
-    <svg width="80" height="80" viewBox="0 0 44 44">
-      <circle cx="22" cy="22" r="18" fill="none" stroke="#12202b" stroke-width="4"/>
-      <circle :stroke="color" cx="22" cy="22" r="18" fill="none" stroke-width="4"
-        :stroke-dasharray="dashArray" stroke-linecap="round" transform="rotate(-90 22 22)"/>
-      <text x="22" y="27" text-anchor="middle" :fill="color" font-size="12" font-weight="700">{{ pct }}%</text>
-    </svg>
-    <div style="margin-left:8px">
-      <div style="font-weight:700">{{ deckLabel }}</div>
-      <div style="font-size:0.85rem;color:#9fb0c2">{{ itemsText }}</div>
+  <div :class="compact ? 'flex items-center gap-2 bg-transparent p-0' : 'flex items-center gap-3 bg-[#082032] p-2 rounded-lg'">
+    <div :class="compact ? 'w-16 h-16' : 'w-24 h-24'" class="relative rounded-full p-[3px]" :style="ringStyle">
+      <div class="absolute inset-[3px] rounded-full bg-[#071421] border border-slate-800/80"></div>
+      <div class="absolute inset-0 rounded-full opacity-60 blur-[2px]" :style="glowStyle"></div>
+      <div class="relative z-10 flex h-full w-full items-center justify-center rounded-full">
+        <span :class="compact ? 'text-xl' : 'text-2xl'" class="font-black tracking-tight" :style="textStyle">{{ pct }}%</span>
+      </div>
     </div>
+    <template v-if="!compact">
+      <div class="ml-2">
+        <div class="font-semibold text-sm">{{ deckLabel }}</div>
+        <div class="text-xs text-slate-400 mt-1">{{ itemsText }}</div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -18,25 +21,75 @@ export default {
   name: 'HomeBadge',
   props: {
     deck: { type: String, required: true },
-    initial: { type: Number, default: 0 }
+    compact: { type: Boolean, default: false }
+  },
+  data() {
+    return {
+      displayValue: 0,
+    }
   },
   computed: {
     display() {
-      // show persisted peak if available
-      try {
-        const peaks = JSON.parse(localStorage.getItem('masteryPeak_v1') || '{}');
-        return Math.max(peaks[this.deck] || 0, this.initial || 0);
-      } catch (e) { return this.initial || 0; }
+      return this.displayValue
     },
-    pct() { return Math.round(this.display); },
-    dashArray() { return ((this.display / 100) * 113).toFixed(1) + ' 113'; },
-    color() { return this.display >= 80 ? '#10b981' : this.display >= 50 ? '#f59e0b' : '#ef4444'; },
+    pct() {
+      return Math.max(0, Math.min(100, Math.round(this.display)))
+    },
+    color() {
+      return this.display >= 80 ? '#10b981' : this.display >= 50 ? '#f59e0b' : '#ef4444'
+    },
+    colorSoft() {
+      return this.display >= 80 ? '#34d399' : this.display >= 50 ? '#fbbf24' : '#fb7185'
+    },
+    ringStyle() {
+      return {
+        background: `conic-gradient(from 220deg, ${this.colorSoft} 0 ${this.pct}%, #12202b ${this.pct}% 100%)`,
+        boxShadow: `0 0 0 1px rgba(30,41,59,0.75), inset 0 0 12px ${this.color}22`,
+      }
+    },
+    glowStyle() {
+      return {
+        background: `radial-gradient(circle at center, ${this.color}44 0%, transparent 72%)`
+      }
+    },
+    textStyle() {
+      return {
+        color: this.color,
+        textShadow: `0 0 10px ${this.color}40`
+      }
+    },
     deckLabel() { return this.deck === 'major' ? 'Major System' : this.deck.toUpperCase(); },
     itemsText() { return this.deck === 'major' ? '100 items' : '100 items'; }
+  },
+  methods: {
+    getDisplayFromStats() {
+      try {
+        const peaks = JSON.parse(localStorage.getItem('masteryPeak_v1') || '{}')
+        const analytics = JSON.parse(localStorage.getItem('analytics_v1') || '{}')
+        const peak = Number(peaks?.[this.deck] || 0)
+        const deckTotals = analytics?.[this.deck] || {}
+        const attempts = Number(deckTotals.totalAttempts || 0)
+        const correct = Number(deckTotals.totalCorrect || 0)
+        const current = attempts > 0 ? Math.round((correct / attempts) * 100) : 0
+        return Math.max(peak, current)
+      } catch {
+        return 0
+      }
+    },
+    refreshValue() {
+      this.displayValue = this.getDisplayFromStats()
+    },
+  },
+  mounted() {
+    this.refreshValue()
+    window.addEventListener('storage', this.refreshValue)
+    window.addEventListener('mnemonic-stats-updated', this.refreshValue)
+  },
+  beforeUnmount() {
+    window.removeEventListener('storage', this.refreshValue)
+    window.removeEventListener('mnemonic-stats-updated', this.refreshValue)
   }
 }
 </script>
 
-<style scoped>
-.home-badge { display:flex; align-items:center; gap:0.5rem; background:#082032; padding:0.5rem 0.75rem; border-radius:8px }
-</style>
+<!-- styles migrated to Tailwind utilities -->

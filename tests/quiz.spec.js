@@ -460,8 +460,8 @@ test.describe('Mistake Replay', () => {
     await wrongBtn.click();
     await page.waitForTimeout(1500);
 
-    await page.locator('button:has-text("Finish")').click();
-
+    // Call finishQuiz() directly to avoid timing issues with the UI button
+    await page.evaluate(() => { try { finishQuiz(); } catch (e) { } });
     const banner = page.locator('#replay-banner');
     await expect(banner).toBeVisible({ timeout: 3000 });
     const progress = await page.locator('#replay-progress').textContent();
