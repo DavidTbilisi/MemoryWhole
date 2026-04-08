@@ -1,19 +1,25 @@
 {
-  "name": "mnemonic-training",
-  "version": "1.0.0",
-  "description": "Web app for training mnemonic systems (Major System, SEM3, Month Days, Famous Clocks)",
+  "name": "mnemonic-vue-poc",
+  "private": true,
+  "version": "0.0.0",
   "scripts": {
-    "test": "playwright test",
-    "test:ui": "playwright test --ui",
-    "test:debug": "playwright test --debug",
-    "test:unit": "vitest run",
-    "test:unit:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "test:all": "vitest run --coverage && playwright test"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "echarts": "^6.0.0",
+    "firebase": "^12.11.0",
+    "floating-vue": "^5.2.2",
+    "mnemonic-training": "file:..",
+    "playwright": "^1.59.1",
+    "vue": "^3.3.4"
   },
   "devDependencies": {
-    "@playwright/test": "^1.48.0",
-    "@vitest/coverage-v8": "^2.1.9",
-    "vitest": "^2.1.9"
+    "@vitejs/plugin-vue": "^4.0.0",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.9",
+    "tailwindcss": "^3.4.17",
+    "vite": "^5.0.0"
   }
 }
