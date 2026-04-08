@@ -161,36 +161,40 @@ const RANK_TIERS = [
   { rank: 'SSS+', min: 35000, color: null },  // animated gold
 ];
 
+const RANK_PEAK_KEY = 'rankPeak_v1';
+
 function calculateRankScore() {
   const allDecks = Object.keys(DECK_NAMES || {});
   let knowledgePoints = 0;
   let bestDrillSum    = 0;
-  let totalAttempts   = 0;
   let totalCorrect    = 0;
 
   allDecks.forEach(deck => {
-    // Knowledge points
+    // Knowledge points: count mastered items (95%+ accuracy, 5+ attempts)
     const items = getDeckStats(deck);
     items.forEach(item => {
       if (item.attempts >= 5 && parseFloat(item.accuracy) >= 95) knowledgePoints++;
     });
-    // All-time accuracy
+    // Total correct answers (only ever increases)
     const at = allTimeStats[deck];
-    if (at) {
-      totalAttempts += at.totalAttempts || 0;
-      totalCorrect  += at.totalCorrect  || 0;
-    }
-    // Best drill score per deck
+    if (at) totalCorrect += at.totalCorrect || 0;
+    // Best drill score per deck (only ever increases)
     const dr = drillRecords[deck];
     if (dr) bestDrillSum += dr.bestScore || 0;
   });
 
-  const overallAccuracy = totalAttempts > 0 ? (totalCorrect / totalAttempts * 100) : 0;
-  return Math.floor(
-    (knowledgePoints * 10) +
-    bestDrillSum +
-    (overallAccuracy * totalAttempts / 50)
-  );
+  // totalCorrect * 2 and bestDrillSum only go up.
+  // knowledgePoints can dip when you practice a mastered item and get it wrong,
+  // so we use a peak — once you earn points you never lose them.
+  const raw = Math.floor((knowledgePoints * 10) + bestDrillSum + (totalCorrect * 2));
+  const peak = Math.max(raw, parseInt(localStorage.getItem(RANK_PEAK_KEY) || '0', 10));
+  if (peak > raw) {
+    // Peak is higher — persist so it survives page reloads
+    localStorage.setItem(RANK_PEAK_KEY, peak);
+  } else if (raw > parseInt(localStorage.getItem(RANK_PEAK_KEY) || '0', 10)) {
+    localStorage.setItem(RANK_PEAK_KEY, raw);
+  }
+  return peak;
 }
 
 function getRankTier(rankScore) {
