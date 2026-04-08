@@ -80,15 +80,38 @@ export function getRankInfo(score) {
   return rankInfo || ANIME_RANKS[ANIME_RANKS.length - 1]
 }
 
+export function getNextRankInfo(score) {
+  const candidates = ANIME_RANKS
+    .filter((rank) => rank.minScore > score)
+    .sort((a, b) => a.minScore - b.minScore)
+  return candidates[0] || null
+}
+
+function estimatePerfectAnswersToTarget(totalAttempts, totalCorrect, targetPct) {
+  const attempts = Number(totalAttempts || 0)
+  const correct = Number(totalCorrect || 0)
+  const target = Number(targetPct || 0) / 100
+  if (target <= 0 || target >= 1) return 0
+  const needed = Math.ceil(((target * attempts) - correct) / (1 - target))
+  if (attempts === 0) return 1
+  return Math.max(0, needed)
+}
+
 export function getGlobalRank() {
   const stats = getGlobalStats()
   const rankInfo = getRankInfo(stats.globalAccuracy)
+  const nextRank = getNextRankInfo(stats.globalAccuracy)
+  const perfectNeeded = nextRank
+    ? estimatePerfectAnswersToTarget(stats.totalAttempts, stats.totalCorrect, nextRank.minScore)
+    : 0
   return {
     rank: rankInfo.rank,
     score: stats.globalAccuracy,
     color: rankInfo.color,
     description: rankInfo.description,
-    stats
+    stats,
+    nextRank,
+    perfectNeeded,
   }
 }
 

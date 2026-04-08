@@ -3,7 +3,7 @@
     <ActivityStatsStrip />
 
     <div class="mb-4">
-      <RankDisplay @view-ranking-info="onViewRankingInfo" />
+      <RankDisplay @view-ranking-info="onViewRankingInfo" @start-recommended="onStart" @dashboard-recommended="onDashboard" />
     </div>
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
