@@ -6,6 +6,7 @@ const ANALYTICS_KEY      = 'analytics_v1';
 const DECK_ANALYTICS_KEY = 'deckStats_v1';
 const DRILL_RECORDS_KEY  = 'drillRecords_v1';
 const ACTIVITY_KEY       = 'activityLog_v1';
+const MASTERY_PEAK_KEY    = 'masteryPeak_v1';
 
 let drillRecords = {};
 let activityLog  = {};
@@ -307,6 +308,15 @@ function showDashboard(deck) {
   const deckItems   = getDeckStats(activeDeck);
   const mastery     = calculateMastery(deckItems);
 
+  // Maintain a per-deck peak mastery so progress doesn't go down after a high point
+  const masteryPeaks = JSON.parse(localStorage.getItem(MASTERY_PEAK_KEY) || '{}');
+  const storedPeak = masteryPeaks[activeDeck] || 0;
+  const displayMastery = Math.max(mastery.score, storedPeak);
+  if (mastery.score > storedPeak) {
+    masteryPeaks[activeDeck] = mastery.score;
+    localStorage.setItem(MASTERY_PEAK_KEY, JSON.stringify(masteryPeaks));
+  }
+
   document.getElementById('dash-title').textContent = DECK_NAMES[activeDeck] || activeDeck;
 
   const overallAccuracy = allTimeData.totalAttempts
@@ -327,19 +337,19 @@ function showDashboard(deck) {
       <div class="lbl">Overall Accuracy</div>
     </div>
     <div class="stat-card">
-      <div class="stat-num">${mastery.score.toFixed(0)}%</div>
+      <div class="stat-num">${displayMastery.toFixed(0)}%</div>
       <div class="lbl">Mastery Score</div>
     </div>
   `;
 
-  const masteryColor = mastery.score >= 80 ? '#10b981' : mastery.score >= 60 ? '#f59e0b' : '#ef4444';
+  const masteryColor = displayMastery >= 80 ? '#10b981' : displayMastery >= 60 ? '#f59e0b' : '#ef4444';
   document.getElementById('dash-progress').innerHTML = `
     <div style="display:flex;align-items:center;gap:1rem;width:100%;max-width:500px">
       <div style="flex:1">
         <div style="background:#2d3748;height:12px;border-radius:6px;overflow:hidden">
-          <div style="background:${masteryColor};height:100%;width:${mastery.score}%;transition:width 0.3s"></div>
+          <div style="background:${masteryColor};height:100%;width:${displayMastery}%;transition:width 0.3s"></div>
         </div>
-        <div style="font-size:0.8rem;color:#a0aec0;margin-top:0.5rem">${mastery.score.toFixed(1)}% to perfection</div>
+        <div style="font-size:0.8rem;color:#a0aec0;margin-top:0.5rem">${displayMastery.toFixed(1)}% to perfection</div>
       </div>
     </div>
   `;
