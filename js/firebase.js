@@ -23,8 +23,8 @@ window.fbSignIn  = () => signInWithPopup(auth, provider).catch(() => showToast('
 window.fbSignOut = () => signOut(auth);
 
 window.fbSave = (key, obj) => {
-  if (!auth.currentUser) return;
-  setDoc(doc(db, 'users', auth.currentUser.uid, 'data', key), { v: JSON.stringify(obj) })
+  if (!auth.currentUser) return Promise.resolve();
+  return setDoc(doc(db, 'users', auth.currentUser.uid, 'data', key), { v: JSON.stringify(obj) })
     .catch(console.error);
 };
 
