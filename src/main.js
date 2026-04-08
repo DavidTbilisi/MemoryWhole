@@ -3,10 +3,12 @@ import App from './App.vue';
 import './styles.css';
 import FloatingVue from 'floating-vue';
 import 'floating-vue/dist/style.css';
+import { applySavedTheme } from './core/theme';
 
 let _app = null;
 
 export function mount(el = '#app', props = {}) {
+	applySavedTheme();
 	if (_app) return () => {
 		_app.unmount();
 		_app = null;

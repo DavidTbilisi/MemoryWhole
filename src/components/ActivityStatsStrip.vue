@@ -1,26 +1,26 @@
 <template>
   <section class="mb-5">
     <div class="text-xs font-bold tracking-[0.18em] text-slate-300 mb-2">ACTIVITY</div>
-    <div class="w-full rounded-2xl border border-slate-700/80 bg-[#0f0f23] px-3 py-3 md:px-5 md:py-4">
-      <div class="grid grid-cols-2 gap-y-3 md:grid-cols-4 md:gap-y-0">
-        <div class="text-center md:border-r md:border-slate-700/80">
+    <div class="w-full rounded-lg border border-slate-700/70 bg-[#071421] p-4 text-sky-100 shadow-[0_0_0_1px_rgba(15,23,42,0.25)]">
+      <div class="grid grid-cols-2 gap-2 md:grid-cols-4">
+        <div class="rounded-md border border-slate-700 p-3 text-center text-sm text-slate-300">
           <div class="text-4xl font-black leading-none bg-gradient-to-r from-violet-500 to-cyan-400 bg-clip-text text-transparent">{{ totals.kp }}</div>
-          <div class="mt-1 text-[12px] text-slate-400">🧠 Knowledge Pts</div>
+          <div class="mt-1 text-[12px] text-slate-500 uppercase">🧠 Knowledge Pts</div>
         </div>
 
-        <div class="text-center md:border-r md:border-slate-700/80">
+        <div class="rounded-md border border-slate-700 p-3 text-center text-sm text-slate-300">
           <div class="text-4xl font-black leading-none bg-gradient-to-r from-violet-500 to-cyan-400 bg-clip-text text-transparent">{{ totals.acc }}</div>
-          <div class="mt-1 text-[12px] text-slate-400">🎯 Accuracy</div>
+          <div class="mt-1 text-[12px] text-slate-500 uppercase">🎯 Accuracy</div>
         </div>
 
-        <div class="text-center md:border-r md:border-slate-700/80">
+        <div class="rounded-md border border-slate-700 p-3 text-center text-sm text-slate-300">
           <div class="text-4xl font-black leading-none bg-gradient-to-r from-violet-500 to-cyan-400 bg-clip-text text-transparent">{{ totals.sessions }}</div>
-          <div class="mt-1 text-[12px] text-slate-400">🗓 Sessions</div>
+          <div class="mt-1 text-[12px] text-slate-500 uppercase">🗓 Sessions</div>
         </div>
 
-        <div class="text-center">
+        <div class="rounded-md border border-slate-700 p-3 text-center text-sm text-slate-300">
           <div class="text-4xl font-black leading-none bg-gradient-to-r from-violet-500 to-cyan-400 bg-clip-text text-transparent">{{ totals.attempts }}</div>
-          <div class="mt-1 text-[12px] text-slate-400">⚡ Attempts</div>
+          <div class="mt-1 text-[12px] text-slate-500 uppercase">⚡ Attempts</div>
         </div>
       </div>
     </div>

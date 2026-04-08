@@ -1,7 +1,7 @@
 <template>
-  <div class="rounded-2xl border border-slate-700/80 bg-[#0f0f23] p-4 flex flex-col h-full">
+  <div class="rounded-2xl border border-slate-700/80 bg-slate-900/50 p-4 flex flex-col">
     <div class="text-xs font-semibold tracking-widest text-slate-400 mb-3">ACTIVITY HEATMAP</div>
-    <div ref="chartEl" class="w-full min-h-[220px]"></div>
+    <div ref="chartEl" class="w-full"></div>
   </div>
 </template>
 

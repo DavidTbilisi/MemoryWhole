@@ -1,117 +1,115 @@
 <template>
   <div class="space-y-4">
-    <div class="grid grid-cols-1 gap-4 xl:grid-cols-3 items-stretch">
-      <!-- Global Rank Card -->
-      <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-6 flex flex-col justify-between">
-        <div>
-          <div class="text-xs font-semibold tracking-widest text-slate-400 uppercase">Global Rank</div>
-          
-          <div class="mt-4 flex items-end justify-between">
-            <div>
-              <div class="text-5xl font-black"
-                :style="{ color: globalRank.color, textShadow: `0 0 20px ${globalRank.color}66` }">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3 items-stretch">
+      <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-4">
+          <div class="text-[11px] font-semibold tracking-widest text-slate-400 uppercase">Global Rank</div>
+          <div class="mt-3 flex items-center justify-between gap-4">
+            <div class="min-w-0">
+              <div class="text-4xl font-black"
+                :style="{ color: globalRank.color, textShadow: `0 0 16px ${globalRank.color}55` }">
                 {{ globalRank.rank }}
               </div>
-              <div class="mt-1 text-sm font-medium text-slate-300">
-                {{ globalRank.description }}
-              </div>
+              <div class="mt-1 text-sm font-medium text-slate-300">{{ globalRank.description }}</div>
             </div>
-            <div class="text-right">
-              <div class="text-3xl font-bold text-cyan-400">{{ globalRank.score }}%</div>
-              <div class="text-xs text-slate-500 mt-1">accuracy</div>
-            </div>
-          </div>
-
-          <div class="mt-4 grid grid-cols-2 gap-2 border-t border-slate-700/50 pt-4">
-            <div>
-              <div class="text-xs text-slate-500">Attempts</div>
-              <div class="text-lg font-semibold text-slate-200">{{ globalRank.stats.totalAttempts }}</div>
-            </div>
-            <div>
-              <div class="text-xs text-slate-500">Decks</div>
-              <div class="text-lg font-semibold text-slate-200">{{ globalRank.stats.deckCount }}</div>
-            </div>
-          </div>
-
-          <!-- Progress bar -->
-          <div class="mt-4 h-2 rounded-full bg-slate-800 overflow-hidden">
-            <div class="h-full bg-gradient-to-r" 
-              :style="{ 
-                width: globalRank.score + '%',
-                backgroundImage: `linear-gradient(to right, ${globalRank.color}, #4361ee)`
-              }">
-            </div>
-          </div>
-
-          <div class="mt-3 rounded-xl border border-slate-700/70 bg-slate-900/50 p-3">
-            <div class="mb-2 text-xs text-slate-300">{{ nextStepLine }}</div>
-            <div class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-emerald-300">What Raises Score Next</div>
-            <div class="space-y-1.5">
-              <button
-                v-for="(hint, index) in globalHints"
-                :key="`hint-${index}`"
-                class="block w-full rounded-md px-1 py-1 text-left text-xs text-slate-200 transition hover:bg-slate-800/70"
-                @click="runHintAction(hint.action)"
-              >
-                <span class="mr-1 text-emerald-300">↗</span>{{ hint.text }}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Info -->
-        <div class="mt-4 pt-4 border-t border-slate-700/50">
-          <p class="text-xs text-slate-400">Your overall accuracy across all memory decks. Higher is better.</p>
-        </div>
-      </div>
-
-      <!-- Synthetic Rank Card + Heatmap -->
-      <div class="xl:col-span-2 flex flex-col gap-4">
-        <!-- Synthetic Rank Card -->
-        <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-6 flex flex-col justify-between">
-          <div>
-            <div class="text-xs font-semibold tracking-widest text-slate-400 uppercase">Synthetic Rank</div>
-        
-            <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3 md:items-end">
-              <div>
-                <div class="text-5xl font-black"
-                  :style="{ color: syntheticRank.color, textShadow: `0 0 20px ${syntheticRank.color}66` }">
-                  {{ syntheticRank.rank }}
-                </div>
-                <div class="mt-1 text-sm font-medium text-slate-300">
-                  {{ syntheticRank.description }}
+            <div class="relative h-20 w-20 shrink-0 rounded-full" :style="globalGaugeStyle">
+              <div class="absolute inset-[6px] rounded-full bg-slate-900/95 border border-slate-700/70"></div>
+              <div class="absolute inset-0 grid place-items-center text-center">
+                <div>
+                  <div class="text-xl font-black text-cyan-300 leading-none">{{ globalRank.score }}%</div>
+                  <div class="mt-1 text-[10px] uppercase tracking-wider text-slate-500">accuracy</div>
                 </div>
               </div>
-              <div class="text-xs text-slate-400 md:px-2 md:text-center">
-                Composite rank blends
-                <span class="text-slate-200">mastery peaks</span>
-                and
-                <span class="text-slate-200">global accuracy</span>
-                with a deck diversity bonus.
-              </div>
-              <div class="text-right">
-                <div class="text-3xl font-bold text-violet-400">{{ syntheticRank.score }}</div>
-                <div class="text-xs text-slate-500 mt-1">composite</div>
-              </div>
             </div>
-
-            <!-- Progress bar -->
-            <div class="mt-4 h-2 rounded-full bg-slate-800 overflow-hidden">
-              <div class="h-full bg-gradient-to-r" 
-                :style="{ 
-                  width: syntheticRank.score + '%',
-                  backgroundImage: `linear-gradient(to right, ${syntheticRank.color}, #7209b7)`
+          </div>
+          <div class="mt-3 grid grid-cols-2 gap-2 border-t border-slate-700/50 pt-3">
+            <div>
+              <div class="text-[11px] text-slate-500">Attempts</div>
+              <div class="text-base font-semibold text-slate-200">{{ globalRank.stats.totalAttempts }}</div>
+            </div>
+            <div>
+              <div class="text-[11px] text-slate-500">Decks</div>
+              <div class="text-base font-semibold text-slate-200">{{ globalRank.stats.deckCount }}</div>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="mb-1 flex items-center justify-between text-[11px] text-slate-400">
+              <span>Accuracy vs next rank</span>
+              <span v-if="globalRank.nextRank">target {{ globalRank.nextRank.minScore }}%</span>
+              <span v-else>maxed</span>
+            </div>
+            <div class="relative h-2 rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full bg-gradient-to-r"
+                :style="{
+                  width: globalRank.score + '%',
+                  backgroundImage: `linear-gradient(to right, ${globalRank.color}, #4361ee)`
                 }">
               </div>
+              <div
+                v-if="globalRank.nextRank"
+                class="absolute top-0 h-full w-[2px] bg-slate-200/80"
+                :style="{ left: `${Math.min(globalRank.nextRank.minScore, 100)}%` }"
+              ></div>
             </div>
-
+            <div class="mt-2 text-xs text-slate-400">{{ globalExplanation }}</div>
           </div>
-        </div>
+      </div>
 
-        <!-- Heatmap (tablet/desktop only) -->
-        <div class="hidden md:block">
-          <ActivityHeatmapChart />
-        </div>
+      <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-4">
+          <div class="text-[11px] font-semibold tracking-widest text-slate-400 uppercase">Synthetic Rank</div>
+          <div class="mt-3 flex items-end justify-between gap-3">
+            <div>
+              <div class="text-4xl font-black"
+                :style="{ color: syntheticRank.color, textShadow: `0 0 16px ${syntheticRank.color}55` }">
+                {{ syntheticRank.rank }}
+              </div>
+              <div class="mt-1 text-sm font-medium text-slate-300">{{ syntheticRank.description }}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-2xl font-bold text-violet-400">{{ syntheticRank.score }}</div>
+              <div class="text-[11px] text-slate-500 mt-1">composite</div>
+            </div>
+          </div>
+          <div class="mt-3 space-y-2 text-xs">
+            <div class="overflow-hidden rounded-full bg-slate-800 h-3 flex">
+              <div
+                v-for="segment in syntheticSegments"
+                :key="segment.key"
+                class="h-full"
+                :style="{ width: `${segment.width}%`, background: segment.background }"
+              ></div>
+            </div>
+            <div class="grid grid-cols-1 gap-1 pt-1">
+              <div v-for="segment in syntheticSegments" :key="`${segment.key}-legend`" class="flex items-center justify-between gap-3 text-slate-400">
+                <div class="inline-flex items-center gap-2">
+                  <span class="h-2.5 w-2.5 rounded-full" :style="{ background: segment.dot }"></span>
+                  <span>{{ segment.label }}</span>
+                </div>
+                <span class="text-slate-200">{{ segment.valueLabel }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 text-xs text-slate-400">{{ syntheticExplanation }}</div>
+      </div>
+
+      <RankRadarChart :global-rank="globalRank" :synthetic-rank="syntheticRank" />
+    </div>
+
+    <div class="hidden md:block">
+      <ActivityHeatmapChart />
+    </div>
+
+    <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-4">
+      <div class="mb-2 text-xs text-slate-300">{{ nextStepLine }}</div>
+      <div class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-emerald-300">What Raises Score Next</div>
+      <div class="space-y-1.5">
+        <button
+          v-for="(hint, index) in globalHints"
+          :key="`hint-${index}`"
+          class="block w-full rounded-md px-2 py-1.5 text-left text-xs text-slate-200 transition hover:bg-slate-800/70"
+          @click="runHintAction(hint.action)"
+        >
+          <span class="mr-1 text-emerald-300">↗</span>{{ hint.text }}
+        </button>
       </div>
     </div>
 
@@ -132,12 +130,13 @@
 
 <script>
 import ActivityHeatmapChart from './ActivityHeatmapChart.vue'
+import RankRadarChart from './RankRadarChart.vue'
 import { getAllRankInfo } from '../core/ranking'
 import { getAllDeckAnalytics } from '../core/analytics'
 
 export default {
   name: 'RankDisplay',
-  components: { ActivityHeatmapChart },
+  components: { ActivityHeatmapChart, RankRadarChart },
   data() {
     return {
       globalRank: { rank: 'D', score: 0, color: '#00b4d8', description: 'Initialize', stats: { totalAttempts: 0, deckCount: 0 } },
@@ -145,6 +144,55 @@ export default {
     }
   },
   computed: {
+    globalGaugeStyle() {
+      const score = Math.max(0, Math.min(100, Number(this.globalRank?.score || 0)))
+      return {
+        background: `conic-gradient(${this.globalRank?.color || '#00b4d8'} 0deg, ${this.globalRank?.color || '#00b4d8'} ${score * 3.6}deg, rgba(30,41,59,0.7) ${score * 3.6}deg, rgba(30,41,59,0.7) 360deg)`
+      }
+    },
+    syntheticSegments() {
+      const parts = this.syntheticRank?.components || {}
+      const mastery = Number(parts.weightedMastery || 0)
+      const accuracy = Number(parts.weightedAccuracy || 0)
+      const diversity = Number(parts.diversityBonus || 0)
+      return [
+        {
+          key: 'mastery',
+          label: 'Mastery contribution',
+          width: mastery,
+          valueLabel: mastery.toFixed(1),
+          background: 'linear-gradient(to right, #8b5cf6, #d946ef)',
+          dot: '#a855f7',
+        },
+        {
+          key: 'accuracy',
+          label: 'Accuracy contribution',
+          width: accuracy,
+          valueLabel: accuracy.toFixed(1),
+          background: 'linear-gradient(to right, #06b6d4, #60a5fa)',
+          dot: '#22d3ee',
+        },
+        {
+          key: 'diversity',
+          label: 'Diversity bonus',
+          width: diversity,
+          valueLabel: `+${diversity.toFixed(1)}`,
+          background: 'linear-gradient(to right, #f59e0b, #fde047)',
+          dot: '#fbbf24',
+        },
+      ]
+    },
+    globalExplanation() {
+      if (!this.globalRank?.nextRank) return 'Global rank is capped. Keep accuracy high to maintain this tier.'
+      const gap = Math.max(0, Number(this.globalRank.nextRank.minScore || 0) - Number(this.globalRank.score || 0))
+      return gap > 0
+        ? `${gap}% away from ${this.globalRank.nextRank.rank}. This rank moves only when raw accuracy improves.`
+        : `You are sitting on the promotion line for ${this.globalRank.nextRank.rank}.`
+    },
+    syntheticExplanation() {
+      const parts = this.syntheticRank?.components || {}
+      return `Synthetic rank rewards balanced progress: mastery ${parts.averageMastery || 0}%, accuracy ${parts.accuracy || 0}%, plus diversity bonus.`
+    },
     recommendedDeck() {
       const analytics = getAllDeckAnalytics()
       const rows = Object.entries(analytics || {}).map(([deck, stats]) => {

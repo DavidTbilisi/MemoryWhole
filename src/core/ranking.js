@@ -59,7 +59,16 @@ function getSyntheticScore() {
     masterySum += Number(peaks[deck] || 0)
   }
 
-  if (deckCount === 0) return 0
+  if (deckCount === 0) {
+    return {
+      score: 0,
+      accuracy: 0,
+      averageMastery: 0,
+      diversityBonus: 0,
+      weightedMastery: 0,
+      weightedAccuracy: 0,
+    }
+  }
 
   const accuracy = totalAttempts > 0
     ? (totalCorrect / totalAttempts) * 100
@@ -70,9 +79,18 @@ function getSyntheticScore() {
   // Synthetic score: 60% from average mastery + 40% from global accuracy
   // with bonus for deck diversity
   const diversityBonus = Math.min(deckCount * 2, 10)
-  const syntheticScore = (averageMastery * 0.6) + (accuracy * 0.4) + diversityBonus
+  const weightedMastery = averageMastery * 0.6
+  const weightedAccuracy = accuracy * 0.4
+  const syntheticScore = weightedMastery + weightedAccuracy + diversityBonus
 
-  return Math.min(syntheticScore, 100)
+  return {
+    score: Math.min(syntheticScore, 100),
+    accuracy,
+    averageMastery,
+    diversityBonus,
+    weightedMastery,
+    weightedAccuracy,
+  }
 }
 
 export function getRankInfo(score) {
@@ -116,13 +134,20 @@ export function getGlobalRank() {
 }
 
 export function getSyntheticRank() {
-  const score = getSyntheticScore()
-  const rankInfo = getRankInfo(score)
+  const synthetic = getSyntheticScore()
+  const rankInfo = getRankInfo(synthetic.score)
   return {
     rank: rankInfo.rank,
-    score: Math.round(score),
+    score: Math.round(synthetic.score),
     color: rankInfo.color,
-    description: rankInfo.description
+    description: rankInfo.description,
+    components: {
+      accuracy: Math.round(synthetic.accuracy),
+      averageMastery: Math.round(synthetic.averageMastery),
+      diversityBonus: Number(synthetic.diversityBonus.toFixed(1)),
+      weightedMastery: Number(synthetic.weightedMastery.toFixed(1)),
+      weightedAccuracy: Number(synthetic.weightedAccuracy.toFixed(1)),
+    },
   }
 }
 
