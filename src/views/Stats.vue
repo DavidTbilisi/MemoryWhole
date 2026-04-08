@@ -66,6 +66,50 @@
           Accuracy <strong class="text-emerald-200">{{ regularAccuracyLabel }}</strong>
         </template>
       </div>
+
+      <div class="rounded-xl border border-slate-700/70 bg-slate-900/35 p-4">
+        <div class="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <div class="text-xs uppercase tracking-wider text-slate-400">7-Session Trend</div>
+            <div class="text-sm text-slate-300">{{ trendIntroLabel }}</div>
+          </div>
+          <div v-if="comparisonTimestampLabel" class="text-[11px] text-slate-500">Baseline ending {{ comparisonTimestampLabel }}</div>
+        </div>
+
+        <div v-if="trendCards.length" class="grid grid-cols-1 gap-2 md:grid-cols-3">
+          <div v-for="card in trendCards" :key="card.label" class="rounded-lg border p-3" :class="card.cardClass">
+            <div class="mb-1 flex items-center justify-between gap-2 text-[11px] uppercase tracking-wider text-slate-300">
+              <span>{{ card.label }}</span>
+              <span class="text-base leading-none">{{ card.icon }}</span>
+            </div>
+            <div class="flex items-end justify-between gap-3">
+              <div>
+                <div class="text-xl font-black text-slate-100">{{ card.currentLabel }}</div>
+                <div class="text-[11px] text-slate-400">7-session avg {{ card.previousLabel }}</div>
+              </div>
+              <div class="rounded-full px-2 py-1 text-xs font-semibold" :class="card.deltaClass">{{ card.deltaArrow }} {{ card.deltaLabel }}</div>
+            </div>
+            <div class="mt-2">
+              <div class="mb-1 flex items-center justify-between text-[10px] text-slate-500">
+                <span>Recent 7 → Now</span>
+                <span>{{ card.sparkSummary }}</span>
+              </div>
+              <svg viewBox="0 0 100 22" preserveAspectRatio="none" class="h-8 w-full">
+                <polyline
+                  fill="none"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  :stroke="card.sparkStroke"
+                  :points="card.sparkPoints"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="text-sm text-slate-400">Complete at least 2 {{ isDrill ? 'drills' : 'quiz sessions' }} on this deck to unlock 7-session trends.</div>
+      </div>
     </div>
 
     <div v-else class="text-sm text-slate-400">No session summary yet.</div>
@@ -148,6 +192,163 @@ export default {
       if (!attempts || !usedMs) return '—'
       const perMin = (attempts / usedMs) * 60000
       return `${perMin.toFixed(1)} answers/min`
+    },
+    comparisonSource() {
+      return this.isDrill ? this.session?.previousDrill : this.session?.previousSession
+    },
+    previousSamples() {
+      const raw = this.isDrill
+        ? (this.session?.recentDrills || [])
+        : (this.session?.recentSessions || [])
+      if (!Array.isArray(raw)) return []
+      return raw.slice(1, 8)
+    },
+    comparisonTimestampLabel() {
+      const sample = this.previousSamples[0] || this.comparisonSource
+      const ts = Number(sample?.ts || 0)
+      if (!ts) return ''
+      return new Date(ts).toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    },
+    trendIntroLabel() {
+      if (!this.previousSamples.length && !this.comparisonSource) return 'No previous comparable session saved yet.'
+      const n = this.previousSamples.length || 1
+      return this.isDrill
+        ? `Current drill vs average of last ${n} drill${n === 1 ? '' : 's'}.`
+        : `Current quiz vs average of last ${n} session${n === 1 ? '' : 's'}.`
+    },
+    trendCards() {
+      const baseline = this.comparisonBaseline
+      if (!baseline) return []
+
+      if (this.isDrill) {
+        const currentAvgMs = Number(this.session?.avgResponseMs || 0)
+        const previousAvgMs = Number(baseline.avgResponseMs || 0)
+        return [
+          this.makeTrendCard('Score', Number(this.session?.score || 0), Number(baseline.score || 0), '', { icon: '⚡', historyField: 'score' }),
+          this.makeTrendCard('Accuracy', this.accuracyPct, Number(baseline.accuracy || 0), '%', { icon: '🎯', historyField: 'accuracy' }),
+          this.makeTrendCard('Avg Response', currentAvgMs, previousAvgMs, 'ms', { invert: true, formatter: this.formatResponseMs, historyField: 'avgResponseMs' }),
+        ]
+      }
+
+      return [
+        this.makeTrendCard('Accuracy', this.accuracyPct, Number(baseline.accuracy || 0), '%', { icon: '🎯', historyField: 'accuracy' }),
+        this.makeTrendCard('Mastery', Number(this.session?.mastery || 0), Number(baseline.mastery || 0), '%', { icon: '🧠', historyField: 'mastery' }),
+        this.makeTrendCard('Peak', Number(this.session?.peak || 0), Number(baseline.peak || 0), '%', { icon: '🏆', historyField: 'peak' }),
+      ]
+    },
+    comparisonBaseline() {
+      const prev = this.previousSamples
+      if (prev.length) {
+        if (this.isDrill) {
+          return {
+            score: this.avg(prev, 'score'),
+            accuracy: this.avg(prev, 'accuracy'),
+            avgResponseMs: this.avg(prev, 'avgResponseMs'),
+          }
+        }
+        return {
+          accuracy: this.avg(prev, 'accuracy'),
+          mastery: this.avg(prev, 'mastery'),
+          peak: this.avg(prev, 'peak'),
+        }
+      }
+
+      const fallback = this.comparisonSource
+      if (!fallback) return null
+      if (this.isDrill) {
+        return {
+          score: Number(fallback.score || 0),
+          accuracy: Number(fallback.accuracy || 0),
+          avgResponseMs: Number(fallback.avgResponseMs || 0),
+        }
+      }
+      return {
+        accuracy: Number(fallback.accuracy || 0),
+        mastery: Number(fallback.mastery || 0),
+        peak: Number(fallback.peak || 0),
+      }
+    }
+  },
+  methods: {
+    avg(rows, field) {
+      if (!rows.length) return 0
+      const sum = rows.reduce((acc, row) => acc + Number(row?.[field] || 0), 0)
+      return sum / rows.length
+    },
+    formatResponseMs(value) {
+      const ms = Number(value || 0)
+      if (!ms) return '—'
+      return `${(ms / 1000).toFixed(2)}s`
+    },
+    makeTrendCard(label, current, previous, unit = '', options = {}) {
+      const invert = Boolean(options.invert)
+      const formatter = options.formatter || ((value) => `${Math.round(Number(value || 0))}${unit}`)
+      const icon = options.icon || (invert ? '⏱️' : '📈')
+      const historyField = options.historyField || ''
+      const safeCurrent = Number(current || 0)
+      const safePrevious = Number(previous || 0)
+      const delta = safeCurrent - safePrevious
+      const improved = invert ? delta < 0 : delta > 0
+      const isFlat = delta === 0
+      const trendSeries = this.buildTrendSeries(historyField, safeCurrent)
+
+      return {
+        label,
+        icon,
+        currentLabel: formatter(safeCurrent),
+        previousLabel: formatter(safePrevious),
+        deltaLabel: this.formatDelta(delta, unit, { invert }),
+        deltaArrow: isFlat ? '→' : (improved ? '↑' : '↓'),
+        deltaClass: isFlat
+          ? 'bg-slate-800 text-slate-300'
+          : improved
+            ? 'bg-emerald-500/15 text-emerald-300'
+            : 'bg-rose-500/15 text-rose-300',
+        cardClass: isFlat
+          ? 'border-slate-700/70 bg-slate-950/45'
+          : improved
+            ? 'border-emerald-500/30 bg-emerald-950/20'
+            : 'border-rose-500/30 bg-rose-950/20',
+        sparkPoints: this.makeSparklinePoints(trendSeries),
+        sparkStroke: isFlat ? '#94a3b8' : (improved ? '#34d399' : '#fb7185'),
+        sparkSummary: `${trendSeries.length} pts`,
+      }
+    },
+    buildTrendSeries(field, currentValue) {
+      const prevChronological = [...this.previousSamples].reverse()
+      const prevValues = prevChronological.map((row) => Number(row?.[field] || 0))
+      return [...prevValues, Number(currentValue || 0)]
+    },
+    makeSparklinePoints(values) {
+      if (!Array.isArray(values) || values.length <= 1) return '0,16 100,16'
+      const min = Math.min(...values)
+      const max = Math.max(...values)
+      const span = Math.max(1, max - min)
+      return values
+        .map((value, idx) => {
+          const x = (idx / (values.length - 1)) * 100
+          const y = 18 - (((value - min) / span) * 14)
+          return `${x.toFixed(2)},${y.toFixed(2)}`
+        })
+        .join(' ')
+    },
+    formatDelta(delta, unit = '', options = {}) {
+      if (delta === 0) return 'No change'
+      const invert = Boolean(options.invert)
+      const direction = invert
+        ? (delta < 0 ? 'Faster' : 'Slower')
+        : (delta > 0 ? 'Up' : 'Down')
+
+      if (unit === 'ms') {
+        return `${direction} ${Math.abs(delta / 1000).toFixed(2)}s`
+      }
+
+      return `${direction} ${Math.abs(delta)}${unit}`
     }
   }
 }

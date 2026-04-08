@@ -5,6 +5,19 @@ export const DECK_STATS_KEY = 'deckStats_v1'
 export const MASTERY_PEAK_KEY = 'masteryPeak_v1'
 export const ACTIVITY_LOG_KEY = 'activityLog_v1'
 export const DRILL_RECORDS_KEY = 'drillRecords_v1'
+export const SESSION_HISTORY_KEY = 'sessionHistory_v1'
+
+function makeSessionEntry(payload = {}) {
+  return {
+    ts: Number(payload.ts || Date.now()),
+    attempts: Number(payload.attempts || 0),
+    correct: Number(payload.correct || 0),
+    wrong: Number(payload.wrong || 0),
+    accuracy: Number(payload.accuracy || 0),
+    mastery: Number(payload.mastery || 0),
+    peak: Number(payload.peak || 0),
+  }
+}
 
 function sumBy(items, field) {
   return Object.values(items || {}).reduce((acc, cur) => acc + Number(cur?.[field] || 0), 0)
@@ -13,10 +26,17 @@ function sumBy(items, field) {
 export function recordSession(deck, numStats) {
   const analytics = readJson(ANALYTICS_KEY, {})
   const deckAnalytics = analytics[deck] || { totalSessions: 0, totalAttempts: 0, totalCorrect: 0, totalWrong: 0 }
+  const sessionHistory = readJson(SESSION_HISTORY_KEY, {})
+  const previousSession = Array.isArray(sessionHistory[deck]) && sessionHistory[deck].length
+    ? sessionHistory[deck][0]
+    : null
 
   const attempts = sumBy(numStats, 'attempts')
   const correct = sumBy(numStats, 'correct')
   const wrong = sumBy(numStats, 'wrong')
+  const accuracy = attempts > 0
+    ? Math.round((correct / attempts) * 100)
+    : 0
 
   deckAnalytics.totalSessions += 1
   deckAnalytics.totalAttempts += attempts
@@ -42,6 +62,18 @@ export function recordSession(deck, numStats) {
   peaks[deck] = Math.max(Number(peaks[deck] || 0), mastery)
   writeJson(MASTERY_PEAK_KEY, peaks)
 
+  const nextEntry = makeSessionEntry({
+    ts: Date.now(),
+    attempts,
+    correct,
+    wrong,
+    accuracy,
+    mastery,
+    peak: peaks[deck],
+  })
+  sessionHistory[deck] = [nextEntry, ...(sessionHistory[deck] || [])].slice(0, 20)
+  writeJson(SESSION_HISTORY_KEY, sessionHistory)
+
   logActivity('session', attempts)
 
   notifyStatsUpdated()
@@ -50,9 +82,12 @@ export function recordSession(deck, numStats) {
     attempts,
     correct,
     wrong,
+    accuracy,
     mastery,
     peak: peaks[deck],
     totals: deckAnalytics,
+    previousSession,
+    recentSessions: sessionHistory[deck] || [],
   }
 }
 
@@ -78,6 +113,9 @@ export function recordDrillResult(deck, payload = {}) {
     bestAvgResponseMs: 0,
     history: [],
   }
+  const previousDrill = Array.isArray(cur.history) && cur.history.length
+    ? cur.history[0]
+    : null
 
   const score = Number(payload.score || 0)
   const correct = Number(payload.correct || 0)
@@ -117,7 +155,7 @@ export function recordDrillResult(deck, payload = {}) {
   logActivity('drill', attempts)
   notifyStatsUpdated()
 
-  return { ...cur }
+  return { ...cur, previousDrill, recentDrills: cur.history || [] }
 }
 
 export function notifyStatsUpdated() {
@@ -166,4 +204,9 @@ export function getDeckDrillRecords(deck) {
     bestAvgResponseMs: 0,
     history: [],
   }
+}
+
+export function getDeckSessionHistory(deck) {
+  const all = readJson(SESSION_HISTORY_KEY, {})
+  return all[deck] || []
 }

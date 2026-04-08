@@ -469,12 +469,15 @@ export default {
                 attempts: this.score.correct + this.score.wrong,
                 correct: this.score.correct,
                 wrong: this.score.wrong,
+                accuracy: this.accuracyPct,
                 score: this.drillScore,
                 maxStreak: this.drillMaxStreak,
                 avgResponseMs,
                 timeUsedMs,
                 bestScore: drillTotals.bestScore,
                 totalDrills: drillTotals.totalDrills,
+                previousDrill: drillTotals.previousDrill,
+                recentDrills: drillTotals.recentDrills,
                 lastSavedTs: Date.now(),
               }
             })()
