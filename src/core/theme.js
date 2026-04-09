@@ -15,7 +15,7 @@ export const THEME_SWATCHES = {
     'dark-retro': ['#454040', '#605B51', '#D8D365', '#E6F082'],
     'dark-pink': ['#2E112D', '#540032', '#820333', '#C9283E'],
     'light-vintage': ['#F5E9D8', '#2FA4D7', '#3E2C23', '#E76F2E'],
-    'light-pink': ['#FFF7CD', '#FDC3A1', '#FB9B8F', '#F57799'],
+    'light-pink': ['#F13E93', '#F891BB', '#F9D0CD', '#FAFFCB'],
     'dark-cyber': ['#090040', '#471396', '#B13BFF', '#FFCC00'],
     'dark-matrix': ['#0D0208', '#003B00', '#008F11', '#00FF41'],
     'dark-neon': ['#000957', '#344CB7', '#577BC1', '#FFEB00'],

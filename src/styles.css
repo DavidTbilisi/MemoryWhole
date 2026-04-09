@@ -61,14 +61,14 @@
 }
 
 :root[data-theme='light-pink'] {
-  --surface-1: #FFF7CD;
-  --surface-2: #FFF7CD;
-  --surface-3: #FDC3A1;
-  --text-main: #4f2a37;
-  --text-soft: #7b4a5b;
-  --brand-1: #FB9B8F;
-  --brand-2: #F57799;
-  --edge: #f2b3a6;
+  --surface-1: #FAFFCB;
+  --surface-2: #F9D0CD;
+  --surface-3: #F891BB;
+  --text-main: #612343;
+  --text-soft: #8a4b6a;
+  --brand-1: #F13E93;
+  --brand-2: #F891BB;
+  --edge: #f1b0c8;
   --bg-darken: rgba(255, 255, 255, 0.08);
   --trace-color: rgba(123, 74, 91, 0.09);
   --trace-node: rgba(123, 74, 91, 0.07);
