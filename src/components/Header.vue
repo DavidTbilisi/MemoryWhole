@@ -80,17 +80,32 @@
           {{ busy ? 'Signing in...' : 'Sign in with Google' }}
         </button>
       </div>
-      <div v-else class="flex items-center gap-2">
-        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 bg-slate-900/60 text-xs font-bold text-slate-200 md:hidden">{{ userInitials }}</span>
-        <span class="hidden md:inline text-sm text-slate-200">{{ name }}</span>
+      <div v-else ref="profileMenuRoot" class="relative">
         <button
-          class="px-3 py-2 rounded-lg border border-slate-700 text-slate-200 disabled:opacity-70"
+          class="inline-flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-900/60 px-2.5 py-1.5 text-slate-100"
           :disabled="busy"
-          @click="handleSignOut"
-          v-tooltip="'Sign out of your account'"
+          @click="toggleProfileMenu"
+          v-tooltip="'Open profile menu'"
         >
-          {{ busy ? 'Working...' : 'Sign out' }}
+          <span class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 bg-slate-900/60 text-xs font-bold text-slate-200">{{ userInitials }}</span>
+          <span class="hidden md:inline max-w-[170px] truncate text-sm text-slate-200">{{ name }}</span>
+          <span class="text-[10px] text-slate-400">{{ profileMenuOpen ? '▲' : '▼' }}</span>
         </button>
+
+        <div v-if="profileMenuOpen" class="absolute right-0 top-[calc(100%+0.35rem)] z-20 w-56 rounded-lg border border-slate-700/80 bg-slate-900/95 p-2 shadow-2xl backdrop-blur">
+          <div class="mb-2 border-b border-slate-700/70 pb-2">
+            <div class="truncate text-xs text-slate-300">{{ name }}</div>
+            <div class="text-[11px] text-slate-500">Account</div>
+          </div>
+          <button
+            class="w-full rounded-md border border-rose-800/80 px-2.5 py-2 text-left text-xs text-rose-200 disabled:opacity-70 hover:bg-rose-950/35"
+            :disabled="busy"
+            @click="handleSignOut"
+            v-tooltip="signOutArmed ? 'Click again to confirm sign out' : 'Arm sign out (two-step confirmation)'"
+          >
+            {{ busy ? 'Working...' : (signOutArmed ? 'Confirm sign out' : 'Sign out') }}
+          </button>
+        </div>
       </div>
       <div v-if="statusText" :class="['text-xs', statusClass]">{{ statusText }}</div>
     </div>
@@ -115,6 +130,9 @@ export default {
       themeOptions: THEME_OPTIONS,
       selectedTheme: getSavedTheme(),
       themeMenuOpen: false,
+      profileMenuOpen: false,
+      signOutArmed: false,
+      signOutArmTimer: null,
     }
   },
   computed: {
@@ -170,6 +188,8 @@ export default {
       } else {
         this.statusText = ''
         this.statusTone = 'neutral'
+        this.profileMenuOpen = false
+        this.signOutArmed = false
       }
 
       this.busy = false
@@ -178,6 +198,10 @@ export default {
   beforeUnmount() {
     document.removeEventListener('click', this.onDocumentClick)
     if (typeof this.unlistenAuth === 'function') this.unlistenAuth()
+    if (this.signOutArmTimer) {
+      clearTimeout(this.signOutArmTimer)
+      this.signOutArmTimer = null
+    }
   },
   methods: {
     themeSwatches(themeId) {
@@ -185,16 +209,35 @@ export default {
     },
     toggleThemeMenu() {
       this.themeMenuOpen = !this.themeMenuOpen
+      if (this.themeMenuOpen) this.profileMenuOpen = false
+    },
+    toggleProfileMenu() {
+      this.profileMenuOpen = !this.profileMenuOpen
+      if (this.profileMenuOpen) this.themeMenuOpen = false
     },
     selectTheme(themeId) {
       this.selectedTheme = applyTheme(themeId)
       this.themeMenuOpen = false
     },
     onDocumentClick(event) {
-      if (!this.themeMenuOpen) return
-      const root = this.$refs.themeMenuRoot
-      if (!root || root.contains(event.target)) return
-      this.themeMenuOpen = false
+      const themeRoot = this.$refs.themeMenuRoot
+      if (this.themeMenuOpen && themeRoot && !themeRoot.contains(event.target)) {
+        this.themeMenuOpen = false
+      }
+
+      const profileRoot = this.$refs.profileMenuRoot
+      if (this.profileMenuOpen && profileRoot && !profileRoot.contains(event.target)) {
+        this.profileMenuOpen = false
+        this.signOutArmed = false
+      }
+    },
+    armSignOut() {
+      this.signOutArmed = true
+      if (this.signOutArmTimer) clearTimeout(this.signOutArmTimer)
+      this.signOutArmTimer = setTimeout(() => {
+        this.signOutArmed = false
+        this.signOutArmTimer = null
+      }, 3500)
     },
     async handleSignIn() {
       if (this.busy) return
@@ -210,14 +253,27 @@ export default {
     },
     async handleSignOut() {
       if (this.busy) return
+      if (!this.signOutArmed) {
+        this.armSignOut()
+        this.statusText = 'Click sign out again to confirm.'
+        this.statusTone = 'info'
+        return
+      }
       this.busy = true
       try {
+        if (this.signOutArmTimer) {
+          clearTimeout(this.signOutArmTimer)
+          this.signOutArmTimer = null
+        }
+        this.signOutArmed = false
+        this.profileMenuOpen = false
         await signOutUser()
         this.statusText = ''
         this.statusTone = 'neutral'
       } catch (err) {
         this.busy = false
         console.error(err)
+        this.signOutArmed = false
         this.statusText = 'Sign-out failed. Please try again.'
         this.statusTone = 'error'
       }
