@@ -82,7 +82,7 @@
               <div>{{ header.label }} <span class="text-[11px] font-normal text-slate-400">{{ header.bits }}</span></div>
             </td>
             <td v-for="low in bits2" :key="`hex-${header.bits}-${low}`" class="p-2 border border-slate-700 whitespace-nowrap">
-              {{ hexCodeFor(header.bits, low) }} · {{ dataMap[hexCodeFor(header.bits, low)] || '—' }}
+              {{ dataMap[hexCodeFor(header.bits, low)] || '—' }}
             </td>
           </tr>
         </tbody>
