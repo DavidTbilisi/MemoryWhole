@@ -8,9 +8,11 @@ export const DECKS = [
   { deck: 'clocks', name: 'Famous Clocks', count: '24 items', icon: '🕐' },
   { deck: 'major', name: 'Major System', count: '100 items', icon: '🔢' },
   { deck: 'sem3', name: 'SEM3', count: '100 items', icon: '🧠' },
+  { deck: 'sem3major', name: 'SEM3 Major', count: '10,000 items · 4 digits', icon: '🧠' },
   { deck: 'hex', name: 'Hex (Aristotelian)', count: '16 symbols (0-F)', icon: '🔶' },
   { deck: 'binary', name: 'Binary (4-bit)', count: '16 patterns', icon: '⬛' },
   { deck: 'pao', name: 'PAO System', count: '100 items · 10 franchises', icon: '🎭' },
   { deck: 'bibleoverview', name: 'Bible Overview', count: '10 sections', icon: '✝️' },
   { deck: 'biblebooks', name: 'Bible Books', count: '66 books', icon: '📖' },
+  { deck: 'primes', name: 'Prime Numbers', count: '1229 primes · ≤ 9999', icon: '🔺' },
 ]

@@ -20,11 +20,13 @@ export const DECK_ICONS_KEY = 'deckIcons_v1'
 const DECK_EMOJI = {
   major: '🔢',
   sem3: '🧠',
+  sem3major: '🧠',
   months: '📅',
   clocks: '🕐',
   pao: '🎭',
   binary: '⬛',
   hex: '🔶',
+  primes: '🔺',
   calendar: '🗓️',
   bibleoverview: '✝️',
   biblebooks: '📖',
@@ -60,6 +62,70 @@ const DECK_DATA = {
   biblebooks: BIBLE_BOOKS_DATA,
   pegmatrix: PEG_MATRIX_DATA,
   pegmatrixru: PEG_MATRIX_RU_DATA,
+}
+
+const LIGHTWEIGHT_IMAGE_DECKS = new Set(['primes', 'sem3major'])
+
+function isPrime(value) {
+  const n = Number(value)
+  if (!Number.isInteger(n) || n < 2) return false
+  if (n === 2) return true
+  if (n % 2 === 0) return false
+  const limit = Math.floor(Math.sqrt(n))
+  for (let candidate = 3; candidate <= limit; candidate += 2) {
+    if (n % candidate === 0) return false
+  }
+  return true
+}
+
+function stripSem3Prefix(value) {
+  const text = String(value || '').trim()
+  const separator = ' - '
+  return text.includes(separator) ? text.split(separator)[1] : text
+}
+
+function buildPrimeDataSync() {
+  const major = getDeckDataSync('major')
+  const sem3 = getDeckDataSync('sem3')
+  const out = {}
+
+  for (let value = 2; value <= 9999; value += 1) {
+    if (!isPrime(value)) continue
+
+    if (value < 100) {
+      const lower = String(value).padStart(2, '0')
+      out[String(value)] = `${lower} ${major[lower] || major[String(value)] || '—'} (Major)`
+      continue
+    }
+
+    const padded = String(value).padStart(4, '0')
+    const upper = padded.slice(0, 2)
+    const lower = padded.slice(2)
+    const sem3Key = `${upper}00`
+    const sem3Value = stripSem3Prefix(sem3[sem3Key] || '—')
+    const majorValue = major[lower] || '—'
+    out[String(value)] = `${upper} ${sem3Value} (SEM3) + ${lower} ${majorValue} (Major)`
+  }
+
+  return out
+}
+
+function buildSem3MajorDataSync() {
+  const major = getDeckDataSync('major')
+  const sem3 = getDeckDataSync('sem3')
+  const out = {}
+
+  for (let value = 0; value <= 9999; value += 1) {
+    const padded = String(value).padStart(4, '0')
+    const upper = padded.slice(0, 2)
+    const lower = padded.slice(2)
+    const sem3Key = `${upper}00`
+    const sem3Value = stripSem3Prefix(sem3[sem3Key] || '—')
+    const majorValue = major[lower] || '—'
+    out[padded] = `${upper} ${sem3Value} (SEM3) + ${lower} ${majorValue} (Major)`
+  }
+
+  return out
 }
 
 function buildPegAudioImages(matrixImages) {
@@ -206,10 +272,13 @@ export function getDeckDefaultIconsSync(deck) {
 }
 
 export function getDeckDefaultImagesSync(deck) {
+  if (LIGHTWEIGHT_IMAGE_DECKS.has(deck)) return {}
   return buildDefaultDeckImages(deck)
 }
 
 export function getDeckBaseDataSync(deck) {
+  if (deck === 'sem3major') return buildSem3MajorDataSync()
+  if (deck === 'primes') return buildPrimeDataSync()
   const data = DECK_DATA[deck]
   if (!data) throw new Error(`Unknown deck: ${deck}`)
   return cloneMap(data)

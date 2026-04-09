@@ -49,6 +49,22 @@
   --noise-opacity: 0.03;
 }
 
+:root[data-theme='light-pink'] {
+  --surface-1: #FFF7CD;
+  --surface-2: #FFF7CD;
+  --surface-3: #FDC3A1;
+  --text-main: #4f2a37;
+  --text-soft: #7b4a5b;
+  --brand-1: #FB9B8F;
+  --brand-2: #F57799;
+  --edge: #f2b3a6;
+  --bg-darken: rgba(255, 255, 255, 0.08);
+  --trace-color: rgba(123, 74, 91, 0.09);
+  --trace-node: rgba(123, 74, 91, 0.07);
+  --pattern-opacity: 0.14;
+  --noise-opacity: 0.03;
+}
+
 :root[data-theme='dark-cyber'] {
   --surface-1: #090040;
   --surface-2: #471396;

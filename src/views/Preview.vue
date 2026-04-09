@@ -5,6 +5,26 @@
       <button class="px-3 py-2 rounded-lg bg-slate-700 text-white" @click="$emit('back')" v-tooltip="'Return to home'">Back</button>
     </div>
 
+    <div v-if="showPaginationControls" class="mb-3 flex flex-col gap-2 rounded-lg border border-slate-700 bg-slate-900/40 p-3 md:flex-row md:items-center md:justify-between">
+      <div class="text-sm text-slate-300">
+        Showing {{ pageRangeLabel }} of {{ rows.length }}
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <label class="text-xs uppercase tracking-wide text-slate-400">
+          Page size
+          <select v-model.number="pageSize" class="ml-2 rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100">
+            <option :value="50">50</option>
+            <option :value="100">100</option>
+            <option :value="250">250</option>
+            <option :value="500">500</option>
+          </select>
+        </label>
+        <button class="rounded border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-100 disabled:opacity-40" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">Prev</button>
+        <div class="text-sm text-slate-300">Page {{ currentPage }} / {{ pageCount }}</div>
+        <button class="rounded border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-100 disabled:opacity-40" :disabled="currentPage >= pageCount" @click="goToPage(currentPage + 1)">Next</button>
+      </div>
+    </div>
+
     <div v-if="mode === 'major-matrix'" class="overflow-auto rounded-lg border border-slate-700">
       <table class="w-full border-collapse text-sm">
         <thead class="bg-slate-900/70 sticky top-0">
@@ -41,6 +61,41 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div v-else-if="mode === 'sem3major-matrix'" class="grid grid-cols-1 gap-3 lg:grid-cols-[280px_1fr]">
+      <div class="rounded-lg border border-slate-700 bg-slate-900/40 p-3">
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">Block</div>
+        <select v-model="selectedSem3Block" class="mt-2 w-full rounded border border-slate-700 bg-slate-950 px-2 py-2 text-sm text-slate-100">
+          <option v-for="option in sem3MajorBlockOptions" :key="option.code" :value="option.code">
+            {{ option.code }} · {{ option.short }}
+          </option>
+        </select>
+        <div class="mt-3 text-sm text-slate-200">{{ selectedSem3BlockTitle }}</div>
+        <div class="mt-3 flex items-center gap-2">
+          <button class="rounded border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-100 disabled:opacity-40" :disabled="selectedSem3BlockIndex <= 0" @click="goToSem3Block(-1)">Prev</button>
+          <button class="rounded border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-100 disabled:opacity-40" :disabled="selectedSem3BlockIndex >= sem3MajorBlockOptions.length - 1" @click="goToSem3Block(1)">Next</button>
+        </div>
+      </div>
+
+      <div class="overflow-auto rounded-lg border border-slate-700">
+        <table class="w-full border-collapse text-sm">
+          <thead class="bg-slate-900/70 sticky top-0">
+            <tr>
+              <th class="p-2 border border-slate-700 text-left">{{ selectedSem3Block }} \ Major</th>
+              <th v-for="c in 10" :key="`smmh-${c - 1}`" class="p-2 border border-slate-700 text-left">{{ c - 1 }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="r in 10" :key="`smmr-${r - 1}`" class="odd:bg-slate-900/30">
+              <td class="p-2 border border-slate-700 font-semibold">{{ r - 1 }}</td>
+              <td v-for="c in 10" :key="`smmc-${r - 1}-${c - 1}`" class="p-2 border border-slate-700 whitespace-nowrap">
+                {{ sem3MajorCell(r - 1, c - 1) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div v-else-if="mode === 'binary'" class="overflow-auto rounded-lg border border-slate-700">
@@ -115,7 +170,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in bibleBookRows" :key="row.key" class="odd:bg-slate-900/30">
+          <tr v-for="row in visibleBibleBookRows" :key="row.key" class="odd:bg-slate-900/30">
             <td class="p-2 border border-slate-700 text-slate-300">{{ row.key }}</td>
             <td class="p-2 border border-slate-700">{{ row.value }}</td>
             <td class="p-2 border border-slate-700 text-cyan-200">{{ row.assoc }}</td>
@@ -135,7 +190,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in rows" :key="row.key" class="odd:bg-slate-900/30">
+          <tr v-for="row in visibleRows" :key="row.key" class="odd:bg-slate-900/30">
             <td class="p-2 border border-slate-700 text-slate-300">{{ row.key }}</td>
             <td class="p-2 border border-slate-700">{{ row.value }}</td>
                 <td class="p-2 border border-slate-700"><img :src="imageForKey(row.key)" alt="" class="h-10 w-14 rounded border border-slate-700 object-cover" @error="onImageError($event, row.key)" /></td>
@@ -150,6 +205,7 @@
 import { getDeckEmojiMapSync, getDeckImagesSync, loadDeckData, makeEmojiFallbackDataUri } from '../core/deck-loader'
 import { DECKS } from '../data/decks'
 import { MAJOR_DATA } from '../data/major-system'
+import { SEM3_DATA } from '../data/sem3'
 import { PEG_AUDIO, PEG_VISUAL } from '../data/peg-matrix'
 import { PEG_AUDIO_RU, PEG_VISUAL_RU } from '../data/peg-matrix-ru'
 
@@ -175,7 +231,10 @@ export default {
       dataMap: {},
       imageMap: {},
       emojiMap: {},
-      bits2: ['00', '01', '10', '11']
+      bits2: ['00', '01', '10', '11'],
+      currentPage: 1,
+      pageSize: 100,
+      selectedSem3Block: '00',
     }
   },
   computed: {
@@ -185,6 +244,7 @@ export default {
     mode() {
       if (this.deck === 'major') return 'major-matrix'
       if (this.deck === 'pegmatrix' || this.deck === 'pegmatrixru') return 'peg'
+      if (this.deck === 'sem3major') return 'sem3major-matrix'
       if (this.deck === 'binary') return 'binary'
       if (this.deck === 'hex') return 'hex'
       if (this.deck === 'sem3' || this.deck === 'pao') return 'grouped'
@@ -215,10 +275,62 @@ export default {
         { bits: '11', label: '💧 Wet' },
       ]
     },
+    sem3MajorBlockOptions() {
+      const out = []
+      for (let sense = 0; sense < 10; sense += 1) {
+        for (let idx = 0; idx < 10; idx += 1) {
+          const code = `${sense}${idx}`
+          const sem3Key = `${code}00`
+          const raw = String(SEM3_DATA[sem3Key] || `${SEM3_LABELS[sense]} - —`)
+          const [prefix, suffix] = raw.includes(' - ') ? raw.split(' - ') : [SEM3_LABELS[sense], raw]
+          out.push({
+            code,
+            short: suffix,
+            full: `${prefix} - ${suffix}`,
+          })
+        }
+      }
+      return out
+    },
+    selectedSem3BlockIndex() {
+      return this.sem3MajorBlockOptions.findIndex((item) => item.code === this.selectedSem3Block)
+    },
+    selectedSem3BlockTitle() {
+      const found = this.sem3MajorBlockOptions.find((item) => item.code === this.selectedSem3Block)
+      return found ? `${found.code} · ${found.short}` : this.selectedSem3Block
+    },
     rows() {
       return Object.entries(this.dataMap)
         .map(([key, value]) => ({ key, value }))
         .sort((a, b) => String(a.key).localeCompare(String(b.key), undefined, { numeric: true }))
+    },
+    showPaginationControls() {
+      return this.mode === 'table' && this.rows.length > this.pageSize
+    },
+    pageCount() {
+      return Math.max(1, Math.ceil(this.rows.length / this.pageSize))
+    },
+    pagedRows() {
+      const start = (this.currentPage - 1) * this.pageSize
+      return this.rows.slice(start, start + this.pageSize)
+    },
+    visibleRows() {
+      return this.showPaginationControls ? this.pagedRows : this.rows
+    },
+    visibleBibleBookRows() {
+      return this.showPaginationControls ? this.pagedRows.map((row) => {
+        const keyNum = Number(row.key)
+        return {
+          ...row,
+          assoc: Number.isFinite(keyNum) ? (MAJOR_DATA[keyNum] || '—') : '—'
+        }
+      }) : this.bibleBookRows
+    },
+    pageRangeLabel() {
+      if (!this.rows.length) return '0-0'
+      const start = (this.currentPage - 1) * this.pageSize + 1
+      const end = Math.min(this.rows.length, start + this.visibleRows.length - 1)
+      return `${start}-${end}`
     },
     groupedRows() {
       if (this.deck === 'sem3') {
@@ -259,9 +371,31 @@ export default {
     }
   },
   methods: {
+    goToPage(page) {
+      this.currentPage = Math.min(this.pageCount, Math.max(1, Number(page) || 1))
+    },
+    goToSem3Block(delta) {
+      const current = this.selectedSem3BlockIndex
+      const next = Math.min(this.sem3MajorBlockOptions.length - 1, Math.max(0, current + delta))
+      this.selectedSem3Block = this.sem3MajorBlockOptions[next]?.code || this.selectedSem3Block
+    },
     majorCell(r, c) {
       const raw = r * 10 + c
       return this.dataMap[String(raw)] || this.dataMap[String(raw).padStart(2, '0')] || '—'
+    },
+    sem3MajorCell(r, c) {
+      const lower = String(r * 10 + c).padStart(2, '0')
+      return this.compactSem3Major(this.dataMap[`${this.selectedSem3Block}${lower}`])
+    },
+    compactSem3Major(value) {
+      const text = String(value || '').trim()
+      if (!text) return '—'
+      const parts = text.split(' + ')
+      if (parts.length !== 2) return text
+      const sem3Part = parts[0].replace(/^\d{2}\s+/, '').replace(/\s*\(SEM3\)\s*$/i, '').trim()
+      const majorPart = parts[1].replace(/^\d{2}\s+/, '').replace(/\s*\(Major\)\s*$/i, '').trim()
+      if (!sem3Part && !majorPart) return text
+      return `${sem3Part || '—'} + ${majorPart || '—'}`
     },
     keyFor(r, c) {
       return this.deck === 'pegmatrixru' ? `${r}${c}`.padStart(2, '0') : `${r}${c}`.padStart(2, '0')
@@ -283,9 +417,21 @@ export default {
       this.dataMap = await loadDeckData(this.deck)
       this.imageMap = getDeckImagesSync(this.deck)
       this.emojiMap = getDeckEmojiMapSync(this.deck)
+      this.currentPage = 1
+      if (this.deck === 'sem3major' && !this.sem3MajorBlockOptions.some((item) => item.code === this.selectedSem3Block)) {
+        this.selectedSem3Block = '00'
+      }
     }
   },
   watch: {
+    pageSize() {
+      this.currentPage = 1
+    },
+    rows() {
+      if (this.currentPage > this.pageCount) {
+        this.currentPage = this.pageCount
+      }
+    },
     deck: {
       immediate: true,
       handler() {

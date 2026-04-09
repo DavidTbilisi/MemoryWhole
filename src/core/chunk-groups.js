@@ -16,6 +16,18 @@ export function getChunkGroups(deck, dataMap) {
     }))
   }
 
+  if (deck === 'sem3major') {
+    return Array.from({ length: 10 }, (_, i) => {
+      const start = i * 1000
+      const end = start + 999
+      const bucket = keys.filter((k) => {
+        const value = Number(k)
+        return Number.isFinite(value) && value >= start && value <= end
+      })
+      return { label: `${String(start).padStart(4, '0')}-${String(end).padStart(4, '0')}`, keys: bucket }
+    })
+  }
+
   if (deck === 'months') {
     return [
       { label: '1-11', keys: Array.from({ length: 11 }, (_, i) => String(i + 1)) },
@@ -50,6 +62,18 @@ export function getChunkGroups(deck, dataMap) {
       { label: '0-7', keys: order.slice(0, 8).filter((k) => inDeck.has(k)) },
       { label: '8-F', keys: order.slice(8).filter((k) => inDeck.has(k)) },
     ]
+  }
+
+  if (deck === 'primes') {
+    return Array.from({ length: 10 }, (_, i) => {
+      const start = i * 1000
+      const end = i === 9 ? 9999 : start + 999
+      const bucket = keys.filter((k) => {
+        const value = Number(k)
+        return Number.isFinite(value) && value >= start && value <= end
+      })
+      return { label: `${start}-${end}`, keys: bucket }
+    })
   }
 
   if (deck === 'calendar' || deck === 'bibleoverview') {
