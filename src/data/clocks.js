@@ -75,7 +75,7 @@ const CLOCKS_IMAGES = {
   "02:00": "https://davidtbilisi.github.io/Clocks24/images/0200.jpg",
   "03:00": "https://davidtbilisi.github.io/Clocks24/images/0300.jpg",
   "04:00": "https://davidtbilisi.github.io/Clocks24/images/0400.jpg",
-  "05:00": "https://davidtbilisi.github.io/Clocks24/images/0500.jpg",
+  "05:00": "https://davidtbilisi.github.io/Clocks24/images/0500.webp",
   "06:00": "https://davidtbilisi.github.io/Clocks24/images/0600.jpg",
   "07:00": "https://davidtbilisi.github.io/Clocks24/images/0700.jpg",
   "08:00": "https://davidtbilisi.github.io/Clocks24/images/0800.jpg",
