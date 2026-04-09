@@ -5,7 +5,7 @@
 
       <div class="mt-2">
         <HomeView v-if="view === 'home'" @start="openQuizConfig" @dashboard="openDashboard" @preview="openPreview" @edit="openEditor" @export="exportDeck" @view-ranking-info="showRankingInfo"/>
-        <QuizConfig v-if="view === 'quiz-config'" :deck="activeDeck || 'major'" @back="showHome" @start="startQuizFromConfig" @start-drill="startDrillFromConfig" />
+        <QuizConfig v-if="view === 'quiz-config'" :deck="activeDeck || 'major'" :auto-recovery="recoveryPreset" @back="showHome" @start="startQuizFromConfig" @start-drill="startDrillFromConfig" />
         <Dashboard v-if="view === 'dashboard'" :deck="activeDeck" @back="showHome" />
         <Preview v-if="view === 'preview'" :deck="activeDeck" @back="showHome" />
         <Editor v-if="view === 'editor'" :deck="activeDeck || 'major'" @back="showHome" />
@@ -35,11 +35,15 @@ export default {
   name: 'App',
   components: { Quiz, Header, HomeView, QuizConfig, Dashboard, Preview, Stats, RankingInfoView, Editor },
   data() {
-    return { view: 'home', activeDeck: null, selectedSubsetKeys: [], session: null, quizKey: 0, quizMode: 'quiz', drillDuration: 60 };
+    return { view: 'home', activeDeck: null, selectedSubsetKeys: [], session: null, quizKey: 0, quizMode: 'quiz', drillDuration: 60, recoveryPreset: false };
   },
   methods: {
-    openQuizConfig(deck){
-      this.activeDeck = deck
+    openQuizConfig(input){
+      const payload = typeof input === 'string'
+        ? { deck: input, mode: 'default' }
+        : (input || {})
+      this.activeDeck = payload.deck || 'major'
+      this.recoveryPreset = payload.mode === 'recovery'
       this.selectedSubsetKeys = []
       this.view = 'quiz-config'
     },
@@ -68,7 +72,7 @@ export default {
       anchor.click()
       URL.revokeObjectURL(url)
     },
-    showHome(){ this.view = 'home'; this.selectedSubsetKeys = []; },
+    showHome(){ this.view = 'home'; this.selectedSubsetKeys = []; this.recoveryPreset = false; },
     showRankingInfo(){ this.view = 'ranking-info'; },
     openDashboardFromStats(deck){ this.activeDeck = deck || this.activeDeck || 'major'; this.view = 'dashboard'; },
     onQuizFinished(session){

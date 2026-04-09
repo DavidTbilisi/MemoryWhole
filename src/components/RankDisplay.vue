@@ -281,7 +281,7 @@ export default {
     },
     runHintAction(action) {
       if (action === 'start-weakest') {
-        this.$emit('start-recommended', this.recommendedDeck)
+        this.$emit('start-recommended', { deck: this.recommendedDeck, mode: 'recovery' })
         return
       }
       if (action === 'open-dashboard') {

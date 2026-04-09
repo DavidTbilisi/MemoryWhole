@@ -401,7 +401,7 @@ export default {
       }
       this.selectedOption = opt
       const elapsedMs = this.answerTimeStartMs ? Math.max(1, Date.now() - this.answerTimeStartMs) : 0
-      const isCorrect = this.engine.answer(opt)
+      const isCorrect = this.engine.answer(opt, elapsedMs)
       if (typeof isCorrect === 'boolean') {
         this.attemptsAnswered += 1
         this.answeredCount += 1

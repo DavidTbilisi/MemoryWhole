@@ -37,6 +37,35 @@
       </div>
     </div>
 
+    <div class="mb-3 rounded-xl border border-emerald-500/30 bg-emerald-900/10 p-3">
+      <div class="mb-2 flex items-center justify-between gap-2">
+        <div>
+          <div class="text-xs uppercase tracking-wider text-emerald-200/80">Learning Prognosis</div>
+          <div class="text-sm text-slate-300">Decay-aware forecast for the next {{ prognosis.horizonDays }} days</div>
+        </div>
+        <div class="rounded-lg border border-emerald-500/40 bg-emerald-900/20 px-3 py-1 text-sm font-semibold text-emerald-100">
+          Score {{ prognosis.score }}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 md:grid-cols-5">
+        <div class="rounded-lg border border-slate-700/70 bg-slate-900/45 p-2 text-sm">Retention now <strong class="block text-cyan-200">{{ prognosis.retentionNowPct }}%</strong></div>
+        <div class="rounded-lg border border-slate-700/70 bg-slate-900/45 p-2 text-sm">Projected retention <strong class="block text-violet-200">{{ prognosis.projectedRetentionPct }}%</strong></div>
+        <div class="rounded-lg border border-slate-700/70 bg-slate-900/45 p-2 text-sm">Coverage <strong class="block text-emerald-200">{{ prognosis.coveragePct }}%</strong></div>
+        <div class="rounded-lg border border-slate-700/70 bg-slate-900/45 p-2 text-sm">Due now <strong class="block text-amber-200">{{ prognosis.dueCount }}</strong></div>
+        <div class="rounded-lg border border-slate-700/70 bg-slate-900/45 p-2 text-sm">Daily load <strong class="block text-sky-200">~{{ prognosis.dailyLoad }}/day</strong></div>
+      </div>
+
+      <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-800">
+        <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400" :style="{ width: `${prognosis.score}%` }"></div>
+      </div>
+      <div class="mt-1 flex items-center justify-between text-[11px] text-slate-400">
+        <span>Overdue: {{ prognosis.overdueCount }}</span>
+        <span>At-risk items: {{ prognosis.riskCount }}</span>
+        <span>Due in {{ prognosis.horizonDays }}d: {{ prognosis.dueSoonCount }}</span>
+      </div>
+    </div>
+
     <div class="mb-3">
       <DeckAnalyticsChart :deck="deck || 'major'" :totals="analytics" />
     </div>
@@ -110,6 +139,7 @@
 <script>
 import { getAllDeckAnalytics, getDeckAnalytics, getDeckDrillRecords, getDeckPeak, getDeckWeakItems } from '../core/analytics'
 import { getDeckDataSync } from '../core/deck-loader'
+import { getDeckPrognosis } from '../core/spaced-repetition'
 import DeckAnalyticsChart from '../components/DeckAnalyticsChart.vue'
 import DeckHeatmapCartesian from '../components/DeckHeatmapCartesian.vue'
 
@@ -242,6 +272,12 @@ export default {
       const delta = latest - oldest
       if (delta === 0) return 'Flat'
       return delta > 0 ? `Up ${delta}` : `Down ${Math.abs(delta)}`
+    },
+    prognosis() {
+      this.refreshTick
+      const activeDeck = this.deck || 'major'
+      const dataMap = getDeckDataSync(activeDeck)
+      return getDeckPrognosis(activeDeck, dataMap, { horizonDays: 7 })
     }
   }
 }

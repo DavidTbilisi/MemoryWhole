@@ -2,10 +2,12 @@ function shuffle(items) {
   const out = [...items]
   for (let i = out.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[out[i], out[j]] = [out[j], out[i]]
+      ;[out[i], out[j]] = [out[j], out[i]]
   }
   return out
 }
+
+import { sortPoolByReviewUrgency, updateReviewState } from './spaced-repetition'
 
 export function createQuizEngine(deck, dataMap) {
   const pool = Object.entries(dataMap || {})
@@ -18,7 +20,7 @@ export function createQuizEngine(deck, dataMap) {
 
   const state = {
     deck,
-    pool: shuffle(pool),
+    pool: sortPoolByReviewUrgency(shuffle(pool), deck),
     currentIndex: 0,
     currentNum: '—',
     currentAnswer: '',
@@ -39,7 +41,7 @@ export function createQuizEngine(deck, dataMap) {
     state.feedback = ''
   }
 
-  function answer(opt) {
+  function answer(opt, responseMs = 0) {
     if (state.answered) return false
     state.answered = true
     const isCorrect = opt === state.currentAnswer
@@ -55,7 +57,18 @@ export function createQuizEngine(deck, dataMap) {
       state.score.wrong += 1
       state.numStats[state.currentNum].wrong += 1
       state.feedback = `Wrong - ${state.currentAnswer}`
+
+      // Re-surface failed prompts soon so the learner can repair memory traces.
+      const itemIdx = state.pool.findIndex((item) => item.key === state.currentNum)
+      if (itemIdx >= 0) {
+        const [failedItem] = state.pool.splice(itemIdx, 1)
+        const insertAt = Math.min(state.currentIndex + 3, state.pool.length)
+        state.pool.splice(insertAt, 0, failedItem)
+      }
     }
+
+    updateReviewState(state.deck, state.currentNum, { correct: isCorrect, responseMs })
+
     return isCorrect
   }
 
