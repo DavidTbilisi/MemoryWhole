@@ -10,7 +10,7 @@ function showPreview(deck) {
     if (saved) {
       try {
         Object.entries(JSON.parse(saved)).forEach(([k, v]) => { if (v) pd[k] = v; });
-      } catch (e) {}
+      } catch (e) { }
     }
 
     addTableHeaders(table, Array.from({ length: 10 }, (_, i) => '+' + i));
@@ -28,8 +28,8 @@ function showPreview(deck) {
     document.getElementById('preview-title').textContent = 'SEM3';
 
     const categories = [
-      'Vision','Sound','Smell','Taste','Touch',
-      'Sensation','Animals','Birds','Rainbow','Solar-System'
+      'Vision', 'Sound', 'Smell', 'Taste', 'Touch',
+      'Sensation', 'Animals', 'Birds', 'Rainbow', 'Solar-System'
     ];
     addTableHeaders(table, Array.from({ length: 10 }, (_, i) => i));
     const tbody = table.createTBody();
@@ -79,8 +79,8 @@ function showPreview(deck) {
       [cat, person, action, obj].forEach((val, i) => {
         const td = row.insertCell();
         const style = i === 0 ? 'display:none' :
-                      i === 1 ? 'font-weight:700;color:#e0e0e0;' :
-                      i === 2 ? 'color:#7c3aed;' : 'color:#6b7280;font-style:italic;';
+          i === 1 ? 'font-weight:700;color:#e0e0e0;' :
+            i === 2 ? 'color:#7c3aed;' : 'color:#6b7280;font-style:italic;';
         td.innerHTML = `<span class="cell-word" style="${style}">${val}</span>`;
       });
     });
@@ -88,18 +88,20 @@ function showPreview(deck) {
   } else if (deck === 'binary') {
     document.getElementById('preview-title').textContent = 'Binary 4-bit (0000–1111)';
 
-    addTableHeaders(table, ['Syllable', 'Image', '']);
+    addTableHeaders(table, ['LSB 00 🔥 Hot', 'LSB 01 🏜 Dry', 'LSB 10 🧊 Cold', 'LSB 11 💧 Wet']);
     const tbody = table.createTBody();
-    BINARY_META.forEach(({ bits, syllable, image, emoji }) => {
+    ['00', '01', '10', '11'].forEach((high) => {
       const row = tbody.insertRow();
-      addRowHead(row, bits);
-      const syl = row.insertCell();
-      syl.innerHTML = `<span class="cell-word" style="font-size:1.1rem;font-weight:700;color:#7c3aed">${syllable}</span>`;
-      const img = row.insertCell();
-      img.innerHTML = `<span class="cell-word">${image}</span>`;
-      const em = row.insertCell();
-      em.style.fontSize = '1.5rem';
-      em.textContent = emoji;
+      const rowLabel = {
+        '00': '🔥 Fire',
+        '01': '🌬 Air',
+        '10': '💧 Water',
+        '11': '🪨 Earth',
+      }[high];
+      addRowHead(row, `${rowLabel} (${high})`);
+      ['00', '01', '10', '11'].forEach((low) => {
+        addCell(row, `${high}${low}`, BINARY_DATA[`${high}${low}`] || '—');
+      });
     });
 
   } else if (deck === 'biblebooks') {
@@ -180,7 +182,7 @@ function showPreview(deck) {
 
 function addTableHeaders(table, labels) {
   const thead = table.createTHead();
-  const hrow  = thead.insertRow();
+  const hrow = thead.insertRow();
   const corner = document.createElement('th');
   corner.className = 'row-head';
   hrow.appendChild(corner);

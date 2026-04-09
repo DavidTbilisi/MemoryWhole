@@ -47,15 +47,19 @@
       <table class="w-full border-collapse text-sm">
         <thead class="bg-slate-900/70 sticky top-0">
           <tr>
-            <th class="p-2 border border-slate-700 text-left">MSB \\ LSB</th>
-            <th v-for="low in bits2" :key="low" class="p-2 border border-slate-700 text-left">{{ low }}</th>
+            <th class="p-2 border border-slate-700 text-left">MSB elem \\ LSB qual</th>
+            <th v-for="header in binaryColumnHeaders" :key="header.bits" class="p-2 border border-slate-700 text-left">
+              <div class="font-semibold">{{ header.label }} <span class="text-[11px] font-normal text-slate-400">{{ header.bits }}</span></div>
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="high in bits2" :key="high" class="odd:bg-slate-900/30">
-            <td class="p-2 border border-slate-700 font-semibold">{{ high }}</td>
-            <td v-for="low in bits2" :key="`${high}-${low}`" class="p-2 border border-slate-700 whitespace-nowrap">
-              {{ dataMap[`${high}${low}`] || '—' }}
+          <tr v-for="header in binaryRowHeaders" :key="header.bits" class="odd:bg-slate-900/30">
+            <td class="p-2 border border-slate-700 font-semibold">
+              <div>{{ header.label }} <span class="text-[11px] font-normal text-slate-400">{{ header.bits }}</span></div>
+            </td>
+            <td v-for="low in bits2" :key="`${header.bits}-${low}`" class="p-2 border border-slate-700 whitespace-nowrap">
+              {{ dataMap[`${header.bits}${low}`] || '—' }}
             </td>
           </tr>
         </tbody>
@@ -170,6 +174,22 @@ export default {
     pegVisual() {
       const src = this.deck === 'pegmatrixru' ? PEG_VISUAL_RU : PEG_VISUAL
       return Object.values(src)
+    },
+    binaryRowHeaders() {
+      return [
+        { bits: '00', label: '🔥 Fire' },
+        { bits: '01', label: '🌬 Air' },
+        { bits: '10', label: '💧 Water' },
+        { bits: '11', label: '🪨 Earth' },
+      ]
+    },
+    binaryColumnHeaders() {
+      return [
+        { bits: '00', label: '🔥 Hot' },
+        { bits: '01', label: '🏜 Dry' },
+        { bits: '10', label: '🧊 Cold' },
+        { bits: '11', label: '💧 Wet' },
+      ]
     },
     rows() {
       return Object.entries(this.dataMap)
