@@ -1,5 +1,6 @@
 import { readJson } from './storage'
 import { ANALYTICS_KEY, MASTERY_PEAK_KEY } from './analytics'
+import { DECKS } from '../data/decks'
 
 // Anime ranking system: SSS+ > SSS > SS+ > SS > S+ > S > A+ > A > B+ > B > C+ > C > D > F
 const ANIME_RANKS = [
@@ -23,24 +24,36 @@ function getGlobalStats() {
   const analytics = readJson(ANALYTICS_KEY, {})
   let totalAttempts = 0
   let totalCorrect = 0
-  let deckCount = 0
+  let practicedDeckCount = 0
+  const totalDeckCount = Math.max(1, DECKS.length)
 
-  for (const deckAnalytics of Object.values(analytics)) {
-    totalAttempts += Number(deckAnalytics.totalAttempts || 0)
-    totalCorrect += Number(deckAnalytics.totalCorrect || 0)
-    deckCount += 1
+  for (const [deck, deckAnalytics] of Object.entries(analytics)) {
+    if (!DECKS.some((item) => item.deck === deck)) continue
+    const attempts = Number(deckAnalytics.totalAttempts || 0)
+    const correct = Number(deckAnalytics.totalCorrect || 0)
+    totalAttempts += attempts
+    totalCorrect += correct
+    if (attempts > 0) practicedDeckCount += 1
   }
 
   const globalAccuracy = totalAttempts > 0
     ? Math.round((totalCorrect / totalAttempts) * 100)
     : 0
 
+  const coverageRatio = practicedDeckCount / totalDeckCount
+  const coveragePct = Math.round(coverageRatio * 100)
+  const globalScore = Math.round(globalAccuracy * coverageRatio)
+
   return {
     totalAttempts,
     totalCorrect,
     totalWrong: totalAttempts - totalCorrect,
-    deckCount,
-    globalAccuracy
+    deckCount: practicedDeckCount,
+    totalDeckCount,
+    coverageRatio,
+    coveragePct,
+    globalAccuracy,
+    globalScore,
   }
 }
 
@@ -117,19 +130,38 @@ function estimatePerfectAnswersToTarget(totalAttempts, totalCorrect, targetPct) 
 
 export function getGlobalRank() {
   const stats = getGlobalStats()
-  const rankInfo = getRankInfo(stats.globalAccuracy)
-  const nextRank = getNextRankInfo(stats.globalAccuracy)
-  const perfectNeeded = nextRank
-    ? estimatePerfectAnswersToTarget(stats.totalAttempts, stats.totalCorrect, nextRank.minScore)
-    : 0
+  const rankInfo = getRankInfo(stats.globalScore)
+  const nextRank = getNextRankInfo(stats.globalScore)
+
+  let perfectNeeded = 0
+  let coverageDecksNeeded = 0
+
+  if (nextRank) {
+    const maxScoreAtCurrentCoverage = 100 * stats.coverageRatio
+    if (nextRank.minScore > maxScoreAtCurrentCoverage) {
+      const requiredCoverage = nextRank.minScore / 100
+      const requiredDecks = Math.ceil(requiredCoverage * stats.totalDeckCount)
+      coverageDecksNeeded = Math.max(0, requiredDecks - stats.deckCount)
+      perfectNeeded = null
+    } else {
+      const requiredAccuracy = nextRank.minScore / Math.max(stats.coverageRatio, 0.0001)
+      if (requiredAccuracy >= 100) {
+        perfectNeeded = null
+      } else {
+        perfectNeeded = estimatePerfectAnswersToTarget(stats.totalAttempts, stats.totalCorrect, requiredAccuracy)
+      }
+    }
+  }
+
   return {
     rank: rankInfo.rank,
-    score: stats.globalAccuracy,
+    score: stats.globalScore,
     color: rankInfo.color,
     description: rankInfo.description,
     stats,
     nextRank,
     perfectNeeded,
+    coverageDecksNeeded,
   }
 }
 

@@ -182,10 +182,14 @@ export default {
       ]
     },
     globalExplanation() {
-      if (!this.globalRank?.nextRank) return 'Global rank is capped. Keep accuracy high to maintain this tier.'
+      if (!this.globalRank?.nextRank) return 'Global rank is capped. Maintain both accuracy and deck coverage to hold this tier.'
       const gap = Math.max(0, Number(this.globalRank.nextRank.minScore || 0) - Number(this.globalRank.score || 0))
+      const coverageNeed = Number(this.globalRank?.coverageDecksNeeded || 0)
+      if (coverageNeed > 0) {
+        return `${gap}% away from ${this.globalRank.nextRank.rank}. Unlock ${coverageNeed} more deck${coverageNeed === 1 ? '' : 's'} to keep climbing.`
+      }
       return gap > 0
-        ? `${gap}% away from ${this.globalRank.nextRank.rank}. This rank moves only when raw accuracy improves.`
+        ? `${gap}% away from ${this.globalRank.nextRank.rank}. This rank moves with both accuracy and coverage.`
         : `You are sitting on the promotion line for ${this.globalRank.nextRank.rank}.`
     },
     syntheticExplanation() {
@@ -208,6 +212,10 @@ export default {
     nextStepLine() {
       const next = this.globalRank?.nextRank
       if (!next) return 'You reached max rank. Keep consistency high to hold this position.'
+      const coverageNeed = Number(this.globalRank?.coverageDecksNeeded || 0)
+      if (coverageNeed > 0) {
+        return `Next target: ${next.rank} (${next.minScore}%) • unlock ${coverageNeed} more deck${coverageNeed === 1 ? '' : 's'} first.`
+      }
       const needed = Number(this.globalRank?.perfectNeeded || 0)
       if (needed > 0) {
         return `Next target: ${next.rank} (${next.minScore}%) • about ${needed} perfect answers needed.`
@@ -223,11 +231,16 @@ export default {
 
       if (this.globalRank?.nextRank) {
         const target = this.globalRank.nextRank
+        const coverageNeed = Number(this.globalRank.coverageDecksNeeded || 0)
+        if (coverageNeed > 0) {
+          hints.push({ text: `Promotion gate: add ${coverageNeed} deck${coverageNeed === 1 ? '' : 's'} to unlock ${target.rank}.`, action: 'open-dashboard' })
+        } else {
         const need = Number(this.globalRank.perfectNeeded || 0)
         if (need > 0) {
           hints.push({ text: `Push to ${target.rank} (${target.minScore}%): stack ${Math.min(need, 30)} clean answers now.`, action: 'start-weakest' })
         } else {
           hints.push({ text: `You're close to ${target.rank}. Start a short clean run now.`, action: 'start-weakest' })
+        }
         }
       } else {
         hints.push({ text: 'Max rank reached: protect accuracy by stopping after 2 misses, then review weak items.', action: 'open-dashboard' })
