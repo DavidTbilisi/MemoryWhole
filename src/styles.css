@@ -33,6 +33,17 @@
   --edge: #8a8479;
 }
 
+:root[data-theme='dark-pink'] {
+  --surface-1: #2E112D;
+  --surface-2: #540032;
+  --surface-3: #6b0a3d;
+  --text-main: #ffe7ef;
+  --text-soft: #f3b7c8;
+  --brand-1: #820333;
+  --brand-2: #C9283E;
+  --edge: #a03b62;
+}
+
 :root[data-theme='light-vintage'] {
   --surface-1: #F5E9D8;
   --surface-2: #F5E9D8;

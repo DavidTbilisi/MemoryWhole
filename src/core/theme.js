@@ -2,6 +2,7 @@ export const THEME_KEY = 'theme_v1'
 
 export const THEME_OPTIONS = [
     { id: 'dark-retro', label: 'Dark • Retro' },
+    { id: 'dark-pink', label: 'Dark • Pink' },
     { id: 'light-vintage', label: 'Light • Vintage' },
     { id: 'light-pink', label: 'Light • Pink' },
     { id: 'dark-cyber', label: 'Dark • Cyber' },
@@ -12,6 +13,7 @@ export const THEME_OPTIONS = [
 
 export const THEME_SWATCHES = {
     'dark-retro': ['#454040', '#605B51', '#D8D365', '#E6F082'],
+    'dark-pink': ['#2E112D', '#540032', '#820333', '#C9283E'],
     'light-vintage': ['#F5E9D8', '#2FA4D7', '#3E2C23', '#E76F2E'],
     'light-pink': ['#FFF7CD', '#FDC3A1', '#FB9B8F', '#F57799'],
     'dark-cyber': ['#090040', '#471396', '#B13BFF', '#FFCC00'],
