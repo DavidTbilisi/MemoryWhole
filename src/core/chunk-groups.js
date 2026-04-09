@@ -42,6 +42,16 @@ export function getChunkGroups(deck, dataMap) {
     ]
   }
 
+  if (deck === 'hex') {
+    const order = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
+    const normalize = (k) => String(k).toUpperCase()
+    const inDeck = new Set(keys.map(normalize))
+    return [
+      { label: '0-7', keys: order.slice(0, 8).filter((k) => inDeck.has(k)) },
+      { label: '8-F', keys: order.slice(8).filter((k) => inDeck.has(k)) },
+    ]
+  }
+
   if (deck === 'calendar' || deck === 'bibleoverview') {
     return [{ label: 'All', keys }]
   }

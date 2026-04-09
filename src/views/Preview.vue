@@ -66,6 +66,29 @@
       </table>
     </div>
 
+    <div v-else-if="mode === 'hex'" class="overflow-auto rounded-lg border border-slate-700">
+      <table class="w-full border-collapse text-sm">
+        <thead class="bg-slate-900/70 sticky top-0">
+          <tr>
+            <th class="p-2 border border-slate-700 text-left">MSB elem \\ LSB qual</th>
+            <th v-for="header in binaryColumnHeaders" :key="`hex-col-${header.bits}`" class="p-2 border border-slate-700 text-left">
+              <div class="font-semibold">{{ header.label }} <span class="text-[11px] font-normal text-slate-400">{{ header.bits }}</span></div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="header in binaryRowHeaders" :key="`hex-row-${header.bits}`" class="odd:bg-slate-900/30">
+            <td class="p-2 border border-slate-700 font-semibold">
+              <div>{{ header.label }} <span class="text-[11px] font-normal text-slate-400">{{ header.bits }}</span></div>
+            </td>
+            <td v-for="low in bits2" :key="`hex-${header.bits}-${low}`" class="p-2 border border-slate-700 whitespace-nowrap">
+              {{ hexCodeFor(header.bits, low) }} · {{ dataMap[hexCodeFor(header.bits, low)] || '—' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <div v-else-if="mode === 'grouped'" class="grid grid-cols-1 gap-3 md:grid-cols-2">
       <div v-for="g in groupedRows" :key="g.name" class="rounded-lg border border-slate-700 bg-slate-900/40 p-3">
         <div class="font-semibold mb-2">{{ g.name }}</div>
@@ -163,6 +186,7 @@ export default {
       if (this.deck === 'major') return 'major-matrix'
       if (this.deck === 'pegmatrix' || this.deck === 'pegmatrixru') return 'peg'
       if (this.deck === 'binary') return 'binary'
+      if (this.deck === 'hex') return 'hex'
       if (this.deck === 'sem3' || this.deck === 'pao') return 'grouped'
       if (this.deck === 'biblebooks') return 'biblebooks'
       return 'table'
@@ -241,6 +265,9 @@ export default {
     },
     keyFor(r, c) {
       return this.deck === 'pegmatrixru' ? `${r}${c}`.padStart(2, '0') : `${r}${c}`.padStart(2, '0')
+    },
+    hexCodeFor(highBits, lowBits) {
+      return Number.parseInt(`${highBits}${lowBits}`, 2).toString(16).toUpperCase()
     },
     imageForKey(key) {
       return this.imageMap[String(key)] || ''

@@ -25,7 +25,7 @@ export default {
   },
   methods: {
     supportsDeck(deck) {
-      return ['major', 'pegaudio', 'pegvisual', 'pegmatrix', 'pegmatrixru', 'sem3', 'binary'].includes(deck)
+      return ['major', 'pegaudio', 'pegvisual', 'pegmatrix', 'pegmatrixru', 'sem3', 'binary', 'hex'].includes(deck)
     },
     normalizeMetric(stat) {
       const attempts = Number(stat?.attempts || 0)
@@ -42,6 +42,17 @@ export default {
         const points = entries.map((k) => {
           const bits = String(k).padStart(4, '0')
           return [bits.slice(2), bits.slice(0, 2), metric(k), bits]
+        })
+        return { xAxis: axis, yAxis: [...axis].reverse(), points }
+      }
+
+      if (deck === 'hex') {
+        const axis = ['00', '01', '10', '11']
+        const points = entries.map((k) => {
+          const hex = String(k).toUpperCase()
+          const n = Number.parseInt(hex, 16)
+          const bits = Number.isFinite(n) ? n.toString(2).padStart(4, '0') : '0000'
+          return [bits.slice(2), bits.slice(0, 2), metric(k), hex]
         })
         return { xAxis: axis, yAxis: [...axis].reverse(), points }
       }

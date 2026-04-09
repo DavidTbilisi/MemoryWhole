@@ -7,6 +7,7 @@ export const DECKS = [
   { deck: 'clocks', name: 'Famous Clocks', count: '24 items', icon: '🕐' },
   { deck: 'pao', name: 'PAO System', count: '100 items · 10 franchises', icon: '🎭' },
   { deck: 'binary', name: 'Binary (4-bit)', count: '16 patterns', icon: '⬛' },
+  { deck: 'hex', name: 'Hex (Aristotelian)', count: '16 symbols (0-F)', icon: '🔶' },
   { deck: 'calendar', name: 'Calendar Months', count: '12 items', icon: '🗓️' },
   { deck: 'bibleoverview', name: 'Bible Overview', count: '10 sections', icon: '✝️' },
   { deck: 'biblebooks', name: 'Bible Books', count: '66 books', icon: '📖' },
