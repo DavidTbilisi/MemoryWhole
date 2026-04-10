@@ -77,6 +77,10 @@ export default {
         {
           title: 'Home',
           items: [
+            { keys: 'J / K', action: 'Move deck focus down / up' },
+            { keys: 'Space / Enter', action: 'Open focused deck in Quiz Config' },
+            { keys: 'D / P / E / X', action: 'Focused deck: Dashboard / Preview / Editor / Export' },
+            { keys: 'G then G / Shift+G', action: 'Jump to first / last deck' },
             { keys: '1..9', action: 'Open deck N in Quiz Config' },
             { keys: 'Shift+1..9', action: 'Open deck N Dashboard' },
             { keys: 'R', action: 'Open Ranking docs' },
@@ -201,14 +205,14 @@ export default {
 
       if (this.isTypingTarget(document.activeElement)) return
 
-      if (this.view !== 'quiz-config' && this.pendingShortcutPrefix === 'g') {
+      if (!['quiz-config', 'home'].includes(this.view) && this.pendingShortcutPrefix === 'g') {
         this.runGoToShortcut(key)
         this.clearShortcutPrefix()
         event.preventDefault()
         return
       }
 
-      if (this.view !== 'quiz-config' && key === 'g') {
+      if (!['quiz-config', 'home'].includes(this.view) && key === 'g') {
         this.armShortcutPrefix('g')
         event.preventDefault()
         return
@@ -221,6 +225,66 @@ export default {
       }
 
       if (this.view === 'home') {
+        const home = this.$refs.homeView
+        if (!home) return
+        if (this.pendingShortcutPrefix === 'g' && key === 'g') {
+          home.moveCursorToStart()
+          this.clearShortcutPrefix()
+          event.preventDefault()
+          return
+        }
+        if (key === 'g' && event.shiftKey) {
+          home.moveCursorToEnd()
+          this.clearShortcutPrefix()
+          event.preventDefault()
+          return
+        }
+        if (key === 'g') {
+          this.armShortcutPrefix('g')
+          event.preventDefault()
+          return
+        }
+        if (this.pendingShortcutPrefix === 'g') {
+          this.runGoToShortcut(key)
+          this.clearShortcutPrefix()
+          event.preventDefault()
+          return
+        }
+        if (key === 'j') {
+          home.moveCursor(1)
+          event.preventDefault()
+          return
+        }
+        if (key === 'k') {
+          home.moveCursor(-1)
+          event.preventDefault()
+          return
+        }
+        if (key === ' ' || key === 'enter') {
+          home.openFocusedQuizConfig()
+          event.preventDefault()
+          return
+        }
+        if (key === 'd') {
+          home.openFocusedDashboard()
+          event.preventDefault()
+          return
+        }
+        if (key === 'p') {
+          home.openFocusedPreview()
+          event.preventDefault()
+          return
+        }
+        if (key === 'e') {
+          home.openFocusedEditor()
+          event.preventDefault()
+          return
+        }
+        if (key === 'x') {
+          home.exportFocusedDeck()
+          event.preventDefault()
+          return
+        }
         if (/^[1-9]$/.test(key)) {
           const idx = Number(key) - 1
           const selected = DECKS[idx]

@@ -1,5 +1,6 @@
 <template>
-  <div class="bg-[#071421] p-4 rounded-lg text-sky-100 border border-slate-700/70 shadow-[0_0_0_1px_rgba(15,23,42,0.25)]">
+  <div class="bg-[#071421] p-4 rounded-lg text-sky-100 border shadow-[0_0_0_1px_rgba(15,23,42,0.25)]"
+    :class="focused ? 'border-cyan-400/90 shadow-[0_0_0_2px_rgba(34,211,238,0.55)]' : 'border-slate-700/70'">
     <div class="grid grid-cols-[84px_1fr] gap-3 items-center min-h-[84px]">
       <div class="flex items-center justify-center w-[84px] h-[84px]"><HomeBadge :deck="deck" compact /></div>
       <div class="flex items-center gap-3 min-w-0">
@@ -31,7 +32,8 @@ export default {
     deck: { type: String, required: true },
     name: { type: String, required: true },
     countText: { type: String, default: '100 items' },
-    icon: { type: String, default: '🔢' }
+    icon: { type: String, default: '🔢' },
+    focused: { type: Boolean, default: false }
   }
 }
 </script>

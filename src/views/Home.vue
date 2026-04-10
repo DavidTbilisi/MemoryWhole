@@ -11,7 +11,7 @@
     </div>
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-      <DeckCard v-for="d in decks" :key="d.deck" :deck="d.deck" :name="d.name" :count-text="d.count" :icon="d.icon"
+      <DeckCard v-for="(d, index) in decks" :key="d.deck" :deck="d.deck" :name="d.name" :count-text="d.count" :icon="d.icon" :focused="index === cursorIndex"
         @start="onStart" @dashboard="onDashboard" @preview="onPreview" @edit="onEdit" @export="onExport"/>
     </div>
   </div>
@@ -28,10 +28,40 @@ export default {
   components: { DeckCard, ActivityStatsStrip, RankDisplay, PriorityCoach },
   data(){
     return {
-      decks: DECKS
+      decks: DECKS,
+      cursorIndex: 0,
     }
   },
   methods:{
+    moveCursor(delta = 0) {
+      const total = this.decks.length
+      if (!total) return
+      this.cursorIndex = (this.cursorIndex + Number(delta || 0) + total) % total
+    },
+    moveCursorToStart() {
+      this.cursorIndex = 0
+    },
+    moveCursorToEnd() {
+      this.cursorIndex = Math.max(0, this.decks.length - 1)
+    },
+    focusedDeck() {
+      return this.decks[this.cursorIndex]?.deck || this.decks[0]?.deck || 'major'
+    },
+    openFocusedQuizConfig() {
+      this.$emit('start', this.focusedDeck())
+    },
+    openFocusedDashboard() {
+      this.$emit('dashboard', this.focusedDeck())
+    },
+    openFocusedPreview() {
+      this.$emit('preview', this.focusedDeck())
+    },
+    openFocusedEditor() {
+      this.$emit('edit', this.focusedDeck())
+    },
+    exportFocusedDeck() {
+      this.$emit('export', this.focusedDeck())
+    },
     onStart(deck){ this.$emit('start', deck); },
     onDashboard(deck){ this.$emit('dashboard', deck); },
     onPreview(deck){ this.$emit('preview', deck); },
