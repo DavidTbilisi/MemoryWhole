@@ -2,6 +2,7 @@ import { readJson, writeJson } from './storage'
 
 export const REVIEW_STATE_KEY = 'reviewState_v1'
 const DAY_MS = 24 * 60 * 60 * 1000
+const URGENCY_JITTER = 0.12
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, Number(value || 0)))
@@ -64,13 +65,25 @@ function getItemUrgency(item, now = Date.now()) {
 
 export function sortPoolByReviewUrgency(pool, deck, now = Date.now()) {
     const deckState = getDeckReviewState(deck)
-    return [...(pool || [])].sort((a, b) => {
-        const aItem = deckState[String(a.key)] || {}
-        const bItem = deckState[String(b.key)] || {}
-        const scoreDelta = getItemUrgency(bItem, now) - getItemUrgency(aItem, now)
-        if (scoreDelta !== 0) return scoreDelta
-        return String(a.key).localeCompare(String(b.key), undefined, { numeric: true })
+    const prepared = [...(pool || [])].map((entry) => {
+        const item = deckState[String(entry.key)] || {}
+        const urgency = getItemUrgency(item, now)
+        return {
+            entry,
+            urgency,
+            // Small jitter avoids predictable runs for near-equal urgency items.
+            randomizedUrgency: urgency + ((Math.random() - 0.5) * URGENCY_JITTER),
+            tieBreak: Math.random(),
+        }
     })
+
+    prepared.sort((a, b) => {
+        const scoreDelta = b.randomizedUrgency - a.randomizedUrgency
+        if (scoreDelta !== 0) return scoreDelta
+        return a.tieBreak - b.tieBreak
+    })
+
+    return prepared.map((row) => row.entry)
 }
 
 export function updateReviewState(deck, key, payload = {}) {
