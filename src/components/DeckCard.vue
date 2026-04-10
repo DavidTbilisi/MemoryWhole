@@ -12,13 +12,13 @@
       </div>
     </div>
 
-    <button v-tooltip="'Start Quiz'" class="w-full mt-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-cyan-400 text-white font-bold" @click="$emit('start', deck)">▶ Start Quiz</button>
+    <button v-tooltip="'Start Quiz (Home: Space/Enter on focused card)'" class="w-full mt-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-cyan-400 text-white font-bold" @click="$emit('start', deck)">▶ Start Quiz</button>
 
     <div class="grid grid-cols-4 gap-2 mt-3">
-      <button v-tooltip="'View Performance Stats'" class="flex flex-col items-center justify-center gap-1 p-2 border border-slate-700 rounded-md text-sm text-slate-300" @click="$emit('dashboard', deck)">📊<span class="text-xs text-slate-500 uppercase">Stats</span></button>
-      <button v-tooltip="'Preview Deck Items'" class="flex flex-col items-center justify-center gap-1 p-2 border border-slate-700 rounded-md text-sm text-slate-300" @click="$emit('preview', deck)">⊞<span class="text-xs text-slate-500 uppercase">Preview</span></button>
-      <button v-tooltip="'Edit Deck Items'" class="flex flex-col items-center justify-center gap-1 p-2 border border-slate-700 rounded-md text-sm text-slate-300" @click="$emit('edit', deck)">✎<span class="text-xs text-slate-500 uppercase">Edit</span></button>
-      <button v-tooltip="'Export Deck'" class="flex flex-col items-center justify-center gap-1 p-2 border border-slate-700 rounded-md text-sm text-slate-300" @click="$emit('export', deck)">⬇<span class="text-xs text-slate-500 uppercase">Export</span></button>
+      <button v-tooltip="'View Performance Stats (Home key: D on focused card)'" class="flex flex-col items-center justify-center gap-1 p-2 border border-slate-700 rounded-md text-sm text-slate-300" @click="$emit('dashboard', deck)">📊<span class="text-xs text-slate-500 uppercase">Stats</span></button>
+      <button v-tooltip="'Preview Deck Items (Home key: P on focused card)'" class="flex flex-col items-center justify-center gap-1 p-2 border border-slate-700 rounded-md text-sm text-slate-300" @click="$emit('preview', deck)">⊞<span class="text-xs text-slate-500 uppercase">Preview</span></button>
+      <button v-tooltip="'Edit Deck Items (Home key: E on focused card)'" class="flex flex-col items-center justify-center gap-1 p-2 border border-slate-700 rounded-md text-sm text-slate-300" @click="$emit('edit', deck)">✎<span class="text-xs text-slate-500 uppercase">Edit</span></button>
+      <button v-tooltip="'Export Deck (Home key: X on focused card)'" class="flex flex-col items-center justify-center gap-1 p-2 border border-slate-700 rounded-md text-sm text-slate-300" @click="$emit('export', deck)">⬇<span class="text-xs text-slate-500 uppercase">Export</span></button>
     </div>
   </div>
 </template>

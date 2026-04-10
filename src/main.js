@@ -18,7 +18,7 @@ export function mount(el = '#app', props = {}) {
 		distance: 12,
 		skidding: 0,
 		delay: {
-			show: 3000,
+			show: 2000,
 			hide: 100
 		}
 	});

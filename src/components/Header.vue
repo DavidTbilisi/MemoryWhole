@@ -12,7 +12,7 @@
       <button
         class="inline-flex items-center gap-1 rounded-lg border border-amber-500/40 bg-amber-900/20 px-2 py-1 text-xs font-semibold text-amber-200"
         @click="$emit('toggle-shortcuts')"
-        v-tooltip="'Keyboard shortcuts (Shift+/)'"
+        v-tooltip="'Keyboard shortcuts help (Shift+/)'"
       >
         <span>⌨</span>
         <span>Shortcuts</span>

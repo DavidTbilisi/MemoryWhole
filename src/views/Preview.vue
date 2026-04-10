@@ -2,7 +2,7 @@
   <div class="bg-[#071421] p-4 rounded-lg text-sky-100">
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-xl font-bold">Preview — {{ title }}</h2>
-      <button class="px-4 py-2 rounded-lg border border-cyan-400/70 bg-cyan-500/20 text-cyan-100 font-bold hover:bg-cyan-500/30" @click="$emit('back')" v-tooltip="'Return to home'">⬅ Back</button>
+      <button class="px-4 py-2 rounded-lg border border-cyan-400/70 bg-cyan-500/20 text-cyan-100 font-bold hover:bg-cyan-500/30" @click="$emit('back')" v-tooltip="'Return to home (B)'">⬅ Back</button>
     </div>
 
     <div v-if="showPaginationControls" class="mb-3 flex flex-col gap-2 rounded-lg border border-slate-700 bg-slate-900/40 p-3 md:flex-row md:items-center md:justify-between">

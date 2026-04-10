@@ -3,12 +3,12 @@
     <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
       <h2 class="text-xl font-bold">Edit Deck - {{ title }}</h2>
       <div class="flex flex-wrap items-center gap-2">
-        <button class="rounded-lg border border-slate-600 bg-slate-900/60 px-3 py-2 text-sm" @click="triggerImport" v-tooltip="'Load edited deck from JSON file'">Import</button>
-        <button class="rounded-lg border border-slate-600 bg-slate-900/60 px-3 py-2 text-sm" @click="downloadTemplate" v-tooltip="'Download template JSON for bulk editing'">Template</button>
-        <button class="rounded-lg border border-slate-600 bg-slate-900/60 px-3 py-2 text-sm" @click="exportNow" v-tooltip="'Export current deck as JSON file'">Export</button>
+        <button class="rounded-lg border border-slate-600 bg-slate-900/60 px-3 py-2 text-sm" @click="triggerImport" v-tooltip="'Load edited deck from JSON file (I)'">Import</button>
+        <button class="rounded-lg border border-slate-600 bg-slate-900/60 px-3 py-2 text-sm" @click="downloadTemplate" v-tooltip="'Download template JSON for bulk editing (T)'">Template</button>
+        <button class="rounded-lg border border-slate-600 bg-slate-900/60 px-3 py-2 text-sm" @click="exportNow" v-tooltip="'Export current deck as JSON file (E)'">Export</button>
         <button class="rounded-lg border border-slate-600 bg-slate-900/60 px-3 py-2 text-sm" @click="resetToBase" v-tooltip="'Reset to default deck values'">Reset</button>
-        <button class="rounded-lg border border-cyan-600 bg-cyan-900/30 px-3 py-2 text-sm" @click="save" v-tooltip="'Save changes to IndexedDB'">Save</button>
-        <button class="rounded-lg bg-slate-700 px-3 py-2 text-sm text-white" @click="$emit('back')" v-tooltip="'Return to home'">Back</button>
+        <button class="rounded-lg border border-cyan-600 bg-cyan-900/30 px-3 py-2 text-sm" @click="save" v-tooltip="'Save changes to IndexedDB (Ctrl/Cmd+S)'">Save</button>
+        <button class="rounded-lg bg-slate-700 px-3 py-2 text-sm text-white" @click="$emit('back')" v-tooltip="'Return to home (B or H)'">Back</button>
       </div>
     </div>
 

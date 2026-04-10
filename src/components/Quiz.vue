@@ -17,7 +17,7 @@
         <p class="mb-4 text-sm text-rose-300">{{ startupError }}</p>
         <div class="flex flex-wrap gap-3">
           <button v-tooltip="'Retry Loading Quiz'" @click="startQuiz" class="rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-900/30 transition hover:brightness-110">Retry</button>
-          <button v-tooltip="'Return to Home'" @click="$emit('back')" class="rounded-xl border border-slate-600 bg-slate-900/50 px-5 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-slate-800">Back</button>
+          <button v-tooltip="'Return to Home (B)'" @click="$emit('back')" class="rounded-xl border border-slate-600 bg-slate-900/50 px-5 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-slate-800">Back</button>
         </div>
       </template>
       <template v-else>
@@ -139,13 +139,13 @@
       </div>
 
       <div class="flex flex-wrap gap-2">
-        <button v-tooltip="'Return to Home'" class="rounded-xl border border-slate-600 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800" @click="$emit('back')">Back</button>
-        <button v-tooltip="'Next Question (Enter)'" class="rounded-xl border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:bg-slate-700" @click="nextQuestion">Next</button>
-        <button v-tooltip="'Save Session Results'" class="rounded-xl bg-gradient-to-r from-purple-600 to-cyan-400 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-purple-900/30 transition hover:brightness-110" @click="finish">Finish and Save</button>
+        <button v-tooltip="'Return to Home (B)'" class="rounded-xl border border-slate-600 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800" @click="$emit('back')">Back</button>
+        <button v-tooltip="'Next Question (Enter or N)'" class="rounded-xl border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:bg-slate-700" @click="nextQuestion">Next</button>
+        <button v-tooltip="'Save Session Results (F)'" class="rounded-xl bg-gradient-to-r from-purple-600 to-cyan-400 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-purple-900/30 transition hover:brightness-110" @click="finish">Finish and Save</button>
       </div>
 
       <div class="flex flex-wrap items-center justify-end gap-2 text-xs text-slate-500">
-        <label v-tooltip="'Automatically advance to next question'" class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/50 px-2 py-1">
+        <label v-tooltip="'Automatically advance to next question. Answer with A/S/D+J/K or Q/W/E+H/L (1-6 fallback)'" class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/50 px-2 py-1">
           <input v-model="autoAdvance" type="checkbox" class="h-4 w-4 accent-cyan-500" />
           <span class="text-slate-300">Auto-next ({{ autoAdvanceMs }}ms)</span>
         </label>

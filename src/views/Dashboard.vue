@@ -2,7 +2,7 @@
   <div class="rounded-2xl border border-slate-700/70 bg-gradient-to-b from-[#0b1b2b] to-[#071421] p-4 text-sky-100 md:p-5">
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-xl font-bold">Dashboard — {{ deck || 'All' }}</h2>
-      <button class="px-4 py-2 rounded-lg border border-cyan-400/70 bg-cyan-500/20 text-cyan-100 font-bold hover:bg-cyan-500/30" @click="$emit('back')" v-tooltip="'Return to home'">⬅ Back</button>
+      <button class="px-4 py-2 rounded-lg border border-cyan-400/70 bg-cyan-500/20 text-cyan-100 font-bold hover:bg-cyan-500/30" @click="$emit('back')" v-tooltip="'Return to home (B or H)'">⬅ Back</button>
     </div>
 
     <div class="mb-3 grid grid-cols-1 gap-2 md:grid-cols-3">

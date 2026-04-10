@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
       <h1 class="text-3xl font-black text-slate-100">Ranking System</h1>
-      <button @click="goBack" class="px-4 py-2 rounded-lg border border-slate-600 hover:border-slate-500 text-slate-300 hover:text-slate-100 transition-colors font-medium" v-tooltip="'Return to home'">
+      <button @click="goBack" class="px-4 py-2 rounded-lg border border-slate-600 hover:border-slate-500 text-slate-300 hover:text-slate-100 transition-colors font-medium" v-tooltip="'Return to home (B or H)'">
         ← Back to Home
       </button>
     </div>

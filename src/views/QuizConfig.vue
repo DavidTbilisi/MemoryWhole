@@ -2,14 +2,14 @@
   <div class="bg-[#071421] p-4 rounded-xl text-sky-100">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-3xl font-black">{{ title }}</h2>
-      <button v-tooltip="'Return to Home'" class="px-5 py-2 rounded-xl border border-cyan-400/70 bg-cyan-500/20 text-cyan-100 font-bold shadow-[0_0_0_1px_rgba(34,211,238,0.25)] hover:bg-cyan-500/30" @click="$emit('back')">⬅ Back</button>
+      <button v-tooltip="'Return to Home (B or H)'" class="px-5 py-2 rounded-xl border border-cyan-400/70 bg-cyan-500/20 text-cyan-100 font-bold shadow-[0_0_0_1px_rgba(34,211,238,0.25)] hover:bg-cyan-500/30" @click="$emit('back')">⬅ Back</button>
     </div>
 
     <div class="grid grid-cols-2 gap-2 md:grid-cols-4 mb-6">
       <button
         v-for="(group, index) in groups"
         :key="group.label"
-        v-tooltip="`Toggle ${group.label}`"
+        v-tooltip="`Toggle ${group.label} (Space/Enter on focused group)`"
         @click="toggle(group.label)"
         class="px-4 py-3 rounded-xl font-bold border"
         :class="groupClass(group, index)"
@@ -18,11 +18,11 @@
       </button>
     </div>
 
-    <button v-tooltip="'Select or deselect all items'" class="w-full mb-4 rounded-xl py-3 bg-slate-800 border border-slate-700 text-lg font-bold" @click="toggleAll">Toggle All</button>
+    <button v-tooltip="'Select or deselect all items (A)'" class="w-full mb-4 rounded-xl py-3 bg-slate-800 border border-slate-700 text-lg font-bold" @click="toggleAll">Toggle All</button>
 
     <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-      <button v-tooltip="'Start standard quiz mode'" class="rounded-xl py-4 text-xl font-black bg-gradient-to-r from-violet-600 to-cyan-400" @click="startQuiz">▶ Start Quiz</button>
-      <button v-tooltip="'Start timed speed drill mode'" class="rounded-xl py-4 text-xl font-black bg-gradient-to-r from-amber-500 to-rose-500" @click="startDrill">⚡ Speed Drill</button>
+      <button v-tooltip="'Start standard quiz mode (Q)'" class="rounded-xl py-4 text-xl font-black bg-gradient-to-r from-violet-600 to-cyan-400" @click="startQuiz">▶ Start Quiz</button>
+      <button v-tooltip="'Start timed speed drill mode (W)'" class="rounded-xl py-4 text-xl font-black bg-gradient-to-r from-amber-500 to-rose-500" @click="startDrill">⚡ Speed Drill</button>
     </div>
 
     <div class="mt-4 rounded-xl border border-emerald-500/40 bg-emerald-900/15 p-4">
@@ -34,7 +34,7 @@
           </div>
         </div>
         <button
-          v-tooltip="'Select suggested weak groups'"
+          v-tooltip="'Select suggested weak groups (S)'"
           class="rounded-lg border border-emerald-400/50 bg-emerald-900/30 px-3 py-1.5 text-xs font-semibold text-emerald-100"
           @click="applyRecoverySelection"
         >
@@ -50,14 +50,14 @@
 
       <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
         <button
-          v-tooltip="'Start quiz with weak-item subset'"
+          v-tooltip="'Start quiz with weak-item subset (R)'"
           class="rounded-lg py-2.5 text-sm font-bold bg-gradient-to-r from-emerald-600 to-cyan-500 text-white"
           @click="startRecoveryQuiz"
         >
           Start Recovery Quiz
         </button>
         <button
-          v-tooltip="'Start drill with weak-item subset'"
+          v-tooltip="'Start drill with weak-item subset (T)'"
           class="rounded-lg py-2.5 text-sm font-bold bg-gradient-to-r from-amber-500 to-rose-500 text-white"
           @click="startRecoveryDrill"
         >
