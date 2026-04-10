@@ -117,7 +117,7 @@
 
         <div class="lg:border-l lg:border-slate-700/50 lg:pl-5">
           <h3 class="text-lg font-bold text-slate-100">Want to understand ranking better?</h3>
-          <p class="mt-1 text-sm text-slate-400">Learn how Global Rank and Synthetic Rank work, and get tips to improve.</p>
+          <p class="mt-1 text-sm text-slate-400">Learn how Global Rank and Synthetic Rank work, and try the interactive simulator.</p>
           <button @click="goToRankingInfo" class="mt-4 w-full px-4 py-2 bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-700 hover:to-cyan-700 rounded-lg font-semibold text-slate-100 transition-all">
             Learn More →
           </button>

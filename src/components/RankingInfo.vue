@@ -1,5 +1,108 @@
 <template>
   <div class="space-y-6">
+    <RankSimulator />
+
+    <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="text-2xl">🧪</div>
+        <h2 class="text-xl font-bold text-cyan-300">Simulator Inputs Explained</h2>
+      </div>
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div class="rounded-lg border border-slate-700/70 bg-slate-900/45 p-4">
+          <h3 class="font-semibold text-slate-100">Global accuracy</h3>
+          <p class="mt-1 text-sm text-slate-400">
+            Percentage of correct answers across all attempts. Example: 100% means every attempt is correct.
+          </p>
+          <p class="mt-2 text-xs text-slate-500">
+            Higher global accuracy increases both Global Rank and Synthetic Rank.
+          </p>
+        </div>
+
+        <div class="rounded-lg border border-slate-700/70 bg-slate-900/45 p-4">
+          <h3 class="font-semibold text-slate-100">Deck coverage</h3>
+          <p class="mt-1 text-sm text-slate-400">
+            Number of decks you have practiced, shown as used decks over total decks. Example: 9 / 16.
+          </p>
+          <p class="mt-2 text-xs text-slate-500">
+            Global score is capped by coverage ratio, so more deck coverage raises your ceiling.
+          </p>
+        </div>
+
+        <div class="rounded-lg border border-slate-700/70 bg-slate-900/45 p-4">
+          <h3 class="font-semibold text-slate-100">Average mastery</h3>
+          <p class="mt-1 text-sm text-slate-400">
+            Mean of your deck mastery peaks. Example: 100% means all included decks reached full mastery.
+          </p>
+          <p class="mt-2 text-xs text-slate-500">
+            This is the largest component in Synthetic Rank (60% weight).
+          </p>
+        </div>
+
+        <div class="rounded-lg border border-slate-700/70 bg-slate-900/45 p-4">
+          <h3 class="font-semibold text-slate-100">Deck diversity</h3>
+          <p class="mt-1 text-sm text-slate-400">
+            Number of distinct decks you actively train, used for diversity bonus.
+          </p>
+          <p class="mt-2 text-xs text-slate-500">
+            Adds bonus points to Synthetic Rank (up to +10), rewarding breadth not just depth.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="text-2xl">🧭</div>
+        <h2 class="text-xl font-bold text-emerald-300">What Matters Most and How to Raise It</h2>
+      </div>
+
+      <p class="text-slate-300 mb-4">
+        Priority order for faster rank growth: <strong>Global accuracy</strong> → <strong>Deck coverage</strong> → <strong>Average mastery</strong> → <strong>Deck diversity</strong>.
+      </p>
+
+      <div class="space-y-3">
+        <div class="rounded-lg border border-slate-700/70 bg-slate-900/45 p-4">
+          <h3 class="font-semibold text-slate-100">1) Global accuracy (highest impact)</h3>
+          <p class="mt-1 text-sm text-slate-400">Why: it directly drives Global Rank and also contributes to Synthetic Rank.</p>
+          <ul class="mt-2 space-y-1 text-sm text-slate-300 ml-4">
+            <li>• Do short clean sessions (10-20 answers).</li>
+            <li>• Stop after 2-3 misses, then switch to weak-item recovery.</li>
+            <li>• Prioritize due and weak prompts before full-deck runs.</li>
+            <li>• Focus on correctness first, then speed.</li>
+          </ul>
+        </div>
+
+        <div class="rounded-lg border border-slate-700/70 bg-slate-900/45 p-4">
+          <h3 class="font-semibold text-slate-100">2) Deck coverage</h3>
+          <p class="mt-1 text-sm text-slate-400">Why: coverage controls your Global Rank ceiling.</p>
+          <ul class="mt-2 space-y-1 text-sm text-slate-300 ml-4">
+            <li>• Add at least one newly-practiced deck each week.</li>
+            <li>• Keep previously-practiced decks active with maintenance sessions.</li>
+            <li>• Track coverage ratio and avoid long gaps on old decks.</li>
+          </ul>
+        </div>
+
+        <div class="rounded-lg border border-slate-700/70 bg-slate-900/45 p-4">
+          <h3 class="font-semibold text-slate-100">3) Average mastery</h3>
+          <p class="mt-1 text-sm text-slate-400">Why: this is the largest Synthetic Rank component (60%).</p>
+          <ul class="mt-2 space-y-1 text-sm text-slate-300 ml-4">
+            <li>• Pick one deck and push a new peak each cycle.</li>
+            <li>• Alternate recovery subsets with full-deck verification runs.</li>
+            <li>• Repeat weak clusters until they become stable.</li>
+          </ul>
+        </div>
+
+        <div class="rounded-lg border border-slate-700/70 bg-slate-900/45 p-4">
+          <h3 class="font-semibold text-slate-100">4) Deck diversity</h3>
+          <p class="mt-1 text-sm text-slate-400">Why: adds bonus to Synthetic Rank (up to +10), but is not the primary driver.</p>
+          <ul class="mt-2 space-y-1 text-sm text-slate-300 ml-4">
+            <li>• Rotate across different deck types during the week.</li>
+            <li>• Use breadth as a bonus after accuracy and coverage are stable.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
     <!-- Global Rank Explanation -->
     <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-6">
       <div class="flex items-center gap-3 mb-4">
@@ -141,8 +244,11 @@
 </template>
 
 <script>
+import RankSimulator from './RankSimulator.vue'
+
 export default {
-  name: 'RankingInfo'
+  name: 'RankingInfo',
+  components: { RankSimulator },
 }
 </script>
 
