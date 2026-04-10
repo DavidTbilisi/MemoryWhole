@@ -23,8 +23,8 @@
           </div>
           <div class="mt-3 grid grid-cols-2 gap-2 border-t border-slate-700/50 pt-3">
             <div>
-              <div class="text-[11px] text-slate-500">Attempts</div>
-              <div class="text-base font-semibold text-slate-200">{{ globalRank.stats.totalAttempts }}</div>
+              <div class="text-[11px] text-slate-500">Recent attempts</div>
+              <div class="text-base font-semibold text-slate-200">{{ globalRank.stats.totalAttempts }}<span class="text-[10px] text-slate-600 ml-1">/200</span></div>
             </div>
             <div>
               <div class="text-[11px] text-slate-500">Decks</div>

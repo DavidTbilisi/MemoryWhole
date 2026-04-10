@@ -1,6 +1,8 @@
 import { readJson } from './storage'
-import { ANALYTICS_KEY, MASTERY_PEAK_KEY } from './analytics'
+import { ANALYTICS_KEY, MASTERY_PEAK_KEY, SESSION_HISTORY_KEY } from './analytics'
 import { DECKS } from '../data/decks'
+
+const WINDOW_ATTEMPTS = 200
 
 // Anime ranking system: SSS+ > SSS > SS+ > SS > S+ > S > A+ > A > B+ > B > C+ > C > D > F
 const ANIME_RANKS = [
@@ -22,18 +24,43 @@ const ANIME_RANKS = [
 
 function getGlobalStats() {
   const analytics = readJson(ANALYTICS_KEY, {})
-  let totalAttempts = 0
-  let totalCorrect = 0
-  let practicedDeckCount = 0
+  const sessionHistory = readJson(SESSION_HISTORY_KEY, {})
   const totalDeckCount = Math.max(1, DECKS.length)
 
+  // Coverage: all-time — have you ever practiced this deck?
+  let practicedDeckCount = 0
   for (const [deck, deckAnalytics] of Object.entries(analytics)) {
     if (!DECKS.some((item) => item.deck === deck)) continue
-    const attempts = Number(deckAnalytics.totalAttempts || 0)
-    const correct = Number(deckAnalytics.totalCorrect || 0)
-    totalAttempts += attempts
-    totalCorrect += correct
-    if (attempts > 0) practicedDeckCount += 1
+    if (Number(deckAnalytics.totalAttempts || 0) > 0) practicedDeckCount += 1
+  }
+
+  // Accuracy: sliding window — most recent WINDOW_ATTEMPTS attempts across all decks
+  const allSessions = []
+  for (const sessions of Object.values(sessionHistory)) {
+    if (!Array.isArray(sessions)) continue
+    for (const s of sessions) {
+      if (Number(s.attempts || 0) > 0) {
+        allSessions.push({ ts: Number(s.ts || 0), attempts: Number(s.attempts || 0), correct: Number(s.correct || 0) })
+      }
+    }
+  }
+  allSessions.sort((a, b) => b.ts - a.ts)
+
+  let totalAttempts = 0
+  let totalCorrect = 0
+  for (const s of allSessions) {
+    totalAttempts += s.attempts
+    totalCorrect += s.correct
+    if (totalAttempts >= WINDOW_ATTEMPTS) break
+  }
+
+  // Fallback to cumulative totals if no session history exists yet
+  if (totalAttempts === 0) {
+    for (const [deck, deckAnalytics] of Object.entries(analytics)) {
+      if (!DECKS.some((item) => item.deck === deck)) continue
+      totalAttempts += Number(deckAnalytics.totalAttempts || 0)
+      totalCorrect += Number(deckAnalytics.totalCorrect || 0)
+    }
   }
 
   const globalAccuracy = totalAttempts > 0

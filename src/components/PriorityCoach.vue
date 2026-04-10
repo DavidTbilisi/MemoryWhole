@@ -5,7 +5,12 @@
         <span class="text-lg">🎯</span>
         <span class="text-xs font-bold text-amber-300 uppercase tracking-widest">Priority Coach</span>
       </div>
-      <span class="text-[10px] text-slate-500">Today's focus</span>
+      <div v-if="hasPractice" class="flex items-center gap-1.5 text-[10px]">
+        <span class="text-slate-500">1 mistake</span>
+        <span class="text-slate-600">=</span>
+        <span class="font-bold" :class="mistakeCost >= 9 ? 'text-rose-400' : mistakeCost >= 4 ? 'text-amber-400' : 'text-slate-400'">~{{ mistakeCost }}x correct to recover</span>
+      </div>
+      <span v-else class="text-[10px] text-slate-500">Today's focus</span>
     </div>
 
     <div v-if="!hasPractice" class="text-center py-4 text-slate-500 text-xs">
@@ -83,6 +88,16 @@ export default {
     },
     hasPractice() {
       return this.rows.length > 0
+    },
+    mistakeCost() {
+      const stats = this.rankInfo?.global?.stats || {}
+      const attempts = Number(stats.totalAttempts || 0)
+      const correct = Number(stats.totalCorrect || 0)
+      const wrong = attempts - correct
+      if (wrong <= 0 || attempts <= 0) return 1
+      const acc = correct / attempts
+      const cost = acc / (1 - acc)
+      return cost < 1.5 ? Math.round(cost * 10) / 10 : Math.round(cost)
     },
     priorities() {
       if (!this.hasPractice || !this.rankInfo) return []
