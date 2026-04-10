@@ -1,9 +1,16 @@
 <template>
-  <div>
-    <ActivityStatsStrip />
-
+  <div class="pb-20 md:pb-0">
     <div class="mb-4">
       <RankDisplay @view-ranking-info="onViewRankingInfo" @start-recommended="onStart" @dashboard-recommended="onDashboard" />
+    </div>
+
+    <div class="px-4 py-3 mb-2 border-t border-slate-700/40">
+      <span v-if="dailyStreak.current > 0" class="text-amber-400 font-semibold">
+        🔥 {{ dailyStreak.current }}-day streak
+      </span>
+      <span v-else class="text-slate-500 text-sm">
+        — Start your streak today
+      </span>
     </div>
 
     <div class="mb-4">
@@ -16,26 +23,30 @@
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       <DeckCard v-for="(d, index) in decks" :key="d.deck" :deck="d.deck" :name="d.name" :count-text="d.count" :icon="d.icon" :focused="index === cursorIndex"
-        @start="onStart" @dashboard="onDashboard" @preview="onPreview" @edit="onEdit" @export="onExport"/>
+        @start="onStart" @dashboard="onDashboard" @instant-start="onInstantStart" />
     </div>
   </div>
 </template>
 
 <script>
 import DeckCard from '../components/DeckCard.vue'
-import ActivityStatsStrip from '../components/ActivityStatsStrip.vue'
 import RankDisplay from '../components/RankDisplay.vue'
 import PriorityCoach from '../components/PriorityCoach.vue'
 import FantasyQuestPanel from '../components/FantasyQuestPanel.vue'
 import { DECKS } from '../data/decks'
+import { getDailyStreak } from '../core/analytics.js'
 export default {
   name: 'HomeView',
-  components: { DeckCard, ActivityStatsStrip, RankDisplay, PriorityCoach, FantasyQuestPanel },
+  components: { DeckCard, RankDisplay, PriorityCoach, FantasyQuestPanel },
   data(){
     return {
       decks: DECKS,
       cursorIndex: 0,
+      dailyStreak: { current: 0, longest: 0 },
     }
+  },
+  mounted() {
+    this.dailyStreak = getDailyStreak()
   },
   methods:{
     moveCursor(delta = 0) {
@@ -68,6 +79,7 @@ export default {
       this.$emit('export', this.focusedDeck())
     },
     onStart(deck){ this.$emit('start', deck); },
+    onInstantStart(deck){ this.$emit('instant-start', deck); },
     onDashboard(deck){ this.$emit('dashboard', deck); },
     onPreview(deck){ this.$emit('preview', deck); },
     onEdit(deck){ this.$emit('edit', deck); },

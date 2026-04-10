@@ -1,294 +1,79 @@
 <template>
-  <header class="mb-4 grid grid-cols-[1fr_auto_1fr] items-start gap-3">
-    <div class="hidden md:flex items-center">
-      <div class="brand-mark">
-        <div class="brand-title">MNEMONIC</div>
-        <div class="brand-subtitle">Training Console</div>
-      </div>
-    </div>
-
-    <div class="flex justify-center">
-      <div class="inline-flex items-center gap-2">
+  <header class="mb-4">
+    <div class="flex items-center gap-3">
+      <!-- Hamburger for mobile -->
       <button
-        class="inline-flex items-center gap-1 rounded-lg border border-amber-500/40 bg-amber-900/20 px-2 py-1 text-xs font-semibold text-amber-200"
-        @click="$emit('toggle-shortcuts')"
-        v-tooltip="'Keyboard shortcuts help (Shift+/)'"
+        @click="$emit('toggle-drawer')"
+        class="md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors"
+        aria-label="Menu"
       >
-        <span>⌨</span>
-        <span>Shortcuts</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
       </button>
 
-      <div ref="themeMenuRoot" class="relative inline-flex items-center gap-2 rounded-lg border border-slate-700/70 bg-slate-900/50 px-2 py-1">
-        <span class="text-[11px] uppercase tracking-wider text-slate-400">Theme</span>
-        <button
-          class="inline-flex items-center gap-2 rounded bg-slate-800 px-2 py-1 text-xs text-slate-100 outline-none"
-          @click="toggleThemeMenu"
-          v-tooltip="'Switch app theme'"
-        >
-          <span>{{ selectedThemeLabel }}</span>
-          <span class="inline-flex items-center gap-1">
-            <span
-              v-for="(swatch, idx) in selectedThemeSwatches"
-              :key="`selected-swatch-${idx}`"
-              class="h-2.5 w-2.5 rounded-full border border-slate-700/80"
-              :style="{ backgroundColor: swatch }"
-            ></span>
-          </span>
-        </button>
-
-        <div v-if="themeMenuOpen" class="absolute right-0 top-[calc(100%+0.35rem)] z-20 w-64 rounded-lg border border-slate-700/80 bg-slate-900/95 p-2 shadow-2xl backdrop-blur">
-          <div class="mb-1 px-1 text-[11px] uppercase tracking-wider text-slate-400">Dark</div>
-          <button
-            v-for="theme in darkThemeOptions"
-            :key="theme.id"
-            class="mb-1 flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition hover:bg-slate-800"
-            :class="theme.id === selectedTheme ? 'bg-slate-800 text-white' : 'text-slate-200'"
-            @click="selectTheme(theme.id)"
-          >
-            <span>{{ theme.label }}</span>
-            <span class="inline-flex items-center gap-1">
-              <span
-                v-for="(swatch, idx) in themeSwatches(theme.id)"
-                :key="`${theme.id}-dark-${idx}`"
-                class="h-2.5 w-2.5 rounded-full border border-slate-700/80"
-                :style="{ backgroundColor: swatch }"
-              ></span>
-            </span>
-          </button>
-
-          <div class="my-1 border-t border-slate-700/70"></div>
-          <div class="mb-1 px-1 text-[11px] uppercase tracking-wider text-slate-400">Light</div>
-          <button
-            v-for="theme in lightThemeOptions"
-            :key="theme.id"
-            class="mb-1 flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition hover:bg-slate-800"
-            :class="theme.id === selectedTheme ? 'bg-slate-800 text-white' : 'text-slate-200'"
-            @click="selectTheme(theme.id)"
-          >
-            <span>{{ theme.label }}</span>
-            <span class="inline-flex items-center gap-1">
-              <span
-                v-for="(swatch, idx) in themeSwatches(theme.id)"
-                :key="`${theme.id}-light-${idx}`"
-                class="h-2.5 w-2.5 rounded-full border border-slate-700/80"
-                :style="{ backgroundColor: swatch }"
-              ></span>
-            </span>
-          </button>
+      <!-- Mobile brand (desktop brand is in sidebar) -->
+      <div class="md:hidden flex-1">
+        <div class="brand-mark inline-block">
+          <div class="brand-title">MNEMONIC</div>
+          <div class="brand-subtitle">Training Console</div>
         </div>
       </div>
+
+      <!-- Sync dot + Shortcuts button -->
+      <div class="flex items-center gap-2 ml-auto md:ml-0">
+        <span
+          v-if="syncStatus !== 'neutral'"
+          class="inline-block h-2.5 w-2.5 rounded-full shrink-0 transition-colors"
+          :class="syncDotClass"
+          :title="syncDotTitle"
+        ></span>
+        <button
+          class="inline-flex items-center gap-1 rounded-lg border border-amber-500/40 bg-amber-900/20 px-2 py-1 text-xs font-semibold text-amber-200"
+          @click="$emit('toggle-shortcuts')"
+          v-tooltip="'Keyboard shortcuts help (Shift+/)'"
+        >
+          <span>⌨</span>
+          <span class="hidden sm:inline">Shortcuts</span>
+        </button>
       </div>
     </div>
 
-    <div class="flex flex-col items-end gap-1">
-      <div v-if="!signedIn">
+    <!-- Breadcrumb bar -->
+    <div v-if="breadcrumbs.length > 1" class="mt-2 px-1 flex items-center gap-1 text-xs text-slate-500 overflow-x-auto">
+      <template v-for="(crumb, i) in breadcrumbs" :key="i">
         <button
-          class="px-3 py-2 rounded-lg bg-white text-slate-900 font-semibold shadow disabled:opacity-70"
-          :disabled="busy"
-          @click="handleSignIn"
-          v-tooltip="'Sign in with your Google account'"
-        >
-          {{ busy ? 'Signing in...' : 'Sign in with Google' }}
-        </button>
-      </div>
-      <div v-else ref="profileMenuRoot" class="relative">
-        <button
-          class="inline-flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-900/60 px-2.5 py-1.5 text-slate-100"
-          :disabled="busy"
-          @click="toggleProfileMenu"
-          v-tooltip="'Open profile menu'"
-        >
-          <span class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 bg-slate-900/60 text-xs font-bold text-slate-200">{{ userInitials }}</span>
-          <span class="hidden md:inline max-w-[170px] truncate text-sm text-slate-200">{{ name }}</span>
-          <span class="text-[10px] text-slate-400">{{ profileMenuOpen ? '▲' : '▼' }}</span>
-        </button>
-
-        <div v-if="profileMenuOpen" class="absolute right-0 top-[calc(100%+0.35rem)] z-20 w-56 rounded-lg border border-slate-700/80 bg-slate-900/95 p-2 shadow-2xl backdrop-blur">
-          <div class="mb-2 border-b border-slate-700/70 pb-2">
-            <div class="truncate text-xs text-slate-300">{{ name }}</div>
-            <div class="text-[11px] text-slate-500">Account</div>
-          </div>
-          <button
-            class="w-full rounded-md border border-rose-800/80 px-2.5 py-2 text-left text-xs text-rose-200 disabled:opacity-70 hover:bg-rose-950/35"
-            :disabled="busy"
-            @click="handleSignOut"
-            v-tooltip="signOutArmed ? 'Click again to confirm sign out' : 'Arm sign out (two-step confirmation)'"
-          >
-            {{ busy ? 'Working...' : (signOutArmed ? 'Confirm sign out' : 'Sign out') }}
-          </button>
-        </div>
-      </div>
-      <div v-if="statusText" :class="['text-xs', statusClass]">{{ statusText }}</div>
+          v-if="i < breadcrumbs.length - 1"
+          @click="$emit('breadcrumb-navigate', crumb)"
+          class="hover:text-slate-300 transition-colors whitespace-nowrap min-h-[28px]"
+        >{{ crumb.label }}</button>
+        <span v-else class="text-slate-300 whitespace-nowrap">{{ crumb.label }}</span>
+        <span v-if="i < breadcrumbs.length - 1" class="text-slate-700">›</span>
+      </template>
     </div>
   </header>
 </template>
 
 <script>
-import { onAuthUserChanged, signInWithGoogle, signOutUser } from '../core/firebase-auth'
-import { syncCloudForCurrentUser } from '../core/firebase-sync'
-import { THEME_OPTIONS, applyTheme, getSavedTheme, getThemeSwatches } from '../core/theme'
-
 export default {
   name: 'Header',
-  emits: ['toggle-shortcuts'],
-  data() {
-    return {
-      signedIn: false,
-      name: '',
-      busy: false,
-      statusText: '',
-      statusTone: 'neutral',
-      unlistenAuth: null,
-      themeOptions: THEME_OPTIONS,
-      selectedTheme: getSavedTheme(),
-      themeMenuOpen: false,
-      profileMenuOpen: false,
-      signOutArmed: false,
-      signOutArmTimer: null,
-    }
+  props: {
+    breadcrumbs: { type: Array, default: () => [] },
+    syncStatus: { type: String, default: 'neutral' },
   },
+  emits: ['toggle-shortcuts', 'toggle-drawer', 'breadcrumb-navigate'],
   computed: {
-    userInitials() {
-      const source = (this.name || '').trim()
-      if (!source) return 'U'
-      const parts = source.split(/\s+/).filter(Boolean)
-      if (parts.length >= 2) {
-        return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase()
-      }
-      const compact = source.replace(/[^a-zA-Z0-9]/g, '')
-      return (compact.slice(0, 2) || 'U').toUpperCase()
+    syncDotClass() {
+      if (this.syncStatus === 'info') return 'bg-sky-400 animate-pulse'
+      if (this.syncStatus === 'success') return 'bg-emerald-400'
+      if (this.syncStatus === 'error') return 'bg-rose-400'
+      return ''
     },
-    statusClass() {
-      if (this.statusTone === 'success') return 'text-emerald-300'
-      if (this.statusTone === 'error') return 'text-rose-300'
-      if (this.statusTone === 'info') return 'text-sky-300'
-      return 'text-slate-400'
-    },
-    darkThemeOptions() {
-      return this.themeOptions.filter((theme) => theme.id.startsWith('dark-'))
-    },
-    lightThemeOptions() {
-      return this.themeOptions.filter((theme) => theme.id.startsWith('light-'))
-    },
-    selectedThemeLabel() {
-      const found = this.themeOptions.find((theme) => theme.id === this.selectedTheme)
-      return found ? found.label : this.selectedTheme
-    },
-    selectedThemeSwatches() {
-      return getThemeSwatches(this.selectedTheme)
-    },
-  },
-  mounted() {
-    document.addEventListener('click', this.onDocumentClick)
-    this.unlistenAuth = onAuthUserChanged(async (user) => {
-      this.signedIn = !!user
-      this.name = user?.displayName || user?.email || ''
-
-      if (user) {
-        this.busy = true
-        this.statusText = 'Syncing cloud data...'
-        this.statusTone = 'info'
-        try {
-          await syncCloudForCurrentUser()
-          this.statusText = 'Synced'
-          this.statusTone = 'success'
-        } catch (err) {
-          console.error(err)
-          this.statusText = 'Sync failed. Local data is still available.'
-          this.statusTone = 'error'
-        }
-      } else {
-        this.statusText = ''
-        this.statusTone = 'neutral'
-        this.profileMenuOpen = false
-        this.signOutArmed = false
-      }
-
-      this.busy = false
-    })
-  },
-  beforeUnmount() {
-    document.removeEventListener('click', this.onDocumentClick)
-    if (typeof this.unlistenAuth === 'function') this.unlistenAuth()
-    if (this.signOutArmTimer) {
-      clearTimeout(this.signOutArmTimer)
-      this.signOutArmTimer = null
-    }
-  },
-  methods: {
-    themeSwatches(themeId) {
-      return getThemeSwatches(themeId)
-    },
-    toggleThemeMenu() {
-      this.themeMenuOpen = !this.themeMenuOpen
-      if (this.themeMenuOpen) this.profileMenuOpen = false
-    },
-    toggleProfileMenu() {
-      this.profileMenuOpen = !this.profileMenuOpen
-      if (this.profileMenuOpen) this.themeMenuOpen = false
-    },
-    selectTheme(themeId) {
-      this.selectedTheme = applyTheme(themeId)
-      this.themeMenuOpen = false
-    },
-    onDocumentClick(event) {
-      const themeRoot = this.$refs.themeMenuRoot
-      if (this.themeMenuOpen && themeRoot && !themeRoot.contains(event.target)) {
-        this.themeMenuOpen = false
-      }
-
-      const profileRoot = this.$refs.profileMenuRoot
-      if (this.profileMenuOpen && profileRoot && !profileRoot.contains(event.target)) {
-        this.profileMenuOpen = false
-        this.signOutArmed = false
-      }
-    },
-    armSignOut() {
-      this.signOutArmed = true
-      if (this.signOutArmTimer) clearTimeout(this.signOutArmTimer)
-      this.signOutArmTimer = setTimeout(() => {
-        this.signOutArmed = false
-        this.signOutArmTimer = null
-      }, 3500)
-    },
-    async handleSignIn() {
-      if (this.busy) return
-      this.busy = true
-      try {
-        await signInWithGoogle()
-      } catch (err) {
-        this.busy = false
-        console.error(err)
-        this.statusText = 'Google sign-in failed. Please try again.'
-        this.statusTone = 'error'
-      }
-    },
-    async handleSignOut() {
-      if (this.busy) return
-      if (!this.signOutArmed) {
-        this.armSignOut()
-        this.statusText = 'Click sign out again to confirm.'
-        this.statusTone = 'info'
-        return
-      }
-      this.busy = true
-      try {
-        if (this.signOutArmTimer) {
-          clearTimeout(this.signOutArmTimer)
-          this.signOutArmTimer = null
-        }
-        this.signOutArmed = false
-        this.profileMenuOpen = false
-        await signOutUser()
-        this.statusText = ''
-        this.statusTone = 'neutral'
-      } catch (err) {
-        this.busy = false
-        console.error(err)
-        this.signOutArmed = false
-        this.statusText = 'Sign-out failed. Please try again.'
-        this.statusTone = 'error'
-      }
+    syncDotTitle() {
+      if (this.syncStatus === 'info') return 'Syncing...'
+      if (this.syncStatus === 'success') return 'Synced'
+      if (this.syncStatus === 'error') return 'Sync failed'
+      return ''
     },
   },
 }
@@ -296,24 +81,22 @@ export default {
 
 <style scoped>
 .brand-mark {
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.25);
   background: rgba(15, 23, 42, 0.45);
-  border-radius: 10px;
-  padding: 0.42rem 0.62rem;
+  border-radius: 8px;
+  padding: 0.35rem 0.5rem;
   line-height: 1.1;
-  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.3), 0 8px 22px rgba(2, 6, 23, 0.2);
 }
 
 .brand-title {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 900;
   letter-spacing: 0.14em;
   color: #e2e8f0;
 }
 
 .brand-subtitle {
-  margin-top: 0.12rem;
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;

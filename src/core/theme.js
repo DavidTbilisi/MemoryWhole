@@ -52,3 +52,12 @@ export function applySavedTheme() {
 export function getThemeSwatches(themeId) {
     return THEME_SWATCHES[themeId] || THEME_SWATCHES[DEFAULT_THEME]
 }
+
+export function toggleDayNight() {
+    const current = getSavedTheme()
+    if (current?.startsWith('light')) {
+        applyTheme('dark-cyber')
+    } else {
+        applyTheme('light-vintage')
+    }
+}

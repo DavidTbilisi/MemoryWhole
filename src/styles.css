@@ -45,19 +45,19 @@
 }
 
 :root[data-theme='light-vintage'] {
-  --surface-1: #F5E9D8;
-  --surface-2: #F5E9D8;
-  --surface-3: #efe0cb;
-  --text-main: #3E2C23;
-  --text-soft: #5f493d;
-  --brand-1: #2FA4D7;
-  --brand-2: #E76F2E;
-  --edge: #d8c5ae;
-  --bg-darken: rgba(255, 255, 255, 0.08);
-  --trace-color: rgba(62, 44, 35, 0.08);
-  --trace-node: rgba(62, 44, 35, 0.06);
-  --pattern-opacity: 0.14;
-  --noise-opacity: 0.03;
+  --surface-1: #faf6f0;
+  --surface-2: #f0ebe2;
+  --surface-3: #e4ddd4;
+  --text-main: #1c1917;
+  --text-soft: #6b625a;
+  --brand-1: #b45309;
+  --brand-2: #0f766e;
+  --edge: #c7bdb4;
+  --bg-darken: rgba(0,0,0,0.06);
+  --trace-color: #c7bdb4;
+  --trace-node: #b45309;
+  --pattern-opacity: 0.15;
+  --noise-opacity: 0.02;
 }
 
 :root[data-theme='light-pink'] {
@@ -1009,4 +1009,11 @@ button,
 .editor-grid[data-mode="wide"] .num-badge {
   min-width: 2.4rem;
   font-size: 0.85rem;
+}
+
+/* Touch gesture feedback */
+[data-swipeable] {
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }

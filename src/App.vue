@@ -1,26 +1,45 @@
 <template>
-  <div class="min-h-screen bg-slate-950 text-slate-100 py-5">
-    <div class="mx-auto w-full max-w-[1500px] px-4 md:px-8">
-      <Header @toggle-shortcuts="toggleShortcutsHelp" />
+  <div class="min-h-screen bg-slate-950 text-slate-100">
+    <SideNav
+      :currentView="view"
+      :activeDeck="activeDeck"
+      :drawerOpen="drawerOpen"
+      @navigate="onSideNavNavigate"
+      @navigate-deck="onSideNavNavigateDeck"
+      @close-drawer="drawerOpen = false"
+      @sync-status="syncStatus = $event"
+    />
 
-      <div class="mt-2">
-        <HomeView ref="homeView" v-if="view === 'home'" @start="openQuizConfig" @dashboard="openDashboard" @preview="openPreview" @edit="openEditor" @export="exportDeck" @view-ranking-info="showRankingInfo"/>
-        <QuizConfig ref="quizConfigView" v-if="view === 'quiz-config'" :deck="activeDeck || 'major'" :auto-recovery="recoveryPreset" @back="showHome" @start="startQuizFromConfig" @start-drill="startDrillFromConfig" />
-        <Dashboard ref="dashboardView" v-if="view === 'dashboard'" :deck="activeDeck" @back="showHome" />
-        <Preview ref="previewView" v-if="view === 'preview'" :deck="activeDeck" @back="showHome" />
-        <Editor ref="editorView" v-if="view === 'editor'" :deck="activeDeck || 'major'" @back="showHome" />
-        <Stats ref="statsView" v-if="view === 'stats'" :session="session" @back="showHome" @dashboard="openDashboardFromStats" />
-        <RankingInfoView ref="rankingInfoView" v-if="view === 'ranking-info'" @back="showHome" />
-        <div v-if="view === 'quiz'">
-          <Quiz ref="quizView" :key="quizKey" :deck="activeDeck || 'major'" :subset-keys="selectedSubsetKeys" :mode="quizMode" :drill-duration="drillDuration" @back="showHome" @finished="onQuizFinished" />
+    <div class="md:ml-52">
+      <div class="mx-auto w-full max-w-[1500px] px-4 md:px-8 pt-5 pb-16 md:pb-5">
+        <Header
+          :breadcrumbs="breadcrumbs"
+          :syncStatus="syncStatus"
+          @toggle-shortcuts="toggleShortcutsHelp"
+          @toggle-drawer="drawerOpen = !drawerOpen"
+          @breadcrumb-navigate="onBreadcrumbNavigate"
+        />
+
+        <div class="mt-2">
+          <HomeView ref="homeView" v-if="view === 'home'" @start="openQuizConfig" @dashboard="openDashboard" @preview="openPreview" @edit="openEditor" @export="exportDeck" @view-ranking-info="showRankingInfo" @instant-start="instantStartQuiz"/>
+          <QuizConfig ref="quizConfigView" v-if="view === 'quiz-config'" :deck="activeDeck || 'major'" :auto-recovery="recoveryPreset" @back="goBack" @start="startQuizFromConfig" @start-drill="startDrillFromConfig" />
+          <Dashboard ref="dashboardView" v-if="view === 'dashboard'" :deck="activeDeck" @back="goBack" />
+          <Preview ref="previewView" v-if="view === 'preview'" :deck="activeDeck" @back="goBack" />
+          <Editor ref="editorView" v-if="view === 'editor'" :deck="activeDeck || 'major'" @back="goBack" />
+          <Stats ref="statsView" v-if="view === 'stats'" :session="session" @back="goBack" @dashboard="openDashboardFromStats" @replay="replayQuiz" />
+          <RankingInfoView ref="rankingInfoView" v-if="view === 'ranking-info'" @back="goBack" />
+          <TrainingLog v-if="view === 'training-log'" @back="goBack" @dashboard="openDashboard" />
+          <div v-if="view === 'quiz'">
+            <Quiz ref="quizView" :key="quizKey" :deck="activeDeck || 'major'" :subset-keys="selectedSubsetKeys" :mode="quizMode" :drill-duration="drillDuration" @back="goBack" @finished="onQuizFinished" />
+          </div>
         </div>
-      </div>
 
-      <ShortcutsHelpModal
-        :open="shortcutHelpOpen"
-        :groups="shortcutHelpGroups"
-        @close="closeShortcutsHelp"
-      />
+        <ShortcutsHelpModal
+          :open="shortcutHelpOpen"
+          :groups="shortcutHelpGroups"
+          @close="closeShortcutsHelp"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -28,6 +47,7 @@
 <script>
 import Quiz from './components/Quiz.vue';
 import Header from './components/Header.vue';
+import SideNav from './components/SideNav.vue';
 import ShortcutsHelpModal from './components/ShortcutsHelpModal.vue';
 import HomeView from './views/Home.vue';
 import QuizConfig from './views/QuizConfig.vue';
@@ -36,12 +56,13 @@ import Preview from './views/Preview.vue';
 import Stats from './views/Stats.vue';
 import RankingInfoView from './views/RankingInfoView.vue';
 import Editor from './views/Editor.vue';
+import TrainingLog from './views/TrainingLog.vue';
 import { exportDeckPayload } from './core/deck-loader'
 import { DECKS } from './data/decks'
 
 export default {
   name: 'App',
-  components: { Quiz, Header, ShortcutsHelpModal, HomeView, QuizConfig, Dashboard, Preview, Stats, RankingInfoView, Editor },
+  components: { Quiz, Header, SideNav, ShortcutsHelpModal, HomeView, QuizConfig, Dashboard, Preview, Stats, RankingInfoView, Editor, TrainingLog },
   data() {
     return {
       view: 'home',
@@ -55,83 +76,184 @@ export default {
       shortcutHelpOpen: false,
       pendingShortcutPrefix: '',
       shortcutPrefixTimer: null,
+      navStack: [],
+      drawerOpen: false,
+      syncStatus: 'neutral',
     };
   },
   computed: {
+    breadcrumbs() {
+      const labelFor = (view, deck) => {
+        const map = {
+          'home': 'Home', 'training-log': 'Training Log', 'ranking-info': 'Ranking',
+          'stats': 'Results', 'quiz': 'Quiz', 'quiz-config': 'Setup'
+        }
+        if (view === 'dashboard') return (deck?.name || deck || 'Dashboard')
+        if (view === 'preview') return (deck?.name || deck || 'Deck') + ' Preview'
+        if (view === 'editor') return (deck?.name || deck || 'Deck') + ' Editor'
+        return map[view] || view
+      }
+      const items = this.navStack.map(s => ({ label: labelFor(s.view, s.activeDeck), view: s.view, deck: s.activeDeck }))
+      items.push({ label: labelFor(this.view, this.activeDeck), view: this.view, deck: this.activeDeck })
+      return items
+    },
+    isTouchDevice() {
+      return 'ontouchstart' in window || navigator.maxTouchPoints > 0
+    },
     shortcutHelpGroups() {
-      return [
-        {
-          title: 'Global Navigation',
-          items: [
-            { keys: 'Shift+/', action: 'Toggle shortcut help' },
-            { keys: 'G then G / G then H', action: 'Go to Home' },
-            { keys: 'G then Q', action: 'Go to Quiz Config (active deck)' },
-            { keys: 'G then D', action: 'Go to Dashboard (active deck)' },
-            { keys: 'G then P', action: 'Go to Preview (active deck)' },
-            { keys: 'G then E', action: 'Go to Editor (active deck)' },
-            { keys: 'G then R', action: 'Open Ranking docs + simulator' },
-            { keys: 'H', action: 'Back to Home (from any non-home page)' },
-            { keys: 'Esc', action: 'Close shortcut help' },
-          ],
-        },
-        {
-          title: 'Home',
-          items: [
-            { keys: 'J / K', action: 'Move deck focus down / up' },
-            { keys: 'Space / Enter', action: 'Open focused deck in Quiz Config' },
-            { keys: 'D / P / E / X', action: 'Focused deck: Dashboard / Preview / Editor / Export' },
-            { keys: 'G then G / Shift+G', action: 'Jump to first / last deck' },
-            { keys: '1..9', action: 'Open deck N in Quiz Config' },
-            { keys: 'Shift+1..9', action: 'Open deck N Dashboard' },
-            { keys: 'R', action: 'Open Ranking docs' },
-          ],
-        },
-        {
-          title: 'Quiz Config',
-          items: [
-            { keys: 'J / K', action: 'Move focus down / up groups' },
-            { keys: 'Space / Enter', action: 'Toggle focused group' },
-            { keys: 'G then G / Shift+G', action: 'Jump to first / last group' },
-            { keys: 'A', action: 'Toggle all groups' },
-            { keys: 'Q', action: 'Start quiz with selected groups' },
-            { keys: 'W', action: 'Start speed drill with selected groups' },
-            { keys: 'S', action: 'Select recovery suggestion' },
-            { keys: 'R', action: 'Start recovery quiz' },
-            { keys: 'T', action: 'Start recovery drill' },
-            { keys: 'B / H', action: 'Back to Home' },
-          ],
-        },
-        {
-          title: 'Quiz / Drill',
-          items: [
-            { keys: 'A/S/D then J/K', action: 'Choose option by row + column (two-hand)' },
-            { keys: 'Q/W/E then H/L', action: 'Alternative row + column layout' },
-            { keys: '1..6', action: 'Choose option (fallback)' },
-            { keys: 'Enter', action: 'Next question (after answer)' },
-            { keys: 'N', action: 'Next question' },
-            { keys: 'F', action: 'Finish and save' },
-            { keys: 'B / H', action: 'Back to Home' },
-          ],
-        },
-        {
-          title: 'Preview',
-          items: [
-            { keys: '[ / H', action: 'Previous page / block' },
-            { keys: '] / L', action: 'Next page / block' },
-            { keys: 'B', action: 'Back to Home' },
-          ],
-        },
-        {
-          title: 'Editor & Stats',
-          items: [
-            { keys: 'Ctrl/Cmd+S', action: 'Save deck (Editor)' },
-            { keys: 'I', action: 'Import deck JSON (Editor)' },
-            { keys: 'E', action: 'Export deck JSON (Editor)' },
-            { keys: 'T', action: 'Download template (Editor)' },
-            { keys: 'D', action: 'Open deck dashboard (Stats)' },
-          ],
-        },
-      ]
+      const touch = this.isTouchDevice
+      const v = this.view
+
+      // Touch gesture groups (phone users)
+      const touchGroups = {
+        'quiz': [
+          {
+            title: 'Quiz — Speed Input',
+            items: [
+              { keys: 'Tap option', action: 'Select answer (auto-advances)' },
+              { keys: 'Swipe right on option', action: 'Select that answer' },
+              { keys: 'Auto-advance', action: 'Next question loads automatically' },
+            ],
+          },
+          {
+            title: 'Drill — Speed Input',
+            items: [
+              { keys: 'Tap right half', action: 'KNOW (instant)' },
+              { keys: 'Tap left half', action: 'SKIP (instant)' },
+              { keys: 'Swipe right', action: 'KNOW (with animation)' },
+              { keys: 'Swipe left', action: 'SKIP (with animation)' },
+            ],
+          },
+        ],
+        'home': [
+          {
+            title: 'Home — Touch',
+            items: [
+              { keys: 'Tap card', action: 'Open deck dashboard' },
+              { keys: 'Hold card (0.5s)', action: 'Instant quiz start (skip config)' },
+              { keys: 'Tap Start Quiz', action: 'Open quiz config' },
+            ],
+          },
+        ],
+        'stats': [
+          {
+            title: 'Results',
+            items: [
+              { keys: 'Tap Replay', action: 'Restart same quiz instantly' },
+            ],
+          },
+        ],
+        '_global': [
+          {
+            title: 'Navigation',
+            items: [
+              { keys: 'Bottom tab bar', action: 'Home / Training Log / Ranking' },
+              { keys: 'Hamburger menu', action: 'Full nav + theme + account' },
+            ],
+          },
+        ],
+      }
+
+      // Keyboard groups (desktop users)
+      const keyboardGroups = {
+        '_global': [
+          {
+            title: 'Global Navigation',
+            items: [
+              { keys: 'Shift+/', action: 'Toggle shortcut help' },
+              { keys: 'G then G / G then H', action: 'Go to Home' },
+              { keys: 'G then Q', action: 'Go to Quiz Config (active deck)' },
+              { keys: 'G then D', action: 'Go to Dashboard (active deck)' },
+              { keys: 'G then P', action: 'Go to Preview (active deck)' },
+              { keys: 'G then E', action: 'Go to Editor (active deck)' },
+              { keys: 'G then R', action: 'Open Ranking docs + simulator' },
+              { keys: 'H', action: 'Back to Home (from any non-home page)' },
+              { keys: 'Esc', action: 'Close shortcut help' },
+            ],
+          },
+        ],
+        'home': [
+          {
+            title: 'Home',
+            items: [
+              { keys: 'J / K', action: 'Move deck focus down / up' },
+              { keys: 'Space / Enter', action: 'Open focused deck in Quiz Config' },
+              { keys: 'D / P / E / X', action: 'Focused deck: Dashboard / Preview / Editor / Export' },
+              { keys: 'G then G / Shift+G', action: 'Jump to first / last deck' },
+              { keys: '1..9', action: 'Open deck N in Quiz Config' },
+              { keys: 'Shift+1..9', action: 'Open deck N Dashboard' },
+              { keys: 'R', action: 'Open Ranking docs' },
+            ],
+          },
+        ],
+        'quiz-config': [
+          {
+            title: 'Quiz Config',
+            items: [
+              { keys: 'J / K', action: 'Move focus down / up groups' },
+              { keys: 'Space / Enter', action: 'Toggle focused group' },
+              { keys: 'G then G / Shift+G', action: 'Jump to first / last group' },
+              { keys: 'A', action: 'Toggle all groups' },
+              { keys: 'Q', action: 'Start quiz with selected groups' },
+              { keys: 'W', action: 'Start speed drill with selected groups' },
+              { keys: 'S', action: 'Select recovery suggestion' },
+              { keys: 'R', action: 'Start recovery quiz' },
+              { keys: 'T', action: 'Start recovery drill' },
+              { keys: 'B / H', action: 'Back to Home' },
+            ],
+          },
+        ],
+        'quiz': [
+          {
+            title: 'Quiz / Drill',
+            items: [
+              { keys: 'A/S/D then J/K', action: 'Choose option by row + column (two-hand)' },
+              { keys: 'Q/W/E then H/L', action: 'Alternative row + column layout' },
+              { keys: '1..6', action: 'Choose option (fallback)' },
+              { keys: 'Space / Enter', action: 'Next question (after answer)' },
+              { keys: 'N', action: 'Next question' },
+              { keys: 'F', action: 'Finish and save' },
+              { keys: 'B / H', action: 'Back to Home' },
+            ],
+          },
+        ],
+        'preview': [
+          {
+            title: 'Preview',
+            items: [
+              { keys: '[ / H', action: 'Previous page / block' },
+              { keys: '] / L', action: 'Next page / block' },
+              { keys: 'B', action: 'Back to Home' },
+            ],
+          },
+        ],
+        'editor': [
+          {
+            title: 'Editor',
+            items: [
+              { keys: 'Ctrl/Cmd+S', action: 'Save deck' },
+              { keys: 'I', action: 'Import deck JSON' },
+              { keys: 'E', action: 'Export deck JSON' },
+              { keys: 'T', action: 'Download template' },
+            ],
+          },
+        ],
+        'stats': [
+          {
+            title: 'Results',
+            items: [
+              { keys: 'R', action: 'Replay same quiz' },
+              { keys: 'D', action: 'Open deck dashboard' },
+              { keys: 'B / H', action: 'Back to Home' },
+            ],
+          },
+        ],
+      }
+
+      const source = touch ? touchGroups : keyboardGroups
+      const result = [...(source['_global'] || [])]
+      if (source[v]) result.push(...source[v])
+      return result
     },
   },
   mounted() {
@@ -219,7 +341,7 @@ export default {
       }
 
       if (key === 'h' && !['home', 'preview', 'quiz'].includes(this.view)) {
-        this.showHome()
+        this.goBack()
         event.preventDefault()
         return
       }
@@ -331,7 +453,7 @@ export default {
         else if (key === 's') cfg.applyRecoverySelection()
         else if (key === 'r') cfg.startRecoveryQuiz()
         else if (key === 't') cfg.startRecoveryDrill()
-        else if (key === 'b' || key === 'h') this.showHome()
+        else if (key === 'b' || key === 'h') this.goBack()
         else return
         event.preventDefault()
         return
@@ -342,7 +464,7 @@ export default {
         if (!quiz) return
         if (key === 'n') quiz.nextQuestion()
         else if (key === 'f') quiz.finish('shortcut')
-        else if (key === 'b') this.showHome()
+        else if (key === 'b') this.goBack()
         else return
         event.preventDefault()
         return
@@ -358,7 +480,7 @@ export default {
           if (preview.mode === 'sem3major-matrix') preview.goToSem3Block(1)
           else preview.goToPage(preview.currentPage + 1)
         } else if (key === 'b') {
-          this.showHome()
+          this.goBack()
         } else {
           return
         }
@@ -372,16 +494,17 @@ export default {
         if (key === 'i') editor.triggerImport()
         else if (key === 'e') editor.exportNow()
         else if (key === 't') editor.downloadTemplate()
-        else if (key === 'b') this.showHome()
+        else if (key === 'b') this.goBack()
         else return
         event.preventDefault()
         return
       }
 
       if (this.view === 'stats') {
-        if (key === 'd') this.openDashboardFromStats(this.session?.deck)
+        if (key === 'r') this.replayQuiz(this.session?.deck)
+        else if (key === 'd') this.openDashboardFromStats(this.session?.deck)
         else if (key === 'q') this.openQuizConfig(this.session?.deck || this.activeDeck || 'major')
-        else if (key === 'b') this.showHome()
+        else if (key === 'b') this.goBack()
         else return
         event.preventDefault()
         return
@@ -389,7 +512,7 @@ export default {
 
       if (this.view === 'dashboard' || this.view === 'ranking-info') {
         if (key === 'b') {
-          this.showHome()
+          this.goBack()
           event.preventDefault()
         }
       }
@@ -403,6 +526,19 @@ export default {
       this.selectedSubsetKeys = []
       this.view = 'quiz-config'
     },
+    replayQuiz(deck) {
+      this.activeDeck = deck || this.activeDeck || 'major'
+      this.view = 'quiz'
+      this.quizKey++
+    },
+    instantStartQuiz(deck) {
+      this.navStack.push({ view: this.view, activeDeck: this.activeDeck })
+      this.activeDeck = deck || 'major'
+      this.selectedSubsetKeys = []
+      this.quizMode = 'quiz'
+      this.view = 'quiz'
+      this.quizKey++
+    },
     startQuizFromConfig(keys){
       this.selectedSubsetKeys = Array.isArray(keys) ? keys : []
       this.quizMode = 'quiz'
@@ -415,9 +551,20 @@ export default {
       this.view = 'quiz'
       this.quizKey++
     },
-    openEditor(deck){ this.activeDeck = deck; this.view = 'editor'; },
-    openDashboard(deck){ this.activeDeck = deck; this.view = 'dashboard'; },
-    openPreview(deck){ this.activeDeck = deck; this.view = 'preview'; },
+    navigateTo(view, deck = null) {
+      this.navStack.push({ view: this.view, activeDeck: this.activeDeck })
+      this.view = view
+      if (deck !== null) this.activeDeck = deck
+    },
+    goBack() {
+      if (!this.navStack.length) { this.showHome(); return }
+      const prev = this.navStack.pop()
+      this.view = prev.view
+      this.activeDeck = prev.activeDeck
+    },
+    openEditor(deck){ this.navigateTo('editor', deck) },
+    openDashboard(deck){ this.navigateTo('dashboard', deck) },
+    openPreview(deck){ this.navigateTo('preview', deck) },
     exportDeck(deck){
       const payload = exportDeckPayload(deck)
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
@@ -428,9 +575,31 @@ export default {
       anchor.click()
       URL.revokeObjectURL(url)
     },
-    showHome(){ this.view = 'home'; this.selectedSubsetKeys = []; this.recoveryPreset = false; },
-    showRankingInfo(){ this.view = 'ranking-info'; },
-    openDashboardFromStats(deck){ this.activeDeck = deck || this.activeDeck || 'major'; this.view = 'dashboard'; },
+    showHome(){ this.navStack = []; this.view = 'home'; this.activeDeck = null; this.selectedSubsetKeys = []; this.recoveryPreset = false; },
+    showRankingInfo(){ this.navigateTo('ranking-info') },
+    openTrainingLog(){ this.navigateTo('training-log') },
+    openDashboardFromStats(deck){ this.navigateTo('dashboard', deck || this.activeDeck || 'major') },
+    onSideNavNavigate(viewName) {
+      if (viewName === 'home') this.showHome()
+      else if (viewName === 'training-log') this.openTrainingLog()
+      else if (viewName === 'ranking-info') this.showRankingInfo()
+      this.drawerOpen = false
+    },
+    onSideNavNavigateDeck(viewName, deck) {
+      if (viewName === 'dashboard') this.openDashboard(deck)
+      else if (viewName === 'preview') this.openPreview(deck)
+      else if (viewName === 'editor') this.openEditor(deck)
+      this.drawerOpen = false
+    },
+    onBreadcrumbNavigate(crumb) {
+      const stackIndex = this.navStack.findIndex(s => s.view === crumb.view && s.activeDeck === crumb.deck)
+      if (stackIndex !== -1) {
+        const target = this.navStack[stackIndex]
+        this.navStack = this.navStack.slice(0, stackIndex)
+        this.view = target.view
+        this.activeDeck = target.activeDeck
+      }
+    },
     onQuizFinished(session){
       this.session = session
       this.view = 'stats'

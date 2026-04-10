@@ -1,23 +1,26 @@
 <template>
-  <div class="w-full rounded-2xl border border-slate-700/70 bg-gradient-to-b from-[#0b1b2b] to-[#071421] p-4 text-sky-100 md:p-6">
-    <div class="mb-4 flex items-center justify-between gap-3">
-      <div>
-        <h2 class="text-xl font-black tracking-tight md:text-2xl">
-          {{ isDrillMode ? 'Speed Drill' : 'Quiz' }}: {{ deck }}
-        </h2>
-        <p class="mt-1 text-xs text-slate-400 md:text-sm">Use A/S/D then J/K (or Q/W/E then H/L). 1-6 also works. Enter for next.</p>
-      </div>
-      <div class="rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-200">
-        6 options
+  <div class="quiz-container w-full h-[calc(100dvh-56px)] md:h-auto flex flex-col overflow-hidden rounded-2xl border p-2 sm:p-4 md:p-6">
+    <!-- Compact header: title + inline stats -->
+    <div class="mb-1 md:mb-2 flex items-center justify-between gap-2">
+      <h2 class="text-sm sm:text-base font-bold tracking-tight truncate quiz-text-soft">
+        {{ isDrillMode ? 'Drill' : 'Quiz' }}: {{ deck }}
+      </h2>
+      <div class="flex items-center gap-2 text-xs shrink-0 quiz-text-soft">
+        <span class="text-emerald-400 font-bold">{{ score.correct }}</span>
+        <span class="text-slate-600">/</span>
+        <span class="text-rose-400 font-bold">{{ score.wrong }}</span>
+        <span class="text-slate-600">·</span>
+        <span class="font-semibold text-cyan-300">{{ accuracyPct }}%</span>
+        <span v-if="streak >= 2" class="text-amber-300 font-bold">🔥{{ streak }}</span>
       </div>
     </div>
 
-    <div v-if="!running" class="rounded-2xl border border-slate-700/60 bg-slate-900/35 p-6">
+    <div v-if="!running" class="rounded-2xl border quiz-card p-6">
       <template v-if="startupError">
         <p class="mb-4 text-sm text-rose-300">{{ startupError }}</p>
         <div class="flex flex-wrap gap-3">
-          <button v-tooltip="'Retry Loading Quiz'" @click="startQuiz" class="rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-900/30 transition hover:brightness-110">Retry</button>
-          <button v-tooltip="'Return to Home (B)'" @click="$emit('back')" class="rounded-xl border border-slate-600 bg-slate-900/50 px-5 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-slate-800">Back</button>
+          <button v-tooltip="'Retry Loading Quiz'" @click="startQuiz" class="rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-900/30 transition hover:brightness-110 min-h-[44px]">Retry</button>
+          <button v-tooltip="'Return to Home (B)'" @click="$emit('back')" class="rounded-xl border border-slate-600 bg-slate-900/50 px-5 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-slate-800 min-h-[44px]">Back</button>
         </div>
       </template>
       <template v-else>
@@ -25,130 +28,135 @@
       </template>
     </div>
 
-    <div v-else class="space-y-4">
-      <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-        <div class="rounded-2xl border border-cyan-500/30 bg-cyan-900/15 p-3">
-          <div class="mb-2 text-xs uppercase tracking-wider text-cyan-200/80">Performance</div>
-          <div class="flex items-center gap-3">
-            <div class="relative h-16 w-16 rounded-full" :style="accuracyRingStyle">
-              <div class="absolute inset-[6px] rounded-full bg-[#071421]"></div>
-              <div class="absolute inset-0 grid place-items-center text-xs font-bold text-cyan-100">{{ accuracyPct }}%</div>
-            </div>
-            <div class="min-w-0 flex-1 space-y-1 text-xs text-slate-300">
-              <div class="flex items-center justify-between"><span>Correct</span><strong class="text-emerald-300">{{ score.correct }}</strong></div>
-              <div class="flex items-center justify-between"><span>Wrong</span><strong class="text-rose-300">{{ score.wrong }}</strong></div>
-              <div class="flex items-center justify-between"><span>Streak</span><strong class="text-sky-300 tabular-nums inline-block min-w-8 text-right">{{ streak }}</strong></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="rounded-2xl border border-violet-500/30 bg-violet-900/15 p-3 md:col-span-2">
-          <div class="mb-2 text-xs uppercase tracking-wider text-violet-200/80">Session Progress</div>
-          <div class="mb-2 flex items-center justify-between text-xs text-slate-300">
-            <span>{{ questionLabel }}</span>
-            <span>{{ isDrillMode ? `Score ${drillScore}` : `Avg ${avgLabel}` }}</span>
-          </div>
-          <div class="h-2 overflow-hidden rounded-full bg-slate-800">
+    <div v-else class="flex-1 overflow-hidden flex flex-col space-y-1 md:space-y-2">
+      <!-- Mobile: thin progress bar + drill timer inline -->
+      <div class="md:hidden">
+        <div class="flex items-center gap-2 text-[10px] quiz-text-soft mb-0.5">
+          <span>{{ questionLabel }}</span>
+          <div class="flex-1 h-1 rounded-full quiz-progress-bg overflow-hidden">
             <div class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-violet-500 transition-all duration-300" :style="{ width: progressPct + '%' }"></div>
           </div>
-          <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-800/80">
-            <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-300" :style="{ width: accuracyPct + '%' }"></div>
-          </div>
-          <div class="mt-1 flex items-center justify-between text-[11px] text-slate-400">
-            <span>Deck loop</span>
-            <span>Accuracy</span>
-          </div>
+          <span v-if="isDrillMode" class="text-amber-300 font-bold tabular-nums">{{ drillSecondsLabel }}s</span>
+          <span v-if="isDrillMode" class="text-slate-600">·</span>
+          <span v-if="isDrillMode" class="text-amber-200 font-semibold">{{ drillScore }}pts</span>
         </div>
       </div>
 
-      <div v-if="isDrillMode" class="rounded-2xl border border-amber-500/30 bg-amber-900/15 p-3">
-        <div class="mb-2 text-xs uppercase tracking-wider text-amber-200/80">Drill Clock</div>
-        <div class="flex items-center gap-4">
-          <div class="relative h-20 w-20 rounded-full" :style="timerRingStyle">
-            <div class="absolute inset-[7px] rounded-full bg-[#071421]"></div>
-            <div class="absolute inset-0 grid place-items-center text-xs font-bold text-amber-100">{{ drillSecondsLabel }}s</div>
+      <!-- Desktop: compact progress bar (same as mobile) -->
+      <div class="hidden md:block">
+        <div class="flex items-center gap-3 text-xs quiz-text-soft">
+          <span class="shrink-0">{{ questionLabel }}</span>
+          <div class="flex-1 h-1.5 rounded-full quiz-progress-bg overflow-hidden">
+            <div class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-violet-500 transition-all duration-300" :style="{ width: progressPct + '%' }"></div>
           </div>
-          <div class="grid flex-1 grid-cols-3 gap-2 text-xs">
-            <div class="rounded-lg border border-slate-700/70 bg-slate-900/50 p-2 text-center text-slate-300">Score<br><strong class="text-amber-200">{{ drillScore }}</strong></div>
-            <div class="rounded-lg border border-slate-700/70 bg-slate-900/50 p-2 text-center text-slate-300">Multiplier<br><strong class="text-amber-200">×{{ drillMultiplier }}</strong></div>
-            <div class="rounded-lg border border-slate-700/70 bg-slate-900/50 p-2 text-center text-slate-300">Best Streak<br><strong class="text-amber-200">{{ drillMaxStreak }}</strong></div>
-          </div>
+          <span v-if="isDrillMode" class="text-amber-300 font-bold tabular-nums">{{ drillSecondsLabel }}s</span>
+          <span v-if="isDrillMode" class="text-amber-200 font-semibold">{{ drillScore }}pts · ×{{ drillMultiplier }}</span>
         </div>
       </div>
 
-      <div class="h-6 relative" aria-live="polite">
-        <Transition name="streak-pop">
-          <div v-if="streakPopVisible" class="absolute left-0 top-0 inline-flex w-fit rounded-full border border-emerald-400/40 bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-200">+1 streak</div>
-        </Transition>
-      </div>
-
-      <div :class="['rounded-2xl border border-slate-700/70 bg-slate-900/35 p-4 md:p-6 transition-all duration-200', questionPulseClass]">
+      <div
+        :class="['flex-1 min-h-0 rounded-2xl border quiz-card p-2 sm:p-4 md:p-6 transition-all duration-200 relative overflow-hidden flex flex-col', questionPulseClass]"
+        :style="isDrillMode ? drillCardStyle : {}"
+        @click="isDrillMode ? onDrillTap($event) : undefined"
+        @touchstart.passive="isDrillMode ? onDrillTouchStart($event) : undefined"
+        @touchmove="isDrillMode ? onDrillTouchMove($event) : undefined"
+        @touchend="isDrillMode ? onDrillTouchEnd($event) : undefined"
+      >
+        <!-- Tap zone hints (mobile drill) -->
+        <div v-if="isDrillMode && !answered && !drillSwipe.active"
+             class="absolute inset-0 pointer-events-none z-10 flex md:hidden">
+          <div class="w-1/2 flex items-center justify-center opacity-[0.08] text-rose-400 text-4xl font-black">✗</div>
+          <div class="w-1/2 flex items-center justify-center opacity-[0.08] text-emerald-400 text-4xl font-black">✓</div>
+        </div>
+        <div v-if="isDrillMode && drillSwipeDirection === 'right'"
+             class="absolute top-3 right-3 text-green-400 font-bold text-lg border-2 border-green-400 rounded px-2 py-0.5 rotate-12 pointer-events-none select-none z-20"
+             :style="{ opacity: drillSwipeOverlayOpacity }">
+          ✓ KNOW
+        </div>
+        <div v-if="isDrillMode && drillSwipeDirection === 'left'"
+             class="absolute top-3 left-3 text-rose-400 font-bold text-lg border-2 border-rose-400 rounded px-2 py-0.5 -rotate-12 pointer-events-none select-none z-20"
+             :style="{ opacity: drillSwipeOverlayOpacity }">
+          ✗ SKIP
+        </div>
         <Transition name="qslide" mode="out-in">
-          <div :key="`q-${questionIndex}-${currentNum}`">
-            <div class="mb-4 flex items-start justify-between gap-3">
-              <div>
-                <div class="text-xs uppercase tracking-wider text-slate-400">Recall This Prompt</div>
-                <div class="mt-1 text-4xl font-extrabold leading-none text-cyan-200 md:text-5xl">{{ currentNum }}</div>
-              </div>
-              <div class="rounded-lg border border-slate-700 bg-slate-900/60 px-2 py-1 text-xs text-slate-400">
-                Shortcut: rows A/S/D + cols J/K (or Q/W/E + H/L)
+          <div :key="`q-${questionIndex}-${currentNum}`" class="flex flex-col h-full">
+            <!-- Hero prompt -->
+            <div class="flex items-center justify-center py-1 sm:py-2 md:py-3 shrink-0">
+              <div class="text-center">
+                <div class="text-5xl sm:text-6xl md:text-7xl font-black leading-none quiz-prompt tabular-nums">{{ currentNum }}</div>
+                <div class="mt-1 text-[10px] uppercase tracking-widest" :class="feedbackClass">{{ feedback || 'match this' }}</div>
               </div>
             </div>
 
-            <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
+            <!-- Options grid -->
+            <div class="flex-1 grid grid-cols-2 gap-1.5 sm:gap-2 min-h-[180px] md:min-h-[280px]" style="grid-template-rows: repeat(3, 1fr)">
               <button
                 v-for="(opt, idx) in options"
                 :key="idx"
                 :disabled="answered"
                 @click="choose(opt)"
-                :class="optionClass(opt, idx)"
+                :class="optionBtnClass(opt, idx)"
+                @touchstart.passive="onOptionTouchStart($event, idx)"
+                @touchmove="onOptionTouchMove($event, idx)"
+                @touchend="onOptionTouchEnd($event, idx)"
+                :style="optionSwipeStyle(idx)"
               >
-                <!-- Check if dual images (audio + visual) -->
-                <template v-if="optionHasDualImages(opt)">
+                <!-- Image area -->
+                <div class="absolute inset-x-0 top-0 bottom-6 sm:bottom-7 overflow-hidden rounded-t-lg">
+                  <template v-if="optionHasDualImages(opt)">
+                    <img
+                      :src="optionAudioImage(opt)"
+                      :alt="`${opt} - Audio`"
+                      class="absolute left-0 top-0 h-full w-1/2 object-contain p-0.5"
+                      @error="onOptionImageError($event, opt)"
+                    />
+                    <img
+                      :src="optionVisualImage(opt)"
+                      :alt="`${opt} - Visual`"
+                      class="absolute right-0 top-0 h-full w-1/2 object-contain p-0.5"
+                      @error="onOptionImageError($event, opt)"
+                    />
+                  </template>
                   <img
-                    :src="optionAudioImage(opt)"
-                    :alt="`${opt} - Audio`"
-                    class="absolute left-0 top-0 h-full w-1/2 object-contain p-1"
+                    v-else
+                    :src="optionImage(opt)"
+                    :alt="opt"
+                    class="h-full w-full object-contain p-0.5"
                     @error="onOptionImageError($event, opt)"
                   />
-                  <img
-                    :src="optionVisualImage(opt)"
-                    :alt="`${opt} - Visual`"
-                    class="absolute right-0 top-0 h-full w-1/2 object-contain p-1"
-                    @error="onOptionImageError($event, opt)"
-                  />
-                </template>
-                <!-- Single image fallback -->
-                <img
-                  v-else
-                  :src="optionImage(opt)"
-                  :alt="opt"
-                  class="absolute inset-0 h-full w-full object-contain p-1"
-                  @error="onOptionImageError($event, opt)"
-                />
-                <div class="absolute inset-0" :class="optionOverlayClass(opt, idx)"></div>
-                <div class="relative z-10 flex h-full w-full items-end p-2">
-                  <span class="truncate rounded bg-slate-900/70 px-2 py-1 text-xs md:text-sm">{{ opt }}</span>
+                  <div class="absolute inset-0" :class="optionOverlayClass(opt, idx)"></div>
+                </div>
+                <!-- Label area -->
+                <div class="absolute inset-x-0 bottom-0 h-6 sm:h-7 flex items-center px-1.5 sm:px-2 gap-1 quiz-option-label rounded-b-lg">
+                  <span class="text-[9px] font-bold shrink-0 hidden sm:inline quiz-text-muted">{{ idx + 1 }}</span>
+                  <span class="truncate text-[11px] sm:text-xs font-semibold" :class="optionLabelClass(opt)">{{ opt }}</span>
                 </div>
               </button>
             </div>
-
-            <div class="mt-3 min-h-6 text-sm" :class="feedbackClass">{{ feedback || 'Choose the best answer.' }}</div>
           </div>
         </Transition>
       </div>
 
-      <div class="flex flex-wrap gap-2">
-        <button v-tooltip="'Return to Home (B)'" class="rounded-xl border border-slate-600 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800" @click="$emit('back')">Back</button>
-        <button v-tooltip="'Next Question (Enter or N)'" class="rounded-xl border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:bg-slate-700" @click="nextQuestion">Next</button>
-        <button v-tooltip="'Save Session Results (F)'" class="rounded-xl bg-gradient-to-r from-purple-600 to-cyan-400 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-purple-900/30 transition hover:brightness-110" @click="finish">Finish and Save</button>
+      <div class="flex flex-wrap gap-1 sm:gap-2">
+        <button v-tooltip="'Return to Home (B)'" class="quiz-btn-secondary rounded-xl border px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition min-h-[36px] sm:min-h-[44px]" @click="$emit('back')">Back</button>
+        <button v-tooltip="'Next Question (Enter or N)'" class="quiz-btn-secondary rounded-xl border px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition min-h-[36px] sm:min-h-[44px]" @click="nextQuestion">Next</button>
+        <button v-tooltip="'Save Session Results (F)'" class="rounded-xl bg-gradient-to-r from-purple-600 to-cyan-400 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-white shadow-lg transition hover:brightness-110 min-h-[36px] sm:min-h-[44px]" @click="finish">Finish and Save</button>
       </div>
 
       <div class="flex flex-wrap items-center justify-end gap-2 text-xs text-slate-500">
-        <label v-tooltip="'Automatically advance to next question. Answer with A/S/D+J/K or Q/W/E+H/L (1-6 fallback)'" class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/50 px-2 py-1">
+        <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/50 px-2 py-1 min-h-[36px]">
           <input v-model="autoAdvance" type="checkbox" class="h-4 w-4 accent-cyan-500" />
-          <span class="text-slate-300">Auto-next ({{ autoAdvanceMs }}ms)</span>
+          <span class="text-slate-300">Auto</span>
         </label>
+        <template v-if="autoAdvance">
+          <button
+            v-for="speed in speedOptions"
+            :key="speed.ms"
+            @click="autoAdvanceMs = speed.ms"
+            class="rounded-lg border px-2 py-1 text-xs font-semibold min-h-[36px] transition-colors"
+            :class="autoAdvanceMs === speed.ms ? 'border-cyan-500 bg-cyan-900/30 text-cyan-200' : 'border-slate-700 bg-slate-900/50 text-slate-400 hover:text-slate-200'"
+          >{{ speed.label }}</button>
+        </template>
       </div>
     </div>
   </div>
@@ -187,7 +195,7 @@ export default {
       loopSize: 0,
       questionIndex: 0,
       autoAdvance: true,
-      autoAdvanceMs: 700,
+      autoAdvanceMs: 400,
       autoAdvanceTimer: null,
       questionPulseClass: '',
       streakPopVisible: false,
@@ -204,6 +212,13 @@ export default {
       ergonomicRowIdx: null,
       ergonomicColIdx: null,
       ergonomicTimer: null,
+      optionTouch: { startX: 0, startY: 0, deltaX: 0, activeIndex: null },
+      drillSwipe: { startX: 0, startY: 0, deltaX: 0, active: false },
+      speedOptions: [
+        { ms: 200, label: '⚡ 0.2s' },
+        { ms: 400, label: '🔥 0.4s' },
+        { ms: 800, label: '🐢 0.8s' },
+      ],
     }
   },
   computed: {
@@ -251,11 +266,25 @@ export default {
       return `${this.questionIndex + 1} / ${this.loopSize}`
     },
     feedbackClass() {
-      if (!this.feedback) return 'text-slate-400'
-      if (this.feedback.startsWith('Correct')) return 'text-emerald-300'
-      if (this.feedback.startsWith('Wrong')) return 'text-rose-300'
-      return 'text-slate-300'
-    }
+      if (!this.feedback) return 'quiz-text-muted'
+      if (this.feedback.startsWith('Correct')) return 'quiz-feedback-correct'
+      if (this.feedback.startsWith('Wrong')) return 'quiz-feedback-wrong'
+      return 'quiz-text-soft'
+    },
+    drillSwipeDirection() {
+      if (!this.drillSwipe.active) return null
+      if (this.drillSwipe.deltaX > 20) return 'right'
+      if (this.drillSwipe.deltaX < -20) return 'left'
+      return null
+    },
+    drillCardStyle() {
+      if (!this.drillSwipe.active) return {}
+      const x = this.drillSwipe.deltaX
+      return { transform: `translateX(${x}px) rotate(${x * 0.04}deg)`, transition: 'none' }
+    },
+    drillSwipeOverlayOpacity() {
+      return Math.min(1, Math.abs(this.drillSwipe.deltaX) / 80)
+    },
   },
   methods: {
     clearTimers() {
@@ -345,24 +374,30 @@ export default {
       this.questionIndex = (st.currentIndex || 0) % (this.loopSize || 1)
       if (!this.answered) this.answerTimeStartMs = Date.now()
     },
-    optionClass(opt, idx) {
-      const base = 'relative h-28 overflow-hidden rounded-xl border text-left text-sm font-semibold transition duration-150 disabled:cursor-not-allowed md:h-36'
+    optionBtnClass(opt, idx) {
+      const base = 'relative h-full min-h-0 overflow-hidden rounded-lg border-2 transition duration-150 disabled:cursor-not-allowed'
       if (!this.answered) {
-        return `${base} border-slate-700 text-cyan-100 hover:border-cyan-500/60`
+        return `${base} quiz-option-border hover:quiz-option-hover`
       }
       if (opt === this.currentAnswer) {
-        return `${base} border-emerald-500 text-emerald-100 option-reveal-correct`
+        return `${base} border-emerald-500 shadow-[0_0_16px_rgba(52,211,153,0.25)] option-reveal-correct`
       }
       if (opt === this.selectedOption && opt !== this.currentAnswer) {
-        return `${base} border-rose-500 text-rose-100 option-reveal-wrong`
+        return `${base} border-rose-500 shadow-[0_0_16px_rgba(251,113,133,0.2)] option-reveal-wrong`
       }
-      return `${base} border-slate-700 text-slate-400`
+      return `${base} quiz-option-border opacity-40`
+    },
+    optionLabelClass(opt) {
+      if (!this.answered) return 'quiz-text-main'
+      if (opt === this.currentAnswer) return 'text-emerald-600 dark:text-emerald-300'
+      if (opt === this.selectedOption && opt !== this.currentAnswer) return 'text-rose-600 dark:text-rose-300'
+      return 'quiz-text-muted'
     },
     optionOverlayClass(opt, idx) {
-      if (!this.answered) return 'bg-slate-950/45'
-      if (opt === this.currentAnswer) return 'bg-emerald-900/38'
-      if (opt === this.selectedOption && opt !== this.currentAnswer) return 'bg-rose-900/42'
-      return 'bg-slate-950/62'
+      if (!this.answered) return 'bg-slate-950/20'
+      if (opt === this.currentAnswer) return 'bg-emerald-900/25'
+      if (opt === this.selectedOption && opt !== this.currentAnswer) return 'bg-rose-900/30'
+      return 'bg-slate-950/55'
     },
     optionKeyForLabel(opt) {
       return this.valueToKey[String(opt)] || ''
@@ -467,6 +502,7 @@ export default {
       const elapsedMs = this.answerTimeStartMs ? Math.max(1, Date.now() - this.answerTimeStartMs) : 0
       const isCorrect = this.engine.answer(opt, elapsedMs)
       if (typeof isCorrect === 'boolean') {
+        this.haptic(isCorrect ? [15] : [40, 30, 40])
         this.attemptsAnswered += 1
         this.answeredCount += 1
         this.totalAnswerTimeMs += elapsedMs
@@ -566,6 +602,76 @@ export default {
         alert('Save failed')
       }
     },
+    onOptionTouchStart(e, idx) {
+      const t = e.touches[0]
+      this.optionTouch = { startX: t.clientX, startY: t.clientY, deltaX: 0, activeIndex: idx }
+    },
+    onOptionTouchMove(e, idx) {
+      if (this.optionTouch.activeIndex !== idx) return
+      const dx = e.touches[0].clientX - this.optionTouch.startX
+      const dy = e.touches[0].clientY - this.optionTouch.startY
+      if (Math.abs(dx) > Math.abs(dy)) {
+        this.optionTouch.deltaX = dx
+        e.preventDefault()
+      }
+    },
+    onOptionTouchEnd(e, idx) {
+      if (this.optionTouch.activeIndex !== idx) return
+      const { deltaX } = this.optionTouch
+      this.optionTouch = { startX: 0, startY: 0, deltaX: 0, activeIndex: null }
+      if (deltaX > 60 && !this.answered) {
+        this.choose(this.options[idx])
+      }
+    },
+    optionSwipeStyle(idx) {
+      if (this.optionTouch.activeIndex !== idx || this.optionTouch.deltaX <= 0) return { transition: 'transform 0.2s ease' }
+      return { transform: `translateX(${this.optionTouch.deltaX}px)`, transition: 'none' }
+    },
+    onDrillTouchStart(e) {
+      const t = e.touches[0]
+      this.drillSwipe = { startX: t.clientX, startY: t.clientY, deltaX: 0, active: true }
+    },
+    onDrillTouchMove(e) {
+      if (!this.drillSwipe.active) return
+      const dx = e.touches[0].clientX - this.drillSwipe.startX
+      const dy = e.touches[0].clientY - this.drillSwipe.startY
+      if (Math.abs(dx) > Math.abs(dy)) {
+        this.drillSwipe.deltaX = dx
+        e.preventDefault()
+      }
+    },
+    onDrillTouchEnd(e) {
+      if (!this.drillSwipe.active) return
+      const { deltaX } = this.drillSwipe
+      this.drillSwipe = { startX: 0, startY: 0, deltaX: 0, active: false }
+      if (this.answered) return
+      if (deltaX > 80) {
+        // Swipe right — mark correct (choose the correct answer)
+        this.choose(this.currentAnswer)
+      } else if (deltaX < -80) {
+        // Swipe left — mark wrong (choose the first wrong option, or any non-correct option)
+        const wrongOpt = this.options.find(o => o !== this.currentAnswer)
+        if (wrongOpt !== undefined) this.choose(wrongOpt)
+      }
+    },
+    haptic(pattern) {
+      try { if (navigator.vibrate) navigator.vibrate(pattern) } catch (_) {}
+    },
+    onDrillTap(e) {
+      if (!this.isDrillMode || this.answered) return
+      if (e.target.closest('button')) return
+      const rect = e.currentTarget.getBoundingClientRect()
+      const x = (e.changedTouches ? e.changedTouches[0].clientX : e.clientX) - rect.left
+      const half = rect.width / 2
+      if (x >= half) {
+        this.haptic([15])
+        this.choose(this.currentAnswer)
+      } else {
+        this.haptic([40, 30, 40])
+        const wrongOpt = this.options.find(o => o !== this.currentAnswer)
+        if (wrongOpt !== undefined) this.choose(wrongOpt)
+      }
+    },
     onKeydown(e) {
       if (!this.running) return
 
@@ -588,7 +694,15 @@ export default {
         return
       }
 
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' || e.key === ' ') {
+        if (this.answered) {
+          this.nextQuestion()
+          e.preventDefault()
+          return
+        }
+      }
+
+      if (key === 'n') {
         if (this.answered) {
           this.nextQuestion()
           e.preventDefault()
@@ -609,6 +723,61 @@ export default {
 </script>
 
 <style scoped>
+/* Theme-aware quiz styles using CSS variables */
+.quiz-container {
+  background: var(--surface-1);
+  border-color: color-mix(in srgb, var(--text-soft) 25%, transparent);
+  color: var(--text-main);
+}
+
+.quiz-card {
+  background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+  border-color: color-mix(in srgb, var(--text-soft) 20%, transparent);
+}
+
+.quiz-prompt {
+  color: var(--brand-1);
+  text-shadow: 0 0 32px color-mix(in srgb, var(--brand-1) 35%, transparent),
+               0 0 64px color-mix(in srgb, var(--brand-1) 12%, transparent);
+}
+
+.quiz-text-main { color: var(--text-main); }
+.quiz-text-soft { color: var(--text-soft); }
+.quiz-text-muted { color: color-mix(in srgb, var(--text-soft) 60%, transparent); }
+
+.quiz-option-label {
+  background: color-mix(in srgb, var(--surface-1) 92%, transparent);
+}
+
+.quiz-option-border {
+  border-color: color-mix(in srgb, var(--text-soft) 30%, transparent);
+}
+
+.quiz-option-border:hover {
+  border-color: var(--brand-2);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--brand-2) 20%, transparent);
+}
+
+.quiz-progress-bg {
+  background: color-mix(in srgb, var(--surface-3) 80%, transparent);
+}
+
+.quiz-btn-secondary {
+  background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+  border-color: color-mix(in srgb, var(--text-soft) 30%, transparent);
+  color: var(--text-main);
+}
+
+.quiz-btn-secondary:hover {
+  background: color-mix(in srgb, var(--surface-3) 80%, transparent);
+}
+
+.quiz-feedback-correct { color: #059669; }
+.quiz-feedback-wrong { color: #e11d48; }
+
+[data-theme^="dark"] .quiz-feedback-correct { color: #34d399; }
+[data-theme^="dark"] .quiz-feedback-wrong { color: #fb7185; }
+
 @keyframes quizPulseCorrect {
   0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.32); }
   100% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }

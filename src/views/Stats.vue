@@ -5,9 +5,10 @@
         <h2 class="text-2xl font-black tracking-tight">Session Results</h2>
         <p class="mt-1 text-xs text-slate-400 md:text-sm">{{ modeLabel }}</p>
       </div>
-      <div class="flex items-center gap-2">
-        <button class="rounded-xl border border-cyan-600/60 bg-cyan-900/20 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-800/30" @click="$emit('dashboard', session?.deck)" v-tooltip="'View analytics for this deck (D)'">Open Deck Dashboard</button>
-        <button class="rounded-xl border border-cyan-400/70 bg-cyan-500/20 px-4 py-2 text-sm font-bold text-cyan-100 hover:bg-cyan-500/30" @click="$emit('back')" v-tooltip="'Return to home (B or H)'">⬅ Back</button>
+      <div class="flex flex-wrap items-center gap-2">
+        <button class="rounded-xl bg-gradient-to-r from-purple-600 to-cyan-400 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-purple-900/30 hover:brightness-110 min-h-[44px]" @click="$emit('replay', session?.deck)" v-tooltip="'Play again with same settings (R)'">🔁 Replay</button>
+        <button class="rounded-xl border border-cyan-600/60 bg-cyan-900/20 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-800/30 min-h-[44px]" @click="$emit('dashboard', session?.deck)" v-tooltip="'View analytics for this deck (D)'">Dashboard</button>
+        <button class="rounded-xl border border-cyan-400/70 bg-cyan-500/20 px-4 py-2 text-sm font-bold text-cyan-100 hover:bg-cyan-500/30 min-h-[44px]" @click="$emit('back')" v-tooltip="'Return to home (B or H)'">⬅ Back</button>
       </div>
     </div>
 

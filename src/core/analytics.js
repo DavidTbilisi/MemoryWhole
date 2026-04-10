@@ -210,3 +210,52 @@ export function getDeckSessionHistory(deck) {
   const all = readJson(SESSION_HISTORY_KEY, {})
   return all[deck] || []
 }
+
+export function getDailyStreak() {
+  const log = readJson(ACTIVITY_LOG_KEY, {})
+  const dates = Object.keys(log).sort()
+  if (!dates.length) return { current: 0, longest: 0 }
+
+  const hasActivity = (dateStr) => {
+    const d = log[dateStr]
+    return d && (d.sessions > 0 || d.drills > 0)
+  }
+
+  const toDateStr = (d) => {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+  const today = toDateStr(new Date())
+  const yesterday = toDateStr(new Date(Date.now() - 86400000))
+
+  let streakStart = hasActivity(today) ? today : (hasActivity(yesterday) ? yesterday : null)
+  let current = 0
+  if (streakStart) {
+    let d = new Date(streakStart + 'T12:00:00')
+    while (true) {
+      const ds = toDateStr(d)
+      if (!hasActivity(ds)) break
+      current++
+      d = new Date(d.getTime() - 86400000)
+    }
+  }
+
+  let longest = 0
+  let run = 0
+  let prev = null
+  for (const ds of dates) {
+    if (!hasActivity(ds)) { run = 0; prev = null; continue }
+    if (prev) {
+      const prevTime = new Date(prev + 'T12:00:00').getTime()
+      const curTime = new Date(ds + 'T12:00:00').getTime()
+      const diff = Math.round((curTime - prevTime) / 86400000)
+      if (diff === 1) { run++ } else { run = 1 }
+    } else { run = 1 }
+    longest = Math.max(longest, run)
+    prev = ds
+  }
+
+  return { current, longest }
+}
