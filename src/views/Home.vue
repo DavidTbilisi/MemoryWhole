@@ -10,6 +10,10 @@
       <PriorityCoach @start-recommended="onStart" @dashboard-recommended="onDashboard" />
     </div>
 
+    <div class="mb-4">
+      <FantasyQuestPanel @start="onStart" @dashboard="onDashboard" />
+    </div>
+
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       <DeckCard v-for="(d, index) in decks" :key="d.deck" :deck="d.deck" :name="d.name" :count-text="d.count" :icon="d.icon" :focused="index === cursorIndex"
         @start="onStart" @dashboard="onDashboard" @preview="onPreview" @edit="onEdit" @export="onExport"/>
@@ -22,10 +26,11 @@ import DeckCard from '../components/DeckCard.vue'
 import ActivityStatsStrip from '../components/ActivityStatsStrip.vue'
 import RankDisplay from '../components/RankDisplay.vue'
 import PriorityCoach from '../components/PriorityCoach.vue'
+import FantasyQuestPanel from '../components/FantasyQuestPanel.vue'
 import { DECKS } from '../data/decks'
 export default {
   name: 'HomeView',
-  components: { DeckCard, ActivityStatsStrip, RankDisplay, PriorityCoach },
+  components: { DeckCard, ActivityStatsStrip, RankDisplay, PriorityCoach, FantasyQuestPanel },
   data(){
     return {
       decks: DECKS,
