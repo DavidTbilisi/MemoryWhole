@@ -98,31 +98,14 @@
       <ActivityHeatmapChart />
     </div>
 
-    <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-5">
-      <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-center">
-        <div>
-          <div class="mb-2 text-xs text-slate-300">{{ nextStepLine }}</div>
-          <div class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-emerald-300">What Raises Score Next</div>
-          <div class="space-y-1.5">
-            <button
-              v-for="(hint, index) in globalHints"
-              :key="`hint-${index}`"
-              class="block w-full rounded-md px-2 py-1.5 text-left text-xs text-slate-200 transition hover:bg-slate-800/70"
-              @click="runHintAction(hint.action)"
-            >
-              <span class="mr-1 text-emerald-300">↗</span>{{ hint.text }}
-            </button>
-          </div>
-        </div>
-
-        <div class="lg:border-l lg:border-slate-700/50 lg:pl-5">
-          <h3 class="text-lg font-bold text-slate-100">Want to understand ranking better?</h3>
-          <p class="mt-1 text-sm text-slate-400">Learn how Global Rank and Synthetic Rank work, and try the interactive simulator.</p>
-          <button @click="goToRankingInfo" class="mt-4 w-full px-4 py-2 bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-700 hover:to-cyan-700 rounded-lg font-semibold text-slate-100 transition-all">
-            Learn More →
-          </button>
-        </div>
+    <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>
+        <h3 class="text-lg font-bold text-slate-100">Want to understand ranking better?</h3>
+        <p class="mt-1 text-sm text-slate-400">Learn how Global Rank and Synthetic Rank work, and try the interactive simulator.</p>
       </div>
+      <button @click="goToRankingInfo" class="shrink-0 px-5 py-2 bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-700 hover:to-cyan-700 rounded-lg font-semibold text-slate-100 transition-all">
+        Learn More →
+      </button>
     </div>
   </div>
 </template>
@@ -131,7 +114,6 @@
 import ActivityHeatmapChart from './ActivityHeatmapChart.vue'
 import RankRadarChart from './RankRadarChart.vue'
 import { getAllRankInfo } from '../core/ranking'
-import { getAllDeckAnalytics } from '../core/analytics'
 
 export default {
   name: 'RankDisplay',
@@ -196,72 +178,6 @@ export default {
       const parts = this.syntheticRank?.components || {}
       return `Synthetic rank rewards balanced progress: mastery ${parts.averageMastery || 0}%, accuracy ${parts.accuracy || 0}%, plus diversity bonus.`
     },
-    recommendedDeck() {
-      const analytics = getAllDeckAnalytics()
-      const rows = Object.entries(analytics || {}).map(([deck, stats]) => {
-        const attempts = Number(stats?.totalAttempts || 0)
-        const correct = Number(stats?.totalCorrect || 0)
-        const accuracy = attempts > 0 ? (correct / attempts) * 100 : 0
-        return { deck, attempts, accuracy }
-      }).filter((row) => row.attempts > 0)
-
-      if (!rows.length) return 'major'
-      rows.sort((a, b) => a.accuracy - b.accuracy || b.attempts - a.attempts)
-      return rows[0].deck
-    },
-    nextStepLine() {
-      const next = this.globalRank?.nextRank
-      if (!next) return 'You reached max rank. Keep consistency high to hold this position.'
-      const coverageNeed = Number(this.globalRank?.coverageDecksNeeded || 0)
-      if (coverageNeed > 0) {
-        return `Next target: ${next.rank} (${next.minScore}%) • unlock ${coverageNeed} more deck${coverageNeed === 1 ? '' : 's'} first.`
-      }
-      const needed = Number(this.globalRank?.perfectNeeded || 0)
-      if (needed > 0) {
-        return `Next target: ${next.rank} (${next.minScore}%) • about ${needed} perfect answers needed.`
-      }
-      return `Next target: ${next.rank} (${next.minScore}%) • one clean run likely promotes.`
-    },
-    globalHints() {
-      const stats = this.globalRank?.stats || {}
-      const attempts = Number(stats.totalAttempts || 0)
-      const deckCount = Number(stats.deckCount || 0)
-      const score = Number(this.globalRank?.score || 0)
-      const hints = []
-
-      if (this.globalRank?.nextRank) {
-        const target = this.globalRank.nextRank
-        const coverageNeed = Number(this.globalRank.coverageDecksNeeded || 0)
-        if (coverageNeed > 0) {
-          hints.push({ text: `Promotion gate: add ${coverageNeed} deck${coverageNeed === 1 ? '' : 's'} to unlock ${target.rank}.`, action: 'open-dashboard' })
-        } else {
-        const need = Number(this.globalRank.perfectNeeded || 0)
-        if (need > 0) {
-          hints.push({ text: `Push to ${target.rank} (${target.minScore}%): stack ${Math.min(need, 30)} clean answers now.`, action: 'start-weakest' })
-        } else {
-          hints.push({ text: `You're close to ${target.rank}. Start a short clean run now.`, action: 'start-weakest' })
-        }
-        }
-      } else {
-        hints.push({ text: 'Max rank reached: protect accuracy by stopping after 2 misses, then review weak items.', action: 'open-dashboard' })
-      }
-
-      if (score < 85) {
-        hints.push({ text: 'Biggest gain: practice weakest deck until it stays above 85% accuracy.', action: 'open-dashboard' })
-      } else {
-        hints.push({ text: 'Keep sessions short and clean: 10-20 attempts at 95%+ to preserve rank.', action: 'start-weakest' })
-      }
-
-      if (attempts < 150) {
-        hints.push({ text: 'Increase sample size: add 30-50 high-accuracy attempts for steadier climbs.', action: 'start-weakest' })
-      } else if (deckCount < 5) {
-        hints.push({ text: 'Expand deck coverage: add 1-2 new decks to stabilize global rank.', action: 'open-dashboard' })
-      } else {
-        hints.push({ text: 'Cycle your 2 weakest decks first each day for fastest incremental gains.', action: 'open-dashboard' })
-      }
-
-      return hints.slice(0, 3)
-    }
   },
   mounted() {
     this.updateRanks()
@@ -278,17 +194,6 @@ export default {
       const rankInfo = getAllRankInfo()
       this.globalRank = rankInfo.global
       this.syntheticRank = rankInfo.synthetic
-    },
-    runHintAction(action) {
-      if (action === 'start-weakest') {
-        this.$emit('start-recommended', { deck: this.recommendedDeck, mode: 'recovery' })
-        return
-      }
-      if (action === 'open-dashboard') {
-        this.$emit('dashboard-recommended', this.recommendedDeck)
-        return
-      }
-      this.$emit('view-ranking-info')
     },
     goToRankingInfo() {
       this.$emit('view-ranking-info')
