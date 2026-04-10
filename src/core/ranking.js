@@ -54,12 +54,21 @@ function getGlobalStats() {
     if (totalAttempts >= WINDOW_ATTEMPTS) break
   }
 
-  // Fallback to cumulative totals if no session history exists yet
-  if (totalAttempts === 0) {
+  // If session history doesn't cover the full window, fill the remainder
+  // by scaling cumulative accuracy into the remaining slots
+  if (totalAttempts < WINDOW_ATTEMPTS) {
+    let cumAttempts = 0
+    let cumCorrect = 0
     for (const [deck, deckAnalytics] of Object.entries(analytics)) {
       if (!DECKS.some((item) => item.deck === deck)) continue
-      totalAttempts += Number(deckAnalytics.totalAttempts || 0)
-      totalCorrect += Number(deckAnalytics.totalCorrect || 0)
+      cumAttempts += Number(deckAnalytics.totalAttempts || 0)
+      cumCorrect += Number(deckAnalytics.totalCorrect || 0)
+    }
+    if (cumAttempts > 0) {
+      const cumAccuracy = cumCorrect / cumAttempts
+      const remaining = WINDOW_ATTEMPTS - totalAttempts
+      totalAttempts += remaining
+      totalCorrect += Math.round(remaining * cumAccuracy)
     }
   }
 
