@@ -5,7 +5,7 @@
         <h2 class="text-xl font-black tracking-tight md:text-2xl">
           {{ isDrillMode ? 'Speed Drill' : 'Quiz' }}: {{ deck }}
         </h2>
-        <p class="mt-1 text-xs text-slate-400 md:text-sm">Use 1-6 to answer. Press Enter for next question.</p>
+        <p class="mt-1 text-xs text-slate-400 md:text-sm">Use A/S/D then J/K (or Q/W/E then H/L). 1-6 also works. Enter for next.</p>
       </div>
       <div class="rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-200">
         6 options
@@ -90,7 +90,9 @@
                 <div class="text-xs uppercase tracking-wider text-slate-400">Recall This Prompt</div>
                 <div class="mt-1 text-4xl font-extrabold leading-none text-cyan-200 md:text-5xl">{{ currentNum }}</div>
               </div>
-              <div class="rounded-lg border border-slate-700 bg-slate-900/60 px-2 py-1 text-xs text-slate-400">Shortcut: 1-6 answer, Enter next</div>
+              <div class="rounded-lg border border-slate-700 bg-slate-900/60 px-2 py-1 text-xs text-slate-400">
+                Shortcut: rows A/S/D + cols J/K (or Q/W/E + H/L)
+              </div>
             </div>
 
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -199,6 +201,9 @@ export default {
       answeredCount: 0,
       startupError: '',
       isFinishing: false,
+      ergonomicRowIdx: null,
+      ergonomicColIdx: null,
+      ergonomicTimer: null,
     }
   },
   computed: {
@@ -266,6 +271,65 @@ export default {
         clearInterval(this.drillTimer)
         this.drillTimer = null
       }
+      if (this.ergonomicTimer) {
+        clearTimeout(this.ergonomicTimer)
+        this.ergonomicTimer = null
+      }
+      this.ergonomicRowIdx = null
+      this.ergonomicColIdx = null
+    },
+    rowIndexFromKey(key) {
+      const map = {
+        a: 0,
+        s: 1,
+        d: 2,
+        q: 0,
+        w: 1,
+        e: 2,
+      }
+      return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : null
+    },
+    colIndexFromKey(key) {
+      const map = {
+        j: 0,
+        k: 1,
+        h: 0,
+        l: 1,
+      }
+      return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : null
+    },
+    armErgonomicSelection() {
+      if (this.ergonomicTimer) clearTimeout(this.ergonomicTimer)
+      this.ergonomicTimer = setTimeout(() => {
+        this.ergonomicTimer = null
+        this.ergonomicRowIdx = null
+        this.ergonomicColIdx = null
+      }, 1100)
+    },
+    tryErgonomicChoice(key) {
+      if (this.answered) return false
+      const rowIdx = this.rowIndexFromKey(key)
+      const colIdx = this.colIndexFromKey(key)
+      if (rowIdx === null && colIdx === null) return false
+
+      if (rowIdx !== null) this.ergonomicRowIdx = rowIdx
+      if (colIdx !== null) this.ergonomicColIdx = colIdx
+      this.armErgonomicSelection()
+
+      if (this.ergonomicRowIdx === null || this.ergonomicColIdx === null) return true
+
+      const idx = (this.ergonomicRowIdx * 2) + this.ergonomicColIdx
+      this.ergonomicRowIdx = null
+      this.ergonomicColIdx = null
+      if (this.ergonomicTimer) {
+        clearTimeout(this.ergonomicTimer)
+        this.ergonomicTimer = null
+      }
+
+      if (idx >= 0 && idx < this.options.length) {
+        this.choose(this.options[idx])
+      }
+      return true
     },
     syncFromEngine() {
       const st = this.engine?.state
@@ -437,6 +501,12 @@ export default {
         clearTimeout(this.autoAdvanceTimer)
         this.autoAdvanceTimer = null
       }
+      this.ergonomicRowIdx = null
+      this.ergonomicColIdx = null
+      if (this.ergonomicTimer) {
+        clearTimeout(this.ergonomicTimer)
+        this.ergonomicTimer = null
+      }
       this.engine.next()
       this.selectedOption = ''
       this.questionPulseClass = ''
@@ -502,8 +572,15 @@ export default {
       const activeEl = document.activeElement
       if (activeEl && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeEl.tagName)) return
 
-      if (!this.answered && /^[1-6]$/.test(String(e.key || ''))) {
-        const idx = Number(e.key) - 1
+      const key = String(e.key || '').toLowerCase()
+
+      if (!this.answered && this.tryErgonomicChoice(key)) {
+        e.preventDefault()
+        return
+      }
+
+      if (!this.answered && /^[1-6]$/.test(key)) {
+        const idx = Number(key) - 1
         if (idx >= 0 && idx < this.options.length) {
           this.choose(this.options[idx])
         }

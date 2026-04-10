@@ -8,6 +8,16 @@
     </div>
 
     <div class="flex justify-center">
+      <div class="inline-flex items-center gap-2">
+      <button
+        class="inline-flex items-center gap-1 rounded-lg border border-amber-500/40 bg-amber-900/20 px-2 py-1 text-xs font-semibold text-amber-200"
+        @click="$emit('toggle-shortcuts')"
+        v-tooltip="'Keyboard shortcuts (Shift+/)'"
+      >
+        <span>⌨</span>
+        <span>Shortcuts</span>
+      </button>
+
       <div ref="themeMenuRoot" class="relative inline-flex items-center gap-2 rounded-lg border border-slate-700/70 bg-slate-900/50 px-2 py-1">
         <span class="text-[11px] uppercase tracking-wider text-slate-400">Theme</span>
         <button
@@ -67,6 +77,7 @@
           </button>
         </div>
       </div>
+      </div>
     </div>
 
     <div class="flex flex-col items-end gap-1">
@@ -119,6 +130,7 @@ import { THEME_OPTIONS, applyTheme, getSavedTheme, getThemeSwatches } from '../c
 
 export default {
   name: 'Header',
+  emits: ['toggle-shortcuts'],
   data() {
     return {
       signedIn: false,

@@ -7,12 +7,12 @@
 
     <div class="grid grid-cols-2 gap-2 md:grid-cols-4 mb-6">
       <button
-        v-for="group in groups"
+        v-for="(group, index) in groups"
         :key="group.label"
         v-tooltip="`Toggle ${group.label}`"
         @click="toggle(group.label)"
         class="px-4 py-3 rounded-xl font-bold border"
-        :class="selected.has(group.label) ? 'bg-violet-700/40 border-violet-500 text-white' : 'bg-slate-900/40 border-slate-700 text-slate-300'"
+        :class="groupClass(group, index)"
       >
         {{ group.label }}
       </button>
@@ -84,6 +84,7 @@ export default {
     return {
       groups: [],
       selected: new Set(),
+      cursorIndex: 0,
       recovery: {
         keys: [],
         dueCount: 0,
@@ -98,10 +99,35 @@ export default {
     }
   },
   methods: {
+    groupClass(group, index) {
+      const active = this.selected.has(group.label)
+      const focused = index === this.cursorIndex
+      if (active && focused) return 'bg-violet-600/45 border-cyan-300 text-white shadow-[0_0_0_2px_rgba(34,211,238,0.55)]'
+      if (active) return 'bg-violet-700/40 border-violet-500 text-white'
+      if (focused) return 'bg-slate-900/60 border-cyan-400 text-cyan-100 shadow-[0_0_0_2px_rgba(34,211,238,0.45)]'
+      return 'bg-slate-900/40 border-slate-700 text-slate-300'
+    },
     toggle(label) {
       if (this.selected.has(label)) this.selected.delete(label)
       else this.selected.add(label)
       this.selected = new Set(this.selected)
+    },
+    toggleFocusedGroup() {
+      const focused = this.groups[this.cursorIndex]
+      if (!focused) return
+      this.toggle(focused.label)
+    },
+    moveCursor(delta = 0) {
+      const total = this.groups.length
+      if (!total) return
+      const next = (this.cursorIndex + Number(delta || 0) + total) % total
+      this.cursorIndex = next
+    },
+    moveCursorToStart() {
+      this.cursorIndex = 0
+    },
+    moveCursorToEnd() {
+      this.cursorIndex = Math.max(0, this.groups.length - 1)
     },
     toggleAll() {
       if (this.selected.size === this.groups.length) {
@@ -192,6 +218,7 @@ export default {
       const data = await loadDeckData(this.deck)
       this.groups = getChunkGroups(this.deck, data).filter((g) => g.keys.length > 0)
       this.selected = new Set(this.groups.map((g) => g.label))
+      this.cursorIndex = 0
       this.buildRecoverySuggestion(data)
       if (this.autoRecovery) this.applyRecoverySelection()
     }
