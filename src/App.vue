@@ -79,6 +79,11 @@ export default {
       navStack: [],
       drawerOpen: false,
       syncStatus: 'neutral',
+      twoFingerSwipeTracking: false,
+      twoFingerSwipeTriggered: false,
+      twoFingerSwipeMode: '',
+      twoFingerSwipeStartX: 0,
+      twoFingerSwipeStartY: 0,
     };
   },
   computed: {
@@ -258,12 +263,64 @@ export default {
   },
   mounted() {
     window.addEventListener('keydown', this.onGlobalKeydown)
+    window.addEventListener('touchstart', this.onGlobalTouchStart, { passive: true })
+    window.addEventListener('touchmove', this.onGlobalTouchMove, { passive: true })
+    window.addEventListener('touchend', this.onGlobalTouchEnd, { passive: true })
+    window.addEventListener('touchcancel', this.onGlobalTouchEnd, { passive: true })
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeydown)
+    window.removeEventListener('touchstart', this.onGlobalTouchStart)
+    window.removeEventListener('touchmove', this.onGlobalTouchMove)
+    window.removeEventListener('touchend', this.onGlobalTouchEnd)
+    window.removeEventListener('touchcancel', this.onGlobalTouchEnd)
     this.clearShortcutPrefix()
   },
   methods: {
+    resetTwoFingerSwipe() {
+      this.twoFingerSwipeTracking = false
+      this.twoFingerSwipeTriggered = false
+      this.twoFingerSwipeMode = ''
+      this.twoFingerSwipeStartX = 0
+      this.twoFingerSwipeStartY = 0
+    },
+    onGlobalTouchStart(event) {
+      if (window.innerWidth >= 768) {
+        this.resetTwoFingerSwipe()
+        return
+      }
+      if (event.touches.length !== 2) {
+        this.resetTwoFingerSwipe()
+        return
+      }
+      const touchA = event.touches[0]
+      const touchB = event.touches[1]
+      this.twoFingerSwipeTracking = true
+      this.twoFingerSwipeTriggered = false
+      this.twoFingerSwipeMode = this.drawerOpen ? 'close' : 'open'
+      this.twoFingerSwipeStartX = (touchA.clientX + touchB.clientX) / 2
+      this.twoFingerSwipeStartY = (touchA.clientY + touchB.clientY) / 2
+    },
+    onGlobalTouchMove(event) {
+      if (!this.twoFingerSwipeTracking || this.twoFingerSwipeTriggered) return
+      if (event.touches.length !== 2) return
+      const touchA = event.touches[0]
+      const touchB = event.touches[1]
+      const midX = (touchA.clientX + touchB.clientX) / 2
+      const midY = (touchA.clientY + touchB.clientY) / 2
+      const deltaX = midX - this.twoFingerSwipeStartX
+      const deltaY = Math.abs(midY - this.twoFingerSwipeStartY)
+      if (this.twoFingerSwipeMode === 'open' && deltaX > 90 && deltaY < 80) {
+        this.drawerOpen = true
+        this.twoFingerSwipeTriggered = true
+      } else if (this.twoFingerSwipeMode === 'close' && deltaX < -90 && deltaY < 80) {
+        this.drawerOpen = false
+        this.twoFingerSwipeTriggered = true
+      }
+    },
+    onGlobalTouchEnd() {
+      this.resetTwoFingerSwipe()
+    },
     isTypingTarget(target) {
       if (!target) return false
       if (target.isContentEditable) return true
