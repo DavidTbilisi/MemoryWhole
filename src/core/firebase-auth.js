@@ -43,6 +43,10 @@ export function getFirestoreDb() {
   return db
 }
 
+export function getFirebaseProjectId() {
+  return firebaseConfig.projectId
+}
+
 export async function saveUserData(key, value) {
   const user = auth.currentUser
   if (!user) return

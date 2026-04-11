@@ -58,7 +58,7 @@ import Stats from './views/Stats.vue';
 import RankingInfoView from './views/RankingInfoView.vue';
 import LeaderboardView from './views/LeaderboardView.vue';
 import Editor from './views/Editor.vue';
-import TrainingLog from './views/TrainingLog.vue';
+import TrainingLog from './views/TrainingLogPremium.vue';
 import { exportDeckPayload } from './core/deck-loader'
 import { DECKS } from './data/decks'
 import { publishLeaderboardSnapshot } from './core/firebase-leaderboard'

@@ -124,6 +124,56 @@
           >
             <span>{{ busy ? 'Working...' : (signOutArmed ? 'Confirm sign out' : 'Sign out') }}</span>
           </button>
+          <div class="mt-2 rounded-xl border border-slate-700/70 bg-slate-900/50 p-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Plan</div>
+              <span class="rounded-full border px-2 py-0.5 text-[10px] font-semibold" :class="premiumBadgeClass">{{ premiumPlanLabel }}</span>
+            </div>
+            <div class="mt-2 text-xs leading-relaxed text-slate-300">{{ premiumPlanDetail }}</div>
+            <div v-if="billingNotice" class="mt-2 text-[11px] leading-relaxed text-amber-200">{{ billingNotice }}</div>
+            <div class="mt-3 flex flex-col gap-2">
+              <button
+                class="w-full min-h-[40px] rounded-lg bg-gradient-to-r from-amber-500 to-rose-500 px-3 py-2 text-xs font-bold text-white disabled:opacity-60"
+                :disabled="busy || entitlement.isLoading"
+                @click="handleUpgrade"
+              >
+                {{ premiumActionLabel }}
+              </button>
+              <button
+                v-if="entitlement.isPremium"
+                class="w-full min-h-[38px] rounded-lg border border-slate-600 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800/60"
+                :disabled="busy || entitlement.isLoading"
+                @click="handleManageSubscription"
+              >
+                Manage billing
+              </button>
+            </div>
+          </div>
+          <div v-if="canGrantPremium" class="mt-2 rounded-xl border border-cyan-500/30 bg-cyan-950/20 p-3">
+            <div class="text-[11px] font-bold uppercase tracking-[0.2em] text-cyan-300">Admin</div>
+            <div class="mt-2 text-xs leading-relaxed text-slate-300">Grant Pro manually by email or Firebase UID. Your own account gets Pro from the developer override too.</div>
+            <input
+              v-model.trim="grantTarget"
+              type="text"
+              placeholder="email@example.com or uid"
+              class="mt-3 w-full rounded-lg border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-100 outline-none placeholder:text-slate-500"
+            />
+            <input
+              v-model.number="grantMonths"
+              type="number"
+              min="1"
+              max="36"
+              class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-100 outline-none"
+            />
+            <button
+              class="mt-3 w-full min-h-[38px] rounded-lg bg-gradient-to-r from-cyan-500 to-sky-500 px-3 py-2 text-xs font-bold text-white disabled:opacity-60"
+              :disabled="busy || entitlement.isLoading"
+              @click="handleGrantPremium"
+            >
+              Grant Pro Access
+            </button>
+            <div v-if="grantMessage" class="mt-2 text-[11px] leading-relaxed text-cyan-100">{{ grantMessage }}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -279,6 +329,56 @@
               >
                 <span>{{ busy ? 'Working...' : (signOutArmed ? 'Confirm sign out' : 'Sign out') }}</span>
               </button>
+              <div class="mt-2 rounded-xl border border-slate-700/70 bg-slate-900/50 p-3">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Plan</div>
+                  <span class="rounded-full border px-2 py-0.5 text-[10px] font-semibold" :class="premiumBadgeClass">{{ premiumPlanLabel }}</span>
+                </div>
+                <div class="mt-2 text-xs leading-relaxed text-slate-300">{{ premiumPlanDetail }}</div>
+                <div v-if="billingNotice" class="mt-2 text-[11px] leading-relaxed text-amber-200">{{ billingNotice }}</div>
+                <div class="mt-3 flex flex-col gap-2">
+                  <button
+                    class="w-full min-h-[40px] rounded-lg bg-gradient-to-r from-amber-500 to-rose-500 px-3 py-2 text-xs font-bold text-white disabled:opacity-60"
+                    :disabled="busy || entitlement.isLoading"
+                    @click="handleUpgrade"
+                  >
+                    {{ premiumActionLabel }}
+                  </button>
+                  <button
+                    v-if="entitlement.isPremium"
+                    class="w-full min-h-[38px] rounded-lg border border-slate-600 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800/60"
+                    :disabled="busy || entitlement.isLoading"
+                    @click="handleManageSubscription"
+                  >
+                    Manage billing
+                  </button>
+                </div>
+              </div>
+              <div v-if="canGrantPremium" class="mt-2 rounded-xl border border-cyan-500/30 bg-cyan-950/20 p-3">
+                <div class="text-[11px] font-bold uppercase tracking-[0.2em] text-cyan-300">Admin</div>
+                <div class="mt-2 text-xs leading-relaxed text-slate-300">Grant Pro manually by email or Firebase UID. Your own account gets Pro from the developer override too.</div>
+                <input
+                  v-model.trim="grantTarget"
+                  type="text"
+                  placeholder="email@example.com or uid"
+                  class="mt-3 w-full rounded-lg border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-100 outline-none placeholder:text-slate-500"
+                />
+                <input
+                  v-model.number="grantMonths"
+                  type="number"
+                  min="1"
+                  max="36"
+                  class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-100 outline-none"
+                />
+                <button
+                  class="mt-3 w-full min-h-[38px] rounded-lg bg-gradient-to-r from-cyan-500 to-sky-500 px-3 py-2 text-xs font-bold text-white disabled:opacity-60"
+                  :disabled="busy || entitlement.isLoading"
+                  @click="handleGrantPremium"
+                >
+                  Grant Pro Access
+                </button>
+                <div v-if="grantMessage" class="mt-2 text-[11px] leading-relaxed text-cyan-100">{{ grantMessage }}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -289,6 +389,7 @@
 
 <script>
 import { onAuthUserChanged, signInWithGoogle, signOutUser } from '../core/firebase-auth'
+import { getPremiumSnapshot, getUpgradeLabel, grantPremiumAccess, openBillingPortal, startCheckout, subscribeToEntitlement, shouldSyncCloud } from '../core/premium'
 import { syncCloudForCurrentUser } from '../core/firebase-sync'
 import { THEME_OPTIONS, applyTheme, getSavedTheme, getThemeSwatches } from '../core/theme.js'
 
@@ -309,10 +410,17 @@ export default {
       statusText: '',
       statusTone: 'neutral',
       unlistenAuth: null,
+      unlistenPremium: null,
       signOutArmed: false,
       signOutArmTimer: null,
       accountExpanded: false,
       drawerAccountExpanded: false,
+      entitlement: getPremiumSnapshot(),
+      lastSyncedEntitlementKey: '',
+      pendingCheckoutAfterSignIn: false,
+      grantTarget: '',
+      grantMonths: 12,
+      grantMessage: '',
       // theme
       themeOptions: THEME_OPTIONS,
       selectedTheme: getSavedTheme(),
@@ -359,34 +467,69 @@ export default {
       if (typeof this.activeDeck === 'string') return this.activeDeck
       return this.activeDeck.name || this.activeDeck.deck || 'Deck'
     },
+    premiumBadgeClass() {
+      if (this.entitlement.isPremium) return 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200'
+      return 'border-amber-500/40 bg-amber-500/10 text-amber-200'
+    },
+    premiumPlanLabel() {
+      if (!this.signedIn) return 'Guest'
+      if (this.entitlement.isLoading) return 'Checking plan...'
+      return this.entitlement.isPremium ? 'Pro active' : 'Free plan'
+    },
+    premiumPlanDetail() {
+      if (!this.signedIn) return 'Sign in to unlock Pro sync and analytics.'
+      if (this.entitlement.isLoading) return 'Loading subscription details...'
+      return this.entitlement.isPremium
+        ? 'Cloud sync and advanced analytics are enabled on this account.'
+        : 'Core training is free. Upgrade to add sync across devices and deeper insights.'
+    },
+    premiumActionLabel() {
+      return getUpgradeLabel(this.entitlement)
+    },
+    billingNotice() {
+      if (this.entitlement.billingReturn === 'success') return 'Thanks for upgrading. Your Pro status will appear as soon as Stripe confirms the subscription.'
+      if (this.entitlement.billingReturn === 'cancel') return 'Checkout was canceled. Your free plan is still available.'
+      if (this.entitlement.billingReturn === 'portal') return 'Subscription changes were saved in the billing portal.'
+      return ''
+    },
+    canGrantPremium() {
+      return this.entitlement.isAdmin
+    },
   },
   watch: {
     statusTone(val) { this.$emit('sync-status', val) },
   },
   mounted() {
     document.addEventListener('click', this.onDocumentClick)
+    this.unlistenPremium = subscribeToEntitlement((snapshot) => {
+      this.entitlement = snapshot
+      if (this.pendingCheckoutAfterSignIn && snapshot.signedIn && !snapshot.isLoading) {
+        this.pendingCheckoutAfterSignIn = false
+        this.handleUpgrade()
+        return
+      }
+      this.maybeSyncCloud()
+    })
     this.unlistenAuth = onAuthUserChanged(async (user) => {
       this.signedIn = !!user
       this.name = user?.displayName || user?.email || ''
       if (user) {
-        this.busy = true
-        this.statusText = 'Syncing...'
-        this.statusTone = 'info'
-        try {
-          await syncCloudForCurrentUser()
-          this.statusText = 'Synced'
-          this.statusTone = 'success'
-        } catch (err) {
-          console.error(err)
-          this.statusText = 'Sync failed'
+        if (this.entitlement.error) {
+          this.statusText = 'Billing unavailable'
           this.statusTone = 'error'
+        } else if (!this.entitlement.isLoading && !this.entitlement.isPremium) {
+          this.statusText = ''
+          this.statusTone = 'neutral'
         }
+        await this.maybeSyncCloud()
       } else {
         this.statusText = ''
         this.statusTone = 'neutral'
         this.signOutArmed = false
         this.accountExpanded = false
         this.drawerAccountExpanded = false
+        this.lastSyncedEntitlementKey = ''
+        this.pendingCheckoutAfterSignIn = false
       }
       this.busy = false
     })
@@ -394,6 +537,7 @@ export default {
   beforeUnmount() {
     document.removeEventListener('click', this.onDocumentClick)
     if (typeof this.unlistenAuth === 'function') this.unlistenAuth()
+    if (typeof this.unlistenPremium === 'function') this.unlistenPremium()
     if (this.signOutArmTimer) clearTimeout(this.signOutArmTimer)
   },
   methods: {
@@ -420,6 +564,31 @@ export default {
       this.selectedTheme = applyTheme(themeId)
       this.themeExpanded = false
     },
+    async maybeSyncCloud() {
+      if (!this.signedIn || this.entitlement.isLoading || !shouldSyncCloud(this.entitlement)) return
+      const syncKey = [
+        this.entitlement.userId,
+        this.entitlement.status,
+        this.entitlement.currentPeriodEnd || 0,
+      ].join(':')
+      if (this.lastSyncedEntitlementKey === syncKey) return
+
+      this.busy = true
+      this.statusText = 'Syncing...'
+      this.statusTone = 'info'
+      try {
+        await syncCloudForCurrentUser()
+        this.lastSyncedEntitlementKey = syncKey
+        this.statusText = 'Synced'
+        this.statusTone = 'success'
+      } catch (err) {
+        console.error(err)
+        this.statusText = 'Sync failed'
+        this.statusTone = 'error'
+      } finally {
+        this.busy = false
+      }
+    },
     async handleSignIn() {
       if (this.busy) return
       this.busy = true
@@ -430,6 +599,71 @@ export default {
         console.error(err)
         this.statusText = 'Sign-in failed'
         this.statusTone = 'error'
+        this.pendingCheckoutAfterSignIn = false
+      }
+    },
+    async handleUpgrade() {
+      if (this.entitlement.isLoading || this.busy) return
+      if (!this.signedIn) {
+        this.pendingCheckoutAfterSignIn = true
+        await this.handleSignIn()
+        return
+      }
+
+      if (this.entitlement.isPremium) {
+        await this.handleManageSubscription()
+        return
+      }
+
+      this.busy = true
+      this.statusText = 'Opening checkout...'
+      this.statusTone = 'info'
+      try {
+        await startCheckout()
+      } catch (err) {
+        this.busy = false
+        console.error(err)
+        this.statusText = err?.message || 'Checkout failed'
+        this.statusTone = 'error'
+      }
+    },
+    async handleManageSubscription() {
+      if (this.entitlement.isLoading || this.busy) return
+      this.busy = true
+      this.statusText = 'Opening billing...'
+      this.statusTone = 'info'
+      try {
+        await openBillingPortal()
+      } catch (err) {
+        this.busy = false
+        console.error(err)
+        this.statusText = err?.message || 'Billing portal failed'
+        this.statusTone = 'error'
+      }
+    },
+    async handleGrantPremium() {
+      if (!this.grantTarget || this.busy) return
+      this.busy = true
+      this.grantMessage = ''
+      this.statusText = 'Granting Pro...'
+      this.statusTone = 'info'
+      try {
+        const payload = await grantPremiumAccess({
+          email: this.grantTarget.includes('@') ? this.grantTarget : '',
+          uid: this.grantTarget.includes('@') ? '' : this.grantTarget,
+          months: this.grantMonths,
+        })
+        this.grantMessage = `Granted Pro to ${payload.email || payload.uid}.`
+        this.statusText = 'Pro granted'
+        this.statusTone = 'success'
+        this.grantTarget = ''
+      } catch (err) {
+        console.error(err)
+        this.grantMessage = err?.message || 'Failed to grant Pro access.'
+        this.statusText = 'Grant failed'
+        this.statusTone = 'error'
+      } finally {
+        this.busy = false
       }
     },
     async handleSignOut() {
@@ -451,6 +685,7 @@ export default {
         this.signOutArmed = false
         this.accountExpanded = false
         this.drawerAccountExpanded = false
+        this.lastSyncedEntitlementKey = ''
         await signOutUser()
         this.statusText = ''
         this.statusTone = 'neutral'

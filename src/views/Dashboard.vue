@@ -37,7 +37,7 @@
       </div>
     </div>
 
-    <div class="mb-3 rounded-xl border border-emerald-500/30 bg-emerald-900/10 p-3">
+    <div v-if="hasAdvancedAnalytics" class="mb-3 rounded-xl border border-emerald-500/30 bg-emerald-900/10 p-3">
       <div class="mb-2 flex items-center justify-between gap-2">
         <div>
           <div class="text-xs uppercase tracking-wider text-emerald-200/80">Learning Prognosis</div>
@@ -66,15 +66,15 @@
       </div>
     </div>
 
-    <div class="mb-3">
+    <div v-if="hasAdvancedAnalytics" class="mb-3">
       <DeckAnalyticsChart :deck="deck || 'major'" :totals="analytics" />
     </div>
 
-    <div class="mb-3">
+    <div v-if="hasAdvancedAnalytics" class="mb-3">
       <DeckHeatmapCartesian :deck="deck || 'major'" />
     </div>
 
-    <div class="rounded-xl border border-slate-700/70 bg-slate-900/40 p-3">
+    <div v-if="hasAdvancedAnalytics" class="rounded-xl border border-slate-700/70 bg-slate-900/40 p-3">
       <div class="font-semibold mb-2">Weakest Areas</div>
       <div v-if="weakItems.length === 0" class="text-sm text-slate-400">No stats yet.</div>
       <div v-else class="space-y-2 text-sm">
@@ -93,7 +93,7 @@
       </div>
     </div>
 
-    <div class="mt-3 rounded-xl border border-slate-700/70 bg-slate-900/40 p-3">
+    <div v-if="hasAdvancedAnalytics" class="mt-3 rounded-xl border border-slate-700/70 bg-slate-900/40 p-3">
       <div class="mb-2 flex items-center justify-between">
         <div class="font-semibold">Speed Drill</div>
         <div class="text-[11px] text-slate-500">deck: {{ activeDeckKey }} · drills: {{ drill.totalDrills || 0 }}<span v-if="lastDrillDate"> · last: {{ lastDrillDate }}</span></div>
@@ -133,26 +133,55 @@
         </div>
       </template>
     </div>
+
+    <PremiumFeatureCard
+      v-if="!hasAdvancedAnalytics"
+      class="mt-3"
+      title="Advanced dashboard analytics are part of Pro"
+      description="Keep training for free, then unlock the deeper analysis layers that turn your raw attempts into a study plan."
+      :items="[
+        'Learning prognosis and due-load forecasts',
+        'Weak-item analysis across the active deck',
+        'Expanded charts, activity heatmaps, and drill history'
+      ]"
+      :action-label="premiumActionLabel"
+      :disabled="entitlement.isLoading"
+      :hint="premiumHint"
+      @upgrade="handleUpgrade"
+      @manage="handleUpgrade"
+    />
   </div>
 </template>
 
 <script>
 import { getAllDeckAnalytics, getDeckAnalytics, getDeckDrillRecords, getDeckPeak, getDeckWeakItems } from '../core/analytics'
 import { getDeckDataSync } from '../core/deck-loader'
+import { signInWithGoogle } from '../core/firebase-auth'
+import PremiumFeatureCard from '../components/PremiumFeatureCard.vue'
 import { getDeckPrognosis } from '../core/spaced-repetition'
 import DeckAnalyticsChart from '../components/DeckAnalyticsChart.vue'
 import DeckHeatmapCartesian from '../components/DeckHeatmapCartesian.vue'
+import { entitlementHasFeature, getPremiumSnapshot, getUpgradeLabel, startCheckoutFlow, subscribeToEntitlement } from '../core/premium'
 
 export default {
   name: 'DashboardView',
-  components: { DeckAnalyticsChart, DeckHeatmapCartesian },
+  components: { DeckAnalyticsChart, DeckHeatmapCartesian, PremiumFeatureCard },
   props: { deck: { type: String, default: '' } },
   data() {
     return {
       refreshTick: 0,
+      entitlement: getPremiumSnapshot(),
+      unlistenPremium: null,
     }
   },
   methods: {
+    async handleUpgrade() {
+      try {
+        await startCheckoutFlow({ signIn: signInWithGoogle })
+      } catch (err) {
+        console.error('Premium checkout failed', err)
+      }
+    },
     refreshFromStorage() {
       this.refreshTick += 1
     },
@@ -169,12 +198,27 @@ export default {
   mounted() {
     window.addEventListener('mnemonic-stats-updated', this.refreshFromStorage)
     window.addEventListener('storage', this.refreshFromStorage)
+    this.unlistenPremium = subscribeToEntitlement((snapshot) => {
+      this.entitlement = snapshot
+    })
   },
   beforeUnmount() {
     window.removeEventListener('mnemonic-stats-updated', this.refreshFromStorage)
     window.removeEventListener('storage', this.refreshFromStorage)
+    if (typeof this.unlistenPremium === 'function') this.unlistenPremium()
   },
   computed: {
+    hasAdvancedAnalytics() {
+      return entitlementHasFeature(this.entitlement, 'advanced-analytics')
+    },
+    premiumActionLabel() {
+      return getUpgradeLabel(this.entitlement)
+    },
+    premiumHint() {
+      if (this.entitlement.isLoading) return 'Checking your subscription...'
+      if (this.entitlement.signedIn) return 'Upgrade once to unlock prognosis, weak-item analysis, and expanded drill insights.'
+      return 'Sign in with Google first, then checkout will start automatically.'
+    },
     analytics(){ this.refreshTick; return getDeckAnalytics(this.deck || 'major') },
     peak(){ this.refreshTick; return getDeckPeak(this.deck || 'major') },
     accuracy(){

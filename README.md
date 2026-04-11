@@ -144,6 +144,33 @@ Auth/sync logic is in:
 
 Ensure Firebase config/environment is set appropriately before enabling production sync.
 
+## Stripe Premium Setup
+
+Premium billing uses Stripe Billing with Firebase Functions.
+
+Frontend env:
+
+- `VITE_PREMIUM_API_BASE`
+- `VITE_STRIPE_PUBLISHABLE_KEY`
+- `VITE_DEV_PREMIUM_EMAILS`
+- `VITE_ADMIN_EMAILS`
+
+Functions env:
+
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRO_MONTHLY_PRICE_ID`
+- `APP_BASE_URL`
+- `VITE_STRIPE_PUBLISHABLE_KEY`
+- `ADMIN_EMAILS`
+
+Functions source lives in [functions/src/index.js](functions/src/index.js). Subscription status is mirrored into Firestore at `users/{uid}/billing/subscription`, and the client unlocks premium features from that document.
+
+Developer/admin notes:
+
+- Emails in `VITE_DEV_PREMIUM_EMAILS` always get Pro in the client, even without an active Stripe subscription.
+- Emails in `VITE_ADMIN_EMAILS` plus `ADMIN_EMAILS` see an admin panel in the account drawer and can grant Pro to another user by email or Firebase UID.
+
 ## Testing and Validation
 
 There is no single npm test script in [package.json](package.json), but you can run:
