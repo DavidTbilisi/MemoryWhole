@@ -148,6 +148,8 @@ Ensure Firebase config/environment is set appropriately before enabling producti
 
 Premium billing uses Stripe Billing with Firebase Functions.
 
+Detailed architecture and lifecycle notes live in [docs/stripe-premium.md](docs/stripe-premium.md).
+
 Frontend env:
 
 - `VITE_PREMIUM_API_BASE`
