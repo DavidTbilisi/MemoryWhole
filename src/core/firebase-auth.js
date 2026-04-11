@@ -35,6 +35,14 @@ export function onAuthUserChanged(callback) {
   return onAuthStateChanged(auth, callback)
 }
 
+export function getCurrentUser() {
+  return auth.currentUser
+}
+
+export function getFirestoreDb() {
+  return db
+}
+
 export async function saveUserData(key, value) {
   const user = auth.currentUser
   if (!user) return

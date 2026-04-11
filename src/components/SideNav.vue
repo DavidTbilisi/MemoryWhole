@@ -322,6 +322,7 @@ export default {
         { view: 'home', icon: '🏠', label: 'Home' },
         { view: 'training-log', icon: '📊', label: 'Training Log' },
         { view: 'ranking-info', icon: '🏆', label: 'Ranking' },
+        { view: 'leaderboard', icon: '🥇', label: 'Leaderboard' },
       ],
       deckNavItems: [
         { view: 'quiz-config', icon: '▶', label: 'Start Quiz' },

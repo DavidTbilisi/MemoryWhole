@@ -27,7 +27,8 @@
           <Preview ref="previewView" v-if="view === 'preview'" :deck="activeDeck" @back="goBack" />
           <Editor ref="editorView" v-if="view === 'editor'" :deck="activeDeck || 'major'" @back="goBack" />
           <Stats ref="statsView" v-if="view === 'stats'" :session="session" @back="goBack" @dashboard="openDashboardFromStats" @replay="replayQuiz" />
-          <RankingInfoView ref="rankingInfoView" v-if="view === 'ranking-info'" @back="goBack" />
+          <RankingInfoView ref="rankingInfoView" v-if="view === 'ranking-info'" @back="goBack" @view-leaderboard="openLeaderboard" />
+          <LeaderboardView ref="leaderboardView" v-if="view === 'leaderboard'" @back="goBack" />
           <TrainingLog v-if="view === 'training-log'" @back="goBack" @dashboard="openDashboard" />
           <div v-if="view === 'quiz'">
             <Quiz ref="quizView" :key="quizKey" :deck="activeDeck || 'major'" :subset-keys="selectedSubsetKeys" :mode="quizMode" :drill-duration="drillDuration" @back="goBack" @finished="onQuizFinished" />
@@ -55,14 +56,16 @@ import Dashboard from './views/Dashboard.vue';
 import Preview from './views/Preview.vue';
 import Stats from './views/Stats.vue';
 import RankingInfoView from './views/RankingInfoView.vue';
+import LeaderboardView from './views/LeaderboardView.vue';
 import Editor from './views/Editor.vue';
 import TrainingLog from './views/TrainingLog.vue';
 import { exportDeckPayload } from './core/deck-loader'
 import { DECKS } from './data/decks'
+import { publishLeaderboardSnapshot } from './core/firebase-leaderboard'
 
 export default {
   name: 'App',
-  components: { Quiz, Header, SideNav, ShortcutsHelpModal, HomeView, QuizConfig, Dashboard, Preview, Stats, RankingInfoView, Editor, TrainingLog },
+  components: { Quiz, Header, SideNav, ShortcutsHelpModal, HomeView, QuizConfig, Dashboard, Preview, Stats, RankingInfoView, LeaderboardView, Editor, TrainingLog },
   data() {
     return {
       view: 'home',
@@ -91,7 +94,7 @@ export default {
       const labelFor = (view, deck) => {
         const map = {
           'home': 'Home', 'training-log': 'Training Log', 'ranking-info': 'Ranking',
-          'stats': 'Results', 'quiz': 'Quiz', 'quiz-config': 'Setup'
+          'leaderboard': 'Leaderboard', 'stats': 'Results', 'quiz': 'Quiz', 'quiz-config': 'Setup'
         }
         if (view === 'dashboard') return (deck?.name || deck || 'Dashboard')
         if (view === 'preview') return (deck?.name || deck || 'Deck') + ' Preview'
@@ -267,6 +270,7 @@ export default {
     window.addEventListener('touchmove', this.onGlobalTouchMove, { passive: true })
     window.addEventListener('touchend', this.onGlobalTouchEnd, { passive: true })
     window.addEventListener('touchcancel', this.onGlobalTouchEnd, { passive: true })
+    window.addEventListener('mnemonic-stats-updated', this.publishLeaderboardIfPossible)
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeydown)
@@ -274,9 +278,17 @@ export default {
     window.removeEventListener('touchmove', this.onGlobalTouchMove)
     window.removeEventListener('touchend', this.onGlobalTouchEnd)
     window.removeEventListener('touchcancel', this.onGlobalTouchEnd)
+    window.removeEventListener('mnemonic-stats-updated', this.publishLeaderboardIfPossible)
     this.clearShortcutPrefix()
   },
   methods: {
+    async publishLeaderboardIfPossible() {
+      try {
+        await publishLeaderboardSnapshot()
+      } catch (err) {
+        console.error('Leaderboard publish failed', err)
+      }
+    },
     resetTwoFingerSwipe() {
       this.twoFingerSwipeTracking = false
       this.twoFingerSwipeTriggered = false
@@ -567,7 +579,7 @@ export default {
         return
       }
 
-      if (this.view === 'dashboard' || this.view === 'ranking-info') {
+      if (this.view === 'dashboard' || this.view === 'ranking-info' || this.view === 'leaderboard') {
         if (key === 'b') {
           this.goBack()
           event.preventDefault()
@@ -634,12 +646,14 @@ export default {
     },
     showHome(){ this.navStack = []; this.view = 'home'; this.activeDeck = null; this.selectedSubsetKeys = []; this.recoveryPreset = false; },
     showRankingInfo(){ this.navigateTo('ranking-info') },
+    openLeaderboard(){ this.navigateTo('leaderboard') },
     openTrainingLog(){ this.navigateTo('training-log') },
     openDashboardFromStats(deck){ this.navigateTo('dashboard', deck || this.activeDeck || 'major') },
     onSideNavNavigate(viewName) {
       if (viewName === 'home') this.showHome()
       else if (viewName === 'training-log') this.openTrainingLog()
       else if (viewName === 'ranking-info') this.showRankingInfo()
+      else if (viewName === 'leaderboard') this.openLeaderboard()
       this.drawerOpen = false
     },
     onSideNavNavigateDeck(viewName, deck) {
