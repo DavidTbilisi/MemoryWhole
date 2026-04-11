@@ -60,53 +60,83 @@
       </div>
 
       <div class="grid gap-3 xl:grid-cols-[1.1fr_1fr]">
-        <div class="grid gap-3 md:grid-cols-3">
-        <div class="rounded-xl border border-cyan-500/30 bg-slate-900/45 p-4">
-          <div class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Your position</div>
-          <div class="mt-2 text-3xl font-black text-cyan-300">#{{ userRankLabel }}</div>
-          <div class="mt-1 text-sm text-slate-300">{{ maskedDisplayName(currentEntry?.displayName) || 'Waiting for snapshot...' }}</div>
-        </div>
-        <div class="rounded-xl border border-fuchsia-500/30 bg-slate-900/45 p-4">
-          <div class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">{{ activeCardTitle }}</div>
-          <div class="mt-2 flex items-end gap-2">
-            <div class="text-3xl font-black text-fuchsia-300">{{ activeCardPrimary }}</div>
-            <div class="pb-1 text-sm text-slate-400">{{ activeCardScore }}</div>
+        <!-- Hero card -->
+        <div class="flex flex-col justify-between rounded-xl border border-cyan-500/30 bg-gradient-to-br from-slate-900/70 via-slate-900/45 to-slate-950/70 p-5">
+          <div>
+            <div class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">{{ filterSummary }}</div>
+            <div class="mt-3 flex items-end gap-3">
+              <div class="text-6xl font-black leading-none" :class="currentEntry ? 'text-cyan-300' : 'text-slate-600'">#{{ userRankLabel }}</div>
+              <div class="pb-1">
+                <div class="text-lg font-black text-slate-100">{{ maskedDisplayName(currentEntry?.displayName) || '—' }}</div>
+                <div v-if="currentEntry" class="text-xs text-slate-400">You</div>
+              </div>
+            </div>
           </div>
-          <div class="mt-1 text-sm text-slate-300">{{ activeCardSummary }}</div>
-        </div>
-        <div class="rounded-xl border border-emerald-500/30 bg-slate-900/45 p-4">
-          <div class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Window summary</div>
-          <div class="mt-2 text-3xl font-black text-emerald-300">{{ leaders.length }}</div>
-          <div class="mt-1 text-sm text-slate-300">ranked players in {{ timeframe === 'recent7d' ? 'the last 7 days' : 'the all-time ladder' }}</div>
-        </div>
+
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <div class="rounded-lg border border-fuchsia-500/25 bg-slate-950/50 px-3 py-2">
+              <div class="text-[10px] font-semibold uppercase tracking-widest text-slate-500">{{ activeCardTitle }}</div>
+              <div class="mt-1 flex items-end gap-1.5">
+                <span class="text-2xl font-black text-fuchsia-300">{{ activeCardPrimary }}</span>
+                <span class="pb-0.5 text-sm text-slate-400">{{ activeCardScore }}</span>
+              </div>
+              <div class="mt-0.5 text-xs text-slate-400">{{ activeCardSummary }}</div>
+            </div>
+            <div class="rounded-lg border border-emerald-500/25 bg-slate-950/50 px-3 py-2">
+              <div class="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Players</div>
+              <div class="mt-1 text-2xl font-black text-emerald-300">{{ leaders.length }}</div>
+              <div class="mt-0.5 text-xs text-slate-400">{{ timeframe === 'recent7d' ? 'last 7 days' : 'all-time ladder' }}</div>
+            </div>
+          </div>
         </div>
 
-        <div class="rounded-xl border border-slate-700/70 bg-slate-900/45 p-4">
+        <!-- Sparkline panel -->
+        <div class="flex flex-col rounded-xl border border-slate-700/70 bg-slate-900/45 p-4">
           <div class="mb-3 flex items-center justify-between gap-2">
             <div>
-              <div class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Ladder Pulse</div>
-              <div class="text-sm text-slate-300">Top scores for the active filter</div>
+              <div class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Score Trend</div>
+              <div class="text-sm text-slate-300">{{ filterSummary }}</div>
             </div>
-            <div class="text-xs text-slate-500">{{ scoreColumnLabel }}</div>
-          </div>
-
-          <div v-if="chartBars.length" class="space-y-3">
-            <div v-for="bar in chartBars" :key="bar.uid" class="space-y-1">
-              <div class="flex items-center justify-between gap-3 text-xs">
-                <div class="flex min-w-0 items-center gap-2">
-                  <span class="w-7 font-black text-slate-400">#{{ bar.place }}</span>
-                  <span class="truncate font-semibold" :class="bar.uid === currentUid ? 'text-cyan-300' : 'text-slate-200'">{{ maskedDisplayName(bar.displayName) }}</span>
-                </div>
-                <span class="font-bold text-slate-300">{{ entryScoreLabel(bar) }}</span>
-              </div>
-              <div class="h-2 overflow-hidden rounded-full bg-slate-950">
-                <div class="h-full rounded-full bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-500" :style="{ width: `${bar.width}%` }"></div>
-              </div>
+            <div v-if="sparklineSvg" class="flex items-center gap-1 text-xs font-bold" :class="sparklineSvg.delta >= 0 ? 'text-emerald-400' : 'text-rose-400'">
+              <span>{{ sparklineSvg.delta >= 0 ? '↑' : '↓' }}</span>
+              <span>{{ Math.abs(sparklineSvg.delta) }}</span>
             </div>
           </div>
 
-          <div v-else class="py-8 text-center text-sm text-slate-500">
-            No chart data for the active filter yet.
+          <div v-if="sparklineSvg && sparklineSvg.count >= 2" class="flex flex-1 flex-col justify-end space-y-2">
+            <svg viewBox="0 0 300 80" class="h-20 w-full" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="spk-fill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.30"/>
+                  <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="spk-line" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#22d3ee"/>
+                  <stop offset="100%" stop-color="#d946ef"/>
+                </linearGradient>
+              </defs>
+              <path :d="sparklineSvg.areaPath" fill="url(#spk-fill)"/>
+              <polyline :points="sparklineSvg.linePoints" fill="none" stroke="url(#spk-line)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle :cx="sparklineSvg.lastCoord[0]" :cy="sparklineSvg.lastCoord[1]" r="3.5" fill="#22d3ee"/>
+            </svg>
+            <div class="flex justify-between text-[10px] text-slate-500">
+              <span>{{ sparklineSvg.minS }}</span>
+              <span class="text-slate-500">{{ sparklineSvg.count }} snapshots · your progress</span>
+              <span>{{ sparklineSvg.maxS }}</span>
+            </div>
+          </div>
+
+          <div v-else-if="sparklineSvg && sparklineSvg.count === 1" class="flex flex-1 flex-col items-center justify-center py-4 text-center">
+            <svg viewBox="0 0 300 80" class="h-16 w-full opacity-50" preserveAspectRatio="none">
+              <circle cx="150" cy="40" r="5" fill="#22d3ee"/>
+            </svg>
+            <div class="text-xs text-slate-400">1 snapshot recorded</div>
+            <div class="mt-1 text-[11px] text-slate-600">Revisit or practice to build your trend</div>
+          </div>
+
+          <div v-else class="flex flex-1 flex-col items-center justify-center py-6 text-center">
+            <div class="text-xs text-slate-400">No trend data yet</div>
+            <div class="mt-1 text-[11px] text-slate-600">Your score is recorded on each visit</div>
           </div>
         </div>
       </div>
@@ -169,6 +199,7 @@ export default {
       selectedDeck: DECKS[0]?.deck || 'major',
       errorMessage: '',
       unlistenAuth: null,
+      sparklineHistory: [],
     }
   },
   computed: {
@@ -213,14 +244,46 @@ export default {
     leaders() {
       return this.sortedLeaders.slice(0, 20)
     },
-    chartBars() {
-      const top = this.sortedLeaders.slice(0, 5)
-      const maxScore = Math.max(1, ...top.map((entry) => this.entryScore(entry)))
-      return top.map((entry, index) => ({
-        ...entry,
-        place: index + 1,
-        width: Math.max(8, Math.round((this.entryScore(entry) / maxScore) * 100)),
-      }))
+    sparklineKey() {
+      const base = `${this.leaderboardMode}_${this.timeframe}`
+      return this.leaderboardMode === 'deck' ? `${base}_${this.selectedDeck}` : base
+    },
+    sparklineSvg() {
+      const pts = this.sparklineHistory
+      if (!pts.length) return null
+
+      const W = 300, H = 80, PAD = 12
+      const plotW = W - PAD * 2
+      const plotH = H - PAD * 2
+      const scores = pts.map((p) => p.score)
+      const minS = Math.min(...scores)
+      const maxS = Math.max(...scores)
+      const range = maxS - minS || 1
+      const n = pts.length
+
+      const coords = pts.map((p, i) => {
+        const x = PAD + (n === 1 ? plotW / 2 : (i / (n - 1)) * plotW)
+        const y = PAD + plotH - ((p.score - minS) / range) * plotH
+        return [Math.round(x * 10) / 10, Math.round(y * 10) / 10]
+      })
+
+      const linePoints = coords.map(([x, y]) => `${x},${y}`).join(' ')
+      const last = coords[coords.length - 1]
+      const areaPath =
+        `M ${coords[0][0]},${H - PAD} ` +
+        coords.map(([x, y]) => `L ${x},${y}`).join(' ') +
+        ` L ${last[0]},${H - PAD} Z`
+
+      return {
+        linePoints,
+        areaPath,
+        lastCoord: last,
+        minS,
+        maxS,
+        lastScore: scores[n - 1],
+        delta: scores[n - 1] - scores[0],
+        count: n,
+      }
     },
     currentEntry() {
       return this.sortedLeaders.find((entry) => entry.uid === this.currentUid) || null
@@ -257,6 +320,11 @@ export default {
     activeCardSummary() {
       if (!this.currentEntry) return 'No snapshot for the current filter yet.'
       return this.entryDetailText(this.currentEntry)
+    },
+  },
+  watch: {
+    sparklineKey() {
+      this.loadSparklineHistory()
     },
   },
   mounted() {
@@ -368,12 +436,34 @@ export default {
       try {
         await publishLeaderboardSnapshot()
         this.entriesRaw = await fetchLeaderboardEntries()
+        this.loadSparklineHistory()
+        this.recordSparklinePoint()
       } catch (err) {
         console.error(err)
         this.errorMessage = 'Could not load leaderboard yet. Check Firestore rules/deployment and try again.'
       } finally {
         this.loading = false
       }
+    },
+    loadSparklineHistory() {
+      if (!this.currentUid) return
+      const key = `ldb_spark_${this.currentUid}_${this.sparklineKey}`
+      try {
+        this.sparklineHistory = JSON.parse(localStorage.getItem(key) || '[]')
+      } catch {
+        this.sparklineHistory = []
+      }
+    },
+    recordSparklinePoint() {
+      if (!this.currentUid || !this.currentEntry) return
+      const score = this.entryScore(this.currentEntry)
+      if (!score) return
+      const key = `ldb_spark_${this.currentUid}_${this.sparklineKey}`
+      const last = this.sparklineHistory[this.sparklineHistory.length - 1]
+      if (last && last.score === score && Date.now() - last.ts < 60000) return
+      const history = [...this.sparklineHistory, { ts: Date.now(), score }].slice(-30)
+      this.sparklineHistory = history
+      try { localStorage.setItem(key, JSON.stringify(history)) } catch {}
     },
     formatUpdatedAt(value) {
       const ts = Number(value || 0)
