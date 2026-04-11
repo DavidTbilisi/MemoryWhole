@@ -586,6 +586,8 @@ export default {
       this.drawerOpen = false
     },
     onSideNavNavigateDeck(viewName, deck) {
+      if (viewName === 'quiz-config') this.openQuizConfig(deck)
+      else
       if (viewName === 'dashboard') this.openDashboard(deck)
       else if (viewName === 'preview') this.openPreview(deck)
       else if (viewName === 'editor') this.openEditor(deck)

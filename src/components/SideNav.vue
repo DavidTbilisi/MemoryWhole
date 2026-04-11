@@ -107,12 +107,17 @@
             <span>{{ busy ? 'Signing in...' : 'Sign in' }}</span>
           </button>
         </div>
-        <div v-else>
-          <div class="flex items-center gap-2 px-4 py-2">
-            <span class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-bold text-slate-200 shrink-0">{{ userInitials }}</span>
-            <span class="flex-1 truncate text-xs text-slate-300">{{ name }}</span>
-          </div>
+        <div v-else ref="desktopAccountRoot">
           <button
+            class="w-full min-h-[40px] flex items-center gap-2 px-4 py-2 rounded-lg text-slate-300 text-xs hover:bg-slate-800/50 transition-colors"
+            @click="accountExpanded = !accountExpanded"
+          >
+            <span class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-bold text-slate-200 shrink-0">{{ userInitials }}</span>
+            <span class="flex-1 truncate text-left">{{ name }}</span>
+            <span class="text-[10px] text-slate-500">{{ accountExpanded ? '▲' : '▼' }}</span>
+          </button>
+          <button
+            v-if="accountExpanded"
             class="w-full min-h-[40px] flex items-center gap-2 px-4 py-2 rounded-lg border border-rose-800/80 text-rose-200 text-xs disabled:opacity-70 hover:bg-rose-950/35 transition-colors"
             :disabled="busy"
             @click="handleSignOut"
@@ -257,12 +262,17 @@
                 <span>{{ busy ? 'Signing in...' : 'Sign in with Google' }}</span>
               </button>
             </div>
-            <div v-else>
-              <div class="flex items-center gap-2 px-4 py-2">
-                <span class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-bold text-slate-200 shrink-0">{{ userInitials }}</span>
-                <span class="flex-1 truncate text-xs text-slate-300">{{ name }}</span>
-              </div>
+            <div v-else ref="drawerAccountRoot">
               <button
+                class="w-full min-h-[40px] flex items-center gap-2 px-4 py-2 rounded-lg text-slate-300 text-xs hover:bg-slate-800/50 transition-colors"
+                @click="drawerAccountExpanded = !drawerAccountExpanded"
+              >
+                <span class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-bold text-slate-200 shrink-0">{{ userInitials }}</span>
+                <span class="flex-1 truncate text-left">{{ name }}</span>
+                <span class="text-[10px] text-slate-500">{{ drawerAccountExpanded ? '▲' : '▼' }}</span>
+              </button>
+              <button
+                v-if="drawerAccountExpanded"
                 class="w-full min-h-[40px] flex items-center gap-2 px-4 py-2 rounded-lg border border-rose-800/80 text-rose-200 text-xs disabled:opacity-70 hover:bg-rose-950/35 transition-colors"
                 :disabled="busy"
                 @click="handleSignOut"
@@ -301,6 +311,8 @@ export default {
       unlistenAuth: null,
       signOutArmed: false,
       signOutArmTimer: null,
+      accountExpanded: false,
+      drawerAccountExpanded: false,
       // theme
       themeOptions: THEME_OPTIONS,
       selectedTheme: getSavedTheme(),
@@ -312,6 +324,7 @@ export default {
         { view: 'ranking-info', icon: '🏆', label: 'Ranking' },
       ],
       deckNavItems: [
+        { view: 'quiz-config', icon: '▶', label: 'Start Quiz' },
         { view: 'dashboard', icon: '📈', label: 'Dashboard' },
         { view: 'preview', icon: '👁', label: 'Preview' },
         { view: 'editor', icon: '✏️', label: 'Edit' },
@@ -350,6 +363,7 @@ export default {
     statusTone(val) { this.$emit('sync-status', val) },
   },
   mounted() {
+    document.addEventListener('click', this.onDocumentClick)
     this.unlistenAuth = onAuthUserChanged(async (user) => {
       this.signedIn = !!user
       this.name = user?.displayName || user?.email || ''
@@ -370,15 +384,31 @@ export default {
         this.statusText = ''
         this.statusTone = 'neutral'
         this.signOutArmed = false
+        this.accountExpanded = false
+        this.drawerAccountExpanded = false
       }
       this.busy = false
     })
   },
   beforeUnmount() {
+    document.removeEventListener('click', this.onDocumentClick)
     if (typeof this.unlistenAuth === 'function') this.unlistenAuth()
     if (this.signOutArmTimer) clearTimeout(this.signOutArmTimer)
   },
   methods: {
+    onDocumentClick(event) {
+      const desktopRoot = this.$refs.desktopAccountRoot
+      if (this.accountExpanded && desktopRoot && !desktopRoot.contains(event.target)) {
+        this.accountExpanded = false
+        this.signOutArmed = false
+      }
+
+      const drawerRoot = this.$refs.drawerAccountRoot
+      if (this.drawerAccountExpanded && drawerRoot && !drawerRoot.contains(event.target)) {
+        this.drawerAccountExpanded = false
+        this.signOutArmed = false
+      }
+    },
     isActive(view) {
       return this.currentView === view
     },
@@ -418,6 +448,8 @@ export default {
       try {
         if (this.signOutArmTimer) { clearTimeout(this.signOutArmTimer); this.signOutArmTimer = null }
         this.signOutArmed = false
+        this.accountExpanded = false
+        this.drawerAccountExpanded = false
         await signOutUser()
         this.statusText = ''
         this.statusTone = 'neutral'
