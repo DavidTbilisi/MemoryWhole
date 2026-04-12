@@ -266,7 +266,12 @@ export default {
       return result
     },
   },
+  watch: {
+    view() { this.syncHash() },
+    activeDeck() { this.syncHash() },
+  },
   mounted() {
+    this.restoreFromHash()
     window.addEventListener('keydown', this.onGlobalKeydown)
     window.addEventListener('touchstart', this.onGlobalTouchStart, { passive: true })
     window.addEventListener('touchmove', this.onGlobalTouchMove, { passive: true })
@@ -290,6 +295,21 @@ export default {
       } catch (err) {
         console.error('Leaderboard publish failed', err)
       }
+    },
+    syncHash() {
+      // Don't persist transient views — redirect them to a sensible alternative on restore
+      if (this.view === 'quiz' || this.view === 'stats') return
+      const hash = this.activeDeck ? `${this.view}/${this.activeDeck}` : this.view
+      if (location.hash !== '#' + hash) history.replaceState(null, '', '#' + hash)
+    },
+    restoreFromHash() {
+      const raw = location.hash.slice(1)
+      if (!raw) return
+      const [view, deck] = raw.split('/')
+      const restorable = ['home', 'dashboard', 'preview', 'editor', 'training-log', 'ranking-info', 'leaderboard', 'quiz-config']
+      if (!restorable.includes(view)) return
+      this.view = view
+      if (deck) this.activeDeck = deck
     },
     resetTwoFingerSwipe() {
       this.twoFingerSwipeTracking = false
