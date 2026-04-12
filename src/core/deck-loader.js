@@ -11,11 +11,18 @@ import { BIBLE_OVERVIEW_IMAGES } from '../data/bible-overview'
 import { BIBLE_BOOKS_DATA, BIBLE_BOOKS_IMAGES } from '../data/bible-books'
 import { PEG_AUDIO, PEG_VISUAL, PEG_IMAGES, PEG_MATRIX_DATA, PEG_MATRIX_IMAGES } from '../data/peg-matrix'
 import { PEG_AUDIO_RU, PEG_VISUAL_RU, PEG_IMAGES_RU, PEG_MATRIX_RU_DATA, PEG_MATRIX_RU_IMAGES } from '../data/peg-matrix-ru'
-import { readDeckMap, writeDeckMap } from './storage'
+import { readDeckMap, writeDeckMap, readJson, writeJson } from './storage'
 
 export const DECK_EDITS_KEY = 'deckEdits_v1'
 export const DECK_IMAGES_KEY = 'deckImages_v1'
 export const DECK_ICONS_KEY = 'deckIcons_v1'
+export const DECK_SAVED_AT_KEY = 'deckSavedAt_v1'
+
+function stampDeckSavedAt(deck) {
+  const map = readJson(DECK_SAVED_AT_KEY, {})
+  map[deck] = Date.now()
+  writeJson(DECK_SAVED_AT_KEY, map)
+}
 
 const DECK_EMOJI = {
   major: '🔢',
@@ -306,6 +313,7 @@ export function saveDeckEdits(deck, edits) {
   }
 
   writeDeckMap(DECK_EDITS_KEY, deck, cleaned)
+  stampDeckSavedAt(deck)
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event('mnemonic-deck-updated'))
   }

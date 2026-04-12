@@ -8,6 +8,7 @@ import {
   DECK_EDITS_KEY,
   DECK_IMAGES_KEY,
   DECK_ICONS_KEY,
+  DECK_SAVED_AT_KEY,
 } from './deck-loader'
 import { readJson, writeJson } from './storage'
 import {
@@ -94,17 +95,28 @@ function mergeDrillRecords(localRecords, cloudRecords) {
   return merged
 }
 
-function mergeDeckOverrideMaps(localOverrides, cloudOverrides) {
+function mergeDeckOverrideMaps(localOverrides, cloudOverrides, localTs, cloudTs) {
   const merged = {}
   const local = localOverrides || {}
   const cloud = cloudOverrides || {}
   const decks = new Set([...Object.keys(local), ...Object.keys(cloud)])
 
   for (const deck of decks) {
-    // Prefer local deck override objects so newer editor resets/changes are not resurrected from cloud.
-    merged[deck] = Object.prototype.hasOwnProperty.call(local, deck) ? (local[deck] || {}) : (cloud[deck] || {})
+    const localSavedAt = Number(localTs?.[deck] || 0)
+    const cloudSavedAt = Number(cloudTs?.[deck] || 0)
+    // Cloud wins when its timestamp is strictly newer; otherwise keep local
+    merged[deck] = cloudSavedAt > localSavedAt ? (cloud[deck] || {}) : (local[deck] || {})
   }
 
+  return merged
+}
+
+function mergeSavedAtTimestamps(localTs, cloudTs) {
+  const merged = {}
+  const decks = new Set([...Object.keys(localTs || {}), ...Object.keys(cloudTs || {})])
+  for (const deck of decks) {
+    merged[deck] = Math.max(Number(localTs?.[deck] || 0), Number(cloudTs?.[deck] || 0))
+  }
   return merged
 }
 
@@ -118,6 +130,7 @@ export async function syncCloudForCurrentUser() {
     cloudDeckEdits,
     cloudDeckImages,
     cloudDeckIcons,
+    cloudDeckSavedAt,
   ] = await Promise.all([
     loadUserData('analytics'),
     loadUserData('deckStats'),
@@ -127,6 +140,7 @@ export async function syncCloudForCurrentUser() {
     loadUserData('deckEdits'),
     loadUserData('deckImages'),
     loadUserData('deckIcons'),
+    loadUserData('deckSavedAt'),
   ])
 
   const localAnalytics = readJson(ANALYTICS_KEY, {})
@@ -137,15 +151,18 @@ export async function syncCloudForCurrentUser() {
   const localDeckEdits = readJson(DECK_EDITS_KEY, {})
   const localDeckImages = readJson(DECK_IMAGES_KEY, {})
   const localDeckIcons = readJson(DECK_ICONS_KEY, {})
+  const localDeckSavedAt = readJson(DECK_SAVED_AT_KEY, {})
+
+  const mergedDeckSavedAt = mergeSavedAtTimestamps(localDeckSavedAt, cloudDeckSavedAt || {})
 
   const mergedAnalytics = mergeAnalytics(localAnalytics, cloudAnalytics || {})
   const mergedDeckStats = mergeDeckStats(localDeckStats, cloudDeckStats || {})
   const mergedMasteryPeak = mergeMasteryPeaks(localMasteryPeak, cloudMasteryPeak || {})
   const mergedActivityLog = mergeActivityLog(localActivityLog, cloudActivityLog || {})
   const mergedDrillRecords = mergeDrillRecords(localDrillRecords, cloudDrillRecords || {})
-  const mergedDeckEdits = mergeDeckOverrideMaps(localDeckEdits, cloudDeckEdits || {})
-  const mergedDeckImages = mergeDeckOverrideMaps(localDeckImages, cloudDeckImages || {})
-  const mergedDeckIcons = mergeDeckOverrideMaps(localDeckIcons, cloudDeckIcons || {})
+  const mergedDeckEdits = mergeDeckOverrideMaps(localDeckEdits, cloudDeckEdits || {}, localDeckSavedAt, cloudDeckSavedAt || {})
+  const mergedDeckImages = mergeDeckOverrideMaps(localDeckImages, cloudDeckImages || {}, localDeckSavedAt, cloudDeckSavedAt || {})
+  const mergedDeckIcons = mergeDeckOverrideMaps(localDeckIcons, cloudDeckIcons || {}, localDeckSavedAt, cloudDeckSavedAt || {})
 
   writeJson(ANALYTICS_KEY, mergedAnalytics)
   writeJson(DECK_STATS_KEY, mergedDeckStats)
@@ -155,6 +172,7 @@ export async function syncCloudForCurrentUser() {
   writeJson(DECK_EDITS_KEY, mergedDeckEdits)
   writeJson(DECK_IMAGES_KEY, mergedDeckImages)
   writeJson(DECK_ICONS_KEY, mergedDeckIcons)
+  writeJson(DECK_SAVED_AT_KEY, mergedDeckSavedAt)
 
   notifyStatsUpdated()
   if (typeof window !== 'undefined') {
@@ -170,6 +188,7 @@ export async function syncCloudForCurrentUser() {
     saveUserData('deckEdits', mergedDeckEdits),
     saveUserData('deckImages', mergedDeckImages),
     saveUserData('deckIcons', mergedDeckIcons),
+    saveUserData('deckSavedAt', mergedDeckSavedAt),
   ])
 
   return {
