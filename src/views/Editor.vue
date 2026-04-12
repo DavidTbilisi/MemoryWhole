@@ -147,6 +147,8 @@
 <script>
 import { DECKS } from '../data/decks'
 import { exportDeckPayload, getDeckBaseDataSync, getDeckDataSync, getDeckDefaultIconsSync, getDeckDefaultImagesSync, getDeckIconsSync, getDeckImagesSync, makeEmojiFallbackDataUri, saveDeckEdits, saveDeckIconEdits, saveDeckImageEdits } from '../core/deck-loader'
+import { getCurrentUser } from '../core/firebase-auth'
+import { syncCloudForCurrentUser } from '../core/firebase-sync'
 
 function byDeckKey(a, b) {
   return String(a).localeCompare(String(b), undefined, { numeric: true })
@@ -402,7 +404,7 @@ export default {
       this.initHistory()
       this.message = ''
     },
-    save() {
+    async save() {
       const next = {}
       const nextImages = {}
       const nextIcons = {}
@@ -416,8 +418,20 @@ export default {
       saveDeckIconEdits(this.deck, nextIcons)
       this.snapshotOriginalRows()
       this.initHistory()
+
+      window.dispatchEvent(new CustomEvent('mnemonic-toast', { detail: { message: 'Saved', type: 'success' } }))
       this.message = 'Saved changes'
       this.messageOk = true
+
+      if (getCurrentUser()) {
+        try {
+          await syncCloudForCurrentUser()
+          window.dispatchEvent(new CustomEvent('mnemonic-toast', { detail: { message: 'Synced with cloud', type: 'cloud', duration: 2500 } }))
+        } catch (err) {
+          console.error('Cloud sync after save failed', err)
+          window.dispatchEvent(new CustomEvent('mnemonic-toast', { detail: { message: 'Cloud sync failed', type: 'error' } }))
+        }
+      }
     },
     resetToBase() {
       const base = getDeckBaseDataSync(this.deck)

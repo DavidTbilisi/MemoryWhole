@@ -24,10 +24,12 @@
       <div class="flex items-center gap-2 ml-auto md:ml-0">
         <span
           v-if="syncStatus !== 'neutral'"
-          class="inline-block h-2.5 w-2.5 rounded-full shrink-0 transition-colors"
-          :class="syncDotClass"
-          :title="syncDotTitle"
-        ></span>
+          class="inline-flex items-center gap-1.5 text-xs font-medium transition-colors"
+          :class="syncLabelClass"
+        >
+          <span class="inline-block h-2 w-2 rounded-full shrink-0" :class="syncDotClass"></span>
+          {{ syncDotTitle }}
+        </span>
         <button
           class="inline-flex items-center gap-1 rounded-lg border border-amber-500/40 bg-amber-900/20 px-2 py-1 text-xs font-semibold text-amber-200"
           @click="$emit('toggle-shortcuts')"
@@ -73,6 +75,12 @@ export default {
       if (this.syncStatus === 'info') return 'Syncing...'
       if (this.syncStatus === 'success') return 'Synced'
       if (this.syncStatus === 'error') return 'Sync failed'
+      return ''
+    },
+    syncLabelClass() {
+      if (this.syncStatus === 'info') return 'text-sky-400'
+      if (this.syncStatus === 'success') return 'text-emerald-400'
+      if (this.syncStatus === 'error') return 'text-rose-400'
       return ''
     },
   },

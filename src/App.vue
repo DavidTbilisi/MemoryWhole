@@ -36,6 +36,7 @@
           </div>
         </div>
 
+        <Toast />
         <ShortcutsHelpModal
           :open="shortcutHelpOpen"
           :groups="shortcutHelpGroups"
@@ -51,6 +52,7 @@ import Quiz from './components/Quiz.vue';
 import Header from './components/Header.vue';
 import SideNav from './components/SideNav.vue';
 import ShortcutsHelpModal from './components/ShortcutsHelpModal.vue';
+import Toast from './components/Toast.vue';
 import HomeView from './views/Home.vue';
 import QuizConfig from './views/QuizConfig.vue';
 import Dashboard from './views/Dashboard.vue';
@@ -66,7 +68,7 @@ import { publishLeaderboardSnapshot } from './core/firebase-leaderboard'
 
 export default {
   name: 'App',
-  components: { Quiz, Header, SideNav, ShortcutsHelpModal, HomeView, QuizConfig, Dashboard, Preview, Stats, RankingInfoView, LeaderboardView, Editor, TrainingLog },
+  components: { Quiz, Header, SideNav, ShortcutsHelpModal, Toast, HomeView, QuizConfig, Dashboard, Preview, Stats, RankingInfoView, LeaderboardView, Editor, TrainingLog },
   data() {
     return {
       view: 'home',
