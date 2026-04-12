@@ -1,12 +1,21 @@
 <template>
   <!-- Desktop Sidebar -->
-  <nav class="hidden md:flex flex-col fixed left-0 top-0 h-screen w-52 bg-slate-900 border-r border-slate-700/50 z-30">
+  <nav
+    class="hidden md:flex flex-col fixed left-0 top-0 h-screen bg-slate-900 border-r border-slate-700/50 z-30 transition-[width] duration-200 ease-in-out overflow-hidden"
+    :class="collapsed ? 'w-14' : 'w-52'"
+  >
     <!-- Logo/Brand at top -->
-    <div class="px-4 py-4 border-b border-slate-700/50">
-      <div class="brand-mark">
+    <div class="px-2 py-3 border-b border-slate-700/50 flex items-center" :class="collapsed ? 'justify-center' : 'justify-between px-4'">
+      <div v-if="!collapsed" class="brand-mark">
         <div class="brand-title">MNEMONIC</div>
         <div class="brand-subtitle">Training Console</div>
       </div>
+      <span v-else class="text-lg font-black text-slate-300">M</span>
+      <button
+        @click="collapsed = !collapsed; $emit('collapse-change', collapsed)"
+        class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md text-slate-500 hover:text-slate-200 hover:bg-slate-800 transition-colors text-xs"
+        :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+      >{{ collapsed ? '›' : '‹' }}</button>
     </div>
 
     <!-- Main nav items -->
@@ -15,30 +24,38 @@
         v-for="item in mainNavItems"
         :key="item.view"
         @click="$emit('navigate', item.view)"
-        class="w-full min-h-[48px] flex items-center gap-3 px-4 py-2 rounded-lg cursor-pointer transition-colors text-left"
-        :class="isActive(item.view) ? 'bg-slate-700 text-slate-100' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'"
+        class="w-full min-h-[44px] flex items-center rounded-lg cursor-pointer transition-colors"
+        :class="[
+          collapsed ? 'justify-center px-0' : 'gap-3 px-4 py-2 text-left',
+          isActive(item.view) ? 'bg-slate-700 text-slate-100' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+        ]"
         :style="isActive(item.view) ? 'border-left: 2px solid var(--brand-1)' : 'border-left: 2px solid transparent'"
+        :title="collapsed ? item.label : ''"
       >
-        <span>{{ item.icon }}</span>
-        <span class="text-sm">{{ item.label }}</span>
+        <span class="text-base leading-none">{{ item.icon }}</span>
+        <span v-if="!collapsed" class="text-sm">{{ item.label }}</span>
       </button>
 
       <!-- Deck-specific nav (only when activeDeck is set) -->
       <template v-if="activeDeck">
         <hr class="border-slate-700/50 my-2" />
-        <div class="px-4 py-1 text-[10px] uppercase tracking-widest text-slate-500 truncate">
+        <div v-if="!collapsed" class="px-4 py-1 text-[10px] uppercase tracking-widest text-slate-500 truncate">
           {{ deckName }}
         </div>
         <button
           v-for="item in deckNavItems"
           :key="item.view"
           @click="$emit('navigate-deck', item.view, activeDeck)"
-          class="w-full min-h-[48px] flex items-center gap-3 px-4 py-2 rounded-lg cursor-pointer transition-colors text-left"
-          :class="isActive(item.view) ? 'bg-slate-700 text-slate-100' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'"
+          class="w-full min-h-[44px] flex items-center rounded-lg cursor-pointer transition-colors"
+          :class="[
+            collapsed ? 'justify-center px-0' : 'gap-3 px-4 py-2 text-left',
+            isActive(item.view) ? 'bg-slate-700 text-slate-100' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+          ]"
           :style="isActive(item.view) ? 'border-left: 2px solid var(--brand-1)' : 'border-left: 2px solid transparent'"
+          :title="collapsed ? item.label : ''"
         >
-          <span>{{ item.icon }}</span>
-          <span class="text-sm">{{ item.label }}</span>
+          <span class="text-base leading-none">{{ item.icon }}</span>
+          <span v-if="!collapsed" class="text-sm">{{ item.label }}</span>
         </button>
       </template>
     </div>
@@ -48,14 +65,18 @@
       <!-- Theme picker -->
       <div>
         <button
-          @click="themeExpanded = !themeExpanded"
-          class="w-full min-h-[44px] flex items-center gap-3 px-4 py-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-colors"
+          @click="collapsed ? selectNextTheme() : (themeExpanded = !themeExpanded)"
+          class="w-full min-h-[44px] flex items-center rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-colors"
+          :class="collapsed ? 'justify-center px-0' : 'gap-3 px-4 py-2'"
+          :title="collapsed ? 'Theme: ' + selectedThemeLabel : ''"
         >
           <span class="text-base">{{ isDark ? '🌙' : '☀️' }}</span>
-          <span class="flex-1 text-sm text-left truncate">{{ selectedThemeLabel }}</span>
-          <span class="text-[10px] text-slate-500">{{ themeExpanded ? '▲' : '▼' }}</span>
+          <template v-if="!collapsed">
+            <span class="flex-1 text-sm text-left truncate">{{ selectedThemeLabel }}</span>
+            <span class="text-[10px] text-slate-500">{{ themeExpanded ? '▲' : '▼' }}</span>
+          </template>
         </button>
-        <div v-if="themeExpanded" class="mt-1 space-y-0.5 px-1">
+        <div v-if="themeExpanded && !collapsed" class="mt-1 space-y-0.5 px-1">
           <div class="px-3 py-0.5 text-[10px] uppercase tracking-wider text-slate-500">Dark</div>
           <button
             v-for="theme in darkThemeOptions"
@@ -99,25 +120,31 @@
       <div class="pt-1 border-t border-slate-700/40">
         <div v-if="!signedIn">
           <button
-            class="w-full min-h-[44px] flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-slate-900 font-semibold text-sm disabled:opacity-70 hover:bg-slate-100 transition-colors"
+            class="w-full min-h-[44px] flex items-center rounded-lg bg-white text-slate-900 font-semibold text-sm disabled:opacity-70 hover:bg-slate-100 transition-colors"
+            :class="collapsed ? 'justify-center px-0' : 'gap-2 px-4 py-2'"
             :disabled="busy"
+            :title="collapsed ? (busy ? 'Signing in...' : 'Sign in') : ''"
             @click="handleSignIn"
           >
             <span>🔑</span>
-            <span>{{ busy ? 'Signing in...' : 'Sign in' }}</span>
+            <span v-if="!collapsed">{{ busy ? 'Signing in...' : 'Sign in' }}</span>
           </button>
         </div>
         <div v-else ref="desktopAccountRoot">
           <button
-            class="w-full min-h-[40px] flex items-center gap-2 px-4 py-2 rounded-lg text-slate-300 text-xs hover:bg-slate-800/50 transition-colors"
-            @click="accountExpanded = !accountExpanded"
+            class="w-full min-h-[40px] flex items-center gap-2 rounded-lg text-slate-300 text-xs hover:bg-slate-800/50 transition-colors"
+            :class="collapsed ? 'justify-center px-0' : 'px-4 py-2'"
+            :title="collapsed ? name : ''"
+            @click="!collapsed && (accountExpanded = !accountExpanded)"
           >
             <span class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-bold text-slate-200 shrink-0">{{ userInitials }}</span>
-            <span class="flex-1 truncate text-left">{{ name }}</span>
-            <span class="text-[10px] text-slate-500">{{ accountExpanded ? '▲' : '▼' }}</span>
+            <template v-if="!collapsed">
+              <span class="flex-1 truncate text-left">{{ name }}</span>
+              <span class="text-[10px] text-slate-500">{{ accountExpanded ? '▲' : '▼' }}</span>
+            </template>
           </button>
           <button
-            v-if="accountExpanded"
+            v-if="accountExpanded && !collapsed"
             class="w-full min-h-[40px] flex items-center gap-2 px-4 py-2 rounded-lg border border-rose-800/80 text-rose-200 text-xs disabled:opacity-70 hover:bg-rose-950/35 transition-colors"
             :disabled="busy"
             @click="handleSignOut"
@@ -299,9 +326,10 @@ export default {
     activeDeck: { type: Object, default: null },
     drawerOpen: { type: Boolean, default: false }
   },
-  emits: ['navigate', 'navigate-deck', 'close-drawer', 'sync-status'],
+  emits: ['navigate', 'navigate-deck', 'close-drawer', 'sync-status', 'collapse-change'],
   data() {
     return {
+      collapsed: false,
       // auth
       signedIn: false,
       name: '',
@@ -419,6 +447,11 @@ export default {
     selectTheme(themeId) {
       this.selectedTheme = applyTheme(themeId)
       this.themeExpanded = false
+    },
+    selectNextTheme() {
+      const idx = this.themeOptions.findIndex(t => t.id === this.selectedTheme)
+      const next = this.themeOptions[(idx + 1) % this.themeOptions.length]
+      this.selectTheme(next.id)
     },
     async handleSignIn() {
       if (this.busy) return

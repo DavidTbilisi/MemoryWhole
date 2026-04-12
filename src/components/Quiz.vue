@@ -1,8 +1,8 @@
 <template>
-  <div class="quiz-container w-full h-[calc(100dvh-56px)] md:h-auto flex flex-col overflow-hidden rounded-2xl border p-2 sm:p-4 md:p-6">
-    <!-- Compact header: title + inline stats -->
-    <div class="mb-1 md:mb-2 flex items-center justify-between gap-2">
-      <h2 class="text-sm sm:text-base font-bold tracking-tight truncate quiz-text-soft">
+  <div class="quiz-container w-full h-[calc(100dvh-56px)] md:h-[calc(100dvh-140px)] flex flex-col overflow-hidden rounded-2xl border p-2 sm:p-4 md:p-4">
+    <!-- Header: mobile only — desktop shows title/stats in the right panel -->
+    <div class="mb-1 flex items-center justify-between gap-2 md:hidden">
+      <h2 class="text-sm font-bold tracking-tight truncate quiz-text-soft">
         {{ isDrillMode ? 'Drill' : 'Quiz' }}: {{ deck }}
       </h2>
       <div class="flex items-center gap-2 text-xs shrink-0 quiz-text-soft">
@@ -28,125 +28,161 @@
       </template>
     </div>
 
-    <div v-else class="flex-1 overflow-hidden flex flex-col space-y-1 md:space-y-2">
-      <!-- Mobile: thin progress bar + drill timer inline -->
-      <div class="md:hidden">
-        <div class="flex items-center gap-2 text-[10px] quiz-text-soft mb-0.5">
-          <span>{{ questionLabel }}</span>
-          <div class="flex-1 h-1 rounded-full quiz-progress-bg overflow-hidden">
-            <div class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-violet-500 transition-all duration-300" :style="{ width: progressPct + '%' }"></div>
-          </div>
-          <span v-if="isDrillMode" class="text-amber-300 font-bold tabular-nums">{{ drillSecondsLabel }}s</span>
-          <span v-if="isDrillMode" class="text-slate-600">·</span>
-          <span v-if="isDrillMode" class="text-amber-200 font-semibold">{{ drillScore }}pts</span>
+    <div v-else class="flex-1 min-h-0 flex flex-col gap-1 md:gap-1.5">
+      <!-- Unified progress bar -->
+      <div class="flex items-center gap-2 text-[10px] md:text-xs quiz-text-soft shrink-0">
+        <span class="shrink-0">{{ questionLabel }}</span>
+        <div class="flex-1 h-1 md:h-1.5 rounded-full quiz-progress-bg overflow-hidden">
+          <div class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-violet-500 transition-all duration-300" :style="{ width: progressPct + '%' }"></div>
         </div>
+        <span v-if="isDrillMode" class="text-amber-300 font-bold tabular-nums md:hidden">{{ drillSecondsLabel }}s</span>
+        <span v-if="isDrillMode" class="text-slate-600 md:hidden">·</span>
+        <span v-if="isDrillMode" class="text-amber-200 font-semibold md:hidden">{{ drillScore }}pts</span>
       </div>
 
-      <!-- Desktop: compact progress bar (same as mobile) -->
-      <div class="hidden md:block">
-        <div class="flex items-center gap-3 text-xs quiz-text-soft">
-          <span class="shrink-0">{{ questionLabel }}</span>
-          <div class="flex-1 h-1.5 rounded-full quiz-progress-bg overflow-hidden">
-            <div class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-violet-500 transition-all duration-300" :style="{ width: progressPct + '%' }"></div>
-          </div>
-          <span v-if="isDrillMode" class="text-amber-300 font-bold tabular-nums">{{ drillSecondsLabel }}s</span>
-          <span v-if="isDrillMode" class="text-amber-200 font-semibold">{{ drillScore }}pts · ×{{ drillMultiplier }}</span>
-        </div>
-      </div>
+      <!-- Main area: quiz card + right control panel (desktop) -->
+      <div class="flex-1 min-h-0 flex gap-2 md:gap-3">
 
-      <div
-        :class="['flex-1 min-h-0 rounded-2xl border quiz-card p-2 sm:p-4 md:p-6 transition-all duration-200 relative overflow-hidden flex flex-col', questionPulseClass]"
-        :style="isDrillMode ? drillCardStyle : {}"
-        @click="isDrillMode ? onDrillTap($event) : undefined"
-        @touchstart.passive="isDrillMode ? onDrillTouchStart($event) : undefined"
-        @touchmove="isDrillMode ? onDrillTouchMove($event) : undefined"
-        @touchend="isDrillMode ? onDrillTouchEnd($event) : undefined"
-      >
-        <!-- Tap zone hints (mobile drill) -->
-        <div v-if="isDrillMode && !answered && !drillSwipe.active"
-             class="absolute inset-0 pointer-events-none z-10 flex md:hidden">
-          <div class="w-1/2 flex items-center justify-center opacity-[0.08] text-rose-400 text-4xl font-black">✗</div>
-          <div class="w-1/2 flex items-center justify-center opacity-[0.08] text-emerald-400 text-4xl font-black">✓</div>
-        </div>
-        <div v-if="isDrillMode && drillSwipeDirection === 'right'"
-             class="absolute top-3 right-3 text-green-400 font-bold text-lg border-2 border-green-400 rounded px-2 py-0.5 rotate-12 pointer-events-none select-none z-20"
-             :style="{ opacity: drillSwipeOverlayOpacity }">
-          ✓ KNOW
-        </div>
-        <div v-if="isDrillMode && drillSwipeDirection === 'left'"
-             class="absolute top-3 left-3 text-rose-400 font-bold text-lg border-2 border-rose-400 rounded px-2 py-0.5 -rotate-12 pointer-events-none select-none z-20"
-             :style="{ opacity: drillSwipeOverlayOpacity }">
-          ✗ SKIP
-        </div>
-        <Transition name="qslide" mode="out-in">
-          <div :key="`q-${questionIndex}-${currentNum}`" class="flex flex-col h-full">
-            <!-- Hero prompt -->
-            <div class="flex items-center justify-center py-1 sm:py-2 md:py-3 shrink-0">
-              <div class="text-center">
-                <div class="text-5xl sm:text-6xl md:text-7xl font-black leading-none quiz-prompt tabular-nums">{{ currentNum }}</div>
-                <div class="mt-1 text-[10px] uppercase tracking-widest" :class="feedbackClass">{{ feedback || 'match this' }}</div>
+        <!-- Quiz card -->
+        <div
+          :class="['flex-1 min-h-0 rounded-2xl border quiz-card p-2 sm:p-4 md:p-5 transition-all duration-200 relative overflow-hidden flex flex-col', questionPulseClass]"
+          :style="isDrillMode ? drillCardStyle : {}"
+          @click="isDrillMode ? onDrillTap($event) : undefined"
+          @touchstart.passive="isDrillMode ? onDrillTouchStart($event) : undefined"
+          @touchmove="isDrillMode ? onDrillTouchMove($event) : undefined"
+          @touchend="isDrillMode ? onDrillTouchEnd($event) : undefined"
+        >
+          <!-- Tap zone hints (mobile drill) -->
+          <div v-if="isDrillMode && !answered && !drillSwipe.active"
+               class="absolute inset-0 pointer-events-none z-10 flex md:hidden">
+            <div class="w-1/2 flex items-center justify-center opacity-[0.08] text-rose-400 text-4xl font-black">✗</div>
+            <div class="w-1/2 flex items-center justify-center opacity-[0.08] text-emerald-400 text-4xl font-black">✓</div>
+          </div>
+          <div v-if="isDrillMode && drillSwipeDirection === 'right'"
+               class="absolute top-3 right-3 text-green-400 font-bold text-lg border-2 border-green-400 rounded px-2 py-0.5 rotate-12 pointer-events-none select-none z-20"
+               :style="{ opacity: drillSwipeOverlayOpacity }">
+            ✓ KNOW
+          </div>
+          <div v-if="isDrillMode && drillSwipeDirection === 'left'"
+               class="absolute top-3 left-3 text-rose-400 font-bold text-lg border-2 border-rose-400 rounded px-2 py-0.5 -rotate-12 pointer-events-none select-none z-20"
+               :style="{ opacity: drillSwipeOverlayOpacity }">
+            ✗ SKIP
+          </div>
+          <Transition name="qslide" mode="out-in">
+            <div :key="`q-${questionIndex}-${currentNum}`" class="flex flex-col h-full">
+              <!-- Hero prompt -->
+              <div class="flex items-center justify-center py-1 sm:py-2 md:py-2 shrink-0">
+                <div class="text-center">
+                  <div class="text-5xl sm:text-6xl md:text-7xl font-black leading-none quiz-prompt tabular-nums">{{ currentNum }}</div>
+                  <div class="mt-1 text-[10px] uppercase tracking-widest" :class="feedbackClass">{{ feedback || 'match this' }}</div>
+                </div>
+              </div>
+
+              <!-- Options grid -->
+              <div class="flex-1 grid grid-cols-2 gap-1.5 sm:gap-2" style="grid-template-rows: repeat(3, 1fr)">
+                <button
+                  v-for="(opt, idx) in options"
+                  :key="idx"
+                  :disabled="answered"
+                  @click="choose(opt)"
+                  :class="optionBtnClass(opt, idx)"
+                  @touchstart.passive="onOptionTouchStart($event, idx)"
+                  @touchmove="onOptionTouchMove($event, idx)"
+                  @touchend="onOptionTouchEnd($event, idx)"
+                  :style="optionSwipeStyle(idx)"
+                >
+                  <!-- Image area -->
+                  <div class="absolute inset-x-0 top-0 bottom-6 sm:bottom-7 overflow-hidden rounded-t-lg">
+                    <template v-if="optionHasDualImages(opt)">
+                      <img
+                        :src="optionAudioImage(opt)"
+                        :alt="`${opt} - Audio`"
+                        class="absolute left-0 top-0 h-full w-1/2 object-contain p-0.5"
+                        @error="onOptionImageError($event, opt)"
+                      />
+                      <img
+                        :src="optionVisualImage(opt)"
+                        :alt="`${opt} - Visual`"
+                        class="absolute right-0 top-0 h-full w-1/2 object-contain p-0.5"
+                        @error="onOptionImageError($event, opt)"
+                      />
+                    </template>
+                    <img
+                      v-else
+                      :src="optionImage(opt)"
+                      :alt="opt"
+                      class="h-full w-full object-contain p-0.5"
+                      @error="onOptionImageError($event, opt)"
+                    />
+                    <div class="absolute inset-0" :class="optionOverlayClass(opt, idx)"></div>
+                  </div>
+                  <!-- Label area -->
+                  <div class="absolute inset-x-0 bottom-0 h-6 sm:h-7 flex items-center px-1.5 sm:px-2 gap-1 quiz-option-label rounded-b-lg">
+                    <span class="text-[9px] font-bold shrink-0 hidden sm:inline quiz-text-muted">{{ idx + 1 }}</span>
+                    <span class="truncate text-[11px] sm:text-xs font-semibold" :class="optionLabelClass(opt)">{{ opt }}</span>
+                  </div>
+                </button>
               </div>
             </div>
+          </Transition>
+        </div>
 
-            <!-- Options grid -->
-            <div class="flex-1 grid grid-cols-2 gap-1.5 sm:gap-2 min-h-[180px] md:min-h-[280px]" style="grid-template-rows: repeat(3, 1fr)">
+        <!-- Right control panel (desktop only) -->
+        <div class="hidden md:flex flex-col gap-2 w-44 shrink-0">
+          <!-- Deck info + score -->
+          <div class="rounded-xl border quiz-card p-3 shrink-0">
+            <div class="text-[11px] font-bold truncate quiz-text-soft mb-2">{{ isDrillMode ? 'Drill' : 'Quiz' }}: {{ deck }}</div>
+            <div class="flex items-center gap-2">
+              <span class="text-emerald-400 font-bold text-sm">{{ score.correct }}<span class="text-[10px] ml-0.5 opacity-70">✓</span></span>
+              <span class="text-rose-400 font-bold text-sm">{{ score.wrong }}<span class="text-[10px] ml-0.5 opacity-70">✗</span></span>
+              <span class="font-semibold text-cyan-300 text-sm">{{ accuracyPct }}%</span>
+            </div>
+            <div v-if="streak >= 2" class="text-amber-300 font-semibold text-xs mt-1">🔥 {{ streak }} streak</div>
+            <!-- Drill-specific stats -->
+            <template v-if="isDrillMode">
+              <div class="mt-2 pt-2 border-t border-slate-700/50">
+                <div class="text-3xl font-black tabular-nums text-amber-300 leading-none">{{ drillSecondsLabel }}s</div>
+                <div class="text-xs text-amber-200 mt-1">{{ drillScore }} pts · ×{{ drillMultiplier }}</div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Navigation -->
+          <div class="flex flex-col gap-1.5 shrink-0">
+            <button v-tooltip="'Return to Home (B)'" class="quiz-btn-secondary rounded-xl border px-3 py-2 text-xs font-semibold transition w-full text-left" @click="$emit('back')">← Back</button>
+            <button v-tooltip="'Next Question (Enter or N)'" class="quiz-btn-secondary rounded-xl border px-3 py-2 text-xs font-semibold transition w-full text-left" @click="nextQuestion">Next →</button>
+            <button v-tooltip="'Save Session Results (F)'" class="rounded-xl bg-gradient-to-r from-purple-600 to-cyan-400 px-3 py-2 text-xs font-bold text-white shadow-lg transition hover:brightness-110 w-full" @click="finish">Finish &amp; Save</button>
+          </div>
+
+          <!-- Auto-advance -->
+          <div class="flex flex-col gap-1.5 shrink-0">
+            <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/50 px-2 py-1.5">
+              <input v-model="autoAdvance" type="checkbox" class="h-4 w-4 accent-cyan-500" />
+              <span class="text-slate-300 text-xs">Auto-advance</span>
+            </label>
+            <div v-if="autoAdvance" class="flex flex-wrap gap-1">
               <button
-                v-for="(opt, idx) in options"
-                :key="idx"
-                :disabled="answered"
-                @click="choose(opt)"
-                :class="optionBtnClass(opt, idx)"
-                @touchstart.passive="onOptionTouchStart($event, idx)"
-                @touchmove="onOptionTouchMove($event, idx)"
-                @touchend="onOptionTouchEnd($event, idx)"
-                :style="optionSwipeStyle(idx)"
-              >
-                <!-- Image area -->
-                <div class="absolute inset-x-0 top-0 bottom-6 sm:bottom-7 overflow-hidden rounded-t-lg">
-                  <template v-if="optionHasDualImages(opt)">
-                    <img
-                      :src="optionAudioImage(opt)"
-                      :alt="`${opt} - Audio`"
-                      class="absolute left-0 top-0 h-full w-1/2 object-contain p-0.5"
-                      @error="onOptionImageError($event, opt)"
-                    />
-                    <img
-                      :src="optionVisualImage(opt)"
-                      :alt="`${opt} - Visual`"
-                      class="absolute right-0 top-0 h-full w-1/2 object-contain p-0.5"
-                      @error="onOptionImageError($event, opt)"
-                    />
-                  </template>
-                  <img
-                    v-else
-                    :src="optionImage(opt)"
-                    :alt="opt"
-                    class="h-full w-full object-contain p-0.5"
-                    @error="onOptionImageError($event, opt)"
-                  />
-                  <div class="absolute inset-0" :class="optionOverlayClass(opt, idx)"></div>
-                </div>
-                <!-- Label area -->
-                <div class="absolute inset-x-0 bottom-0 h-6 sm:h-7 flex items-center px-1.5 sm:px-2 gap-1 quiz-option-label rounded-b-lg">
-                  <span class="text-[9px] font-bold shrink-0 hidden sm:inline quiz-text-muted">{{ idx + 1 }}</span>
-                  <span class="truncate text-[11px] sm:text-xs font-semibold" :class="optionLabelClass(opt)">{{ opt }}</span>
-                </div>
-              </button>
+                v-for="speed in speedOptions"
+                :key="speed.ms"
+                @click="autoAdvanceMs = speed.ms"
+                class="flex-1 rounded-lg border px-1 py-1.5 text-xs font-semibold transition-colors"
+                :class="autoAdvanceMs === speed.ms ? 'border-cyan-500 bg-cyan-900/30 text-cyan-200' : 'border-slate-700 bg-slate-900/50 text-slate-400 hover:text-slate-200'"
+              >{{ speed.label }}</button>
             </div>
           </div>
-        </Transition>
+        </div>
+
       </div>
 
-      <div class="flex flex-wrap gap-1 sm:gap-2">
-        <button v-tooltip="'Return to Home (B)'" class="quiz-btn-secondary rounded-xl border px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition min-h-[36px] sm:min-h-[44px]" @click="$emit('back')">Back</button>
-        <button v-tooltip="'Next Question (Enter or N)'" class="quiz-btn-secondary rounded-xl border px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition min-h-[36px] sm:min-h-[44px]" @click="nextQuestion">Next</button>
-        <button v-tooltip="'Save Session Results (F)'" class="rounded-xl bg-gradient-to-r from-purple-600 to-cyan-400 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-white shadow-lg transition hover:brightness-110 min-h-[36px] sm:min-h-[44px]" @click="finish">Finish and Save</button>
-      </div>
-
-      <div class="flex flex-wrap items-center justify-end gap-2 text-xs text-slate-500">
+      <!-- Mobile footer -->
+      <div class="md:hidden flex flex-wrap items-center gap-1 shrink-0">
+        <button v-tooltip="'Return to Home (B)'" class="quiz-btn-secondary rounded-xl border px-3 py-1.5 text-xs font-semibold transition min-h-[36px]" @click="$emit('back')">Back</button>
+        <button v-tooltip="'Next Question (Enter or N)'" class="quiz-btn-secondary rounded-xl border px-3 py-1.5 text-xs font-semibold transition min-h-[36px]" @click="nextQuestion">Next</button>
+        <button v-tooltip="'Save Session Results (F)'" class="rounded-xl bg-gradient-to-r from-purple-600 to-cyan-400 px-3 py-1.5 text-xs font-bold text-white shadow-lg transition hover:brightness-110 min-h-[36px]" @click="finish">Finish</button>
+        <div class="flex-1"></div>
         <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/50 px-2 py-1 min-h-[36px]">
           <input v-model="autoAdvance" type="checkbox" class="h-4 w-4 accent-cyan-500" />
-          <span class="text-slate-300">Auto</span>
+          <span class="text-slate-300 text-xs">Auto</span>
         </label>
         <template v-if="autoAdvance">
           <button

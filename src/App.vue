@@ -8,10 +8,11 @@
       @navigate-deck="onSideNavNavigateDeck"
       @close-drawer="drawerOpen = false"
       @sync-status="syncStatus = $event"
+      @collapse-change="sideNavCollapsed = $event"
     />
 
-    <div class="md:ml-52">
-      <div class="mx-auto w-full max-w-[1500px] px-4 md:px-8 pt-5 pb-16 md:pb-5">
+    <div :class="sideNavCollapsed ? 'md:ml-14' : 'md:ml-52'" class="transition-[margin] duration-200 ease-in-out">
+      <div class="mx-auto w-full max-w-[1500px] px-4 pt-5 pb-16 md:pb-5" :class="view === 'quiz' ? 'md:px-4' : 'md:px-8'">
         <Header
           :breadcrumbs="breadcrumbs"
           :syncStatus="syncStatus"
@@ -81,6 +82,7 @@ export default {
       shortcutPrefixTimer: null,
       navStack: [],
       drawerOpen: false,
+      sideNavCollapsed: false,
       syncStatus: 'neutral',
       twoFingerSwipeTracking: false,
       twoFingerSwipeTriggered: false,
