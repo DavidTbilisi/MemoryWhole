@@ -62,7 +62,7 @@ import RankingInfoView from './views/RankingInfoView.vue';
 import LeaderboardView from './views/LeaderboardView.vue';
 import Editor from './views/Editor.vue';
 import TrainingLog from './views/TrainingLog.vue';
-import { exportDeckPayload } from './core/deck-loader'
+import { exportDeckPayload, migrateDeckSavedAtTimestamps } from './core/deck-loader'
 import { DECKS } from './data/decks'
 import { publishLeaderboardSnapshot } from './core/firebase-leaderboard'
 
@@ -273,6 +273,7 @@ export default {
     activeDeck() { this.syncHash() },
   },
   mounted() {
+    migrateDeckSavedAtTimestamps()
     this.restoreFromHash()
     window.addEventListener('keydown', this.onGlobalKeydown)
     window.addEventListener('touchstart', this.onGlobalTouchStart, { passive: true })

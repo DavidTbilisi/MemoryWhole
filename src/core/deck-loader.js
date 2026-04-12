@@ -24,6 +24,29 @@ function stampDeckSavedAt(deck) {
   writeJson(DECK_SAVED_AT_KEY, map)
 }
 
+export function migrateDeckSavedAtTimestamps() {
+  const timestamps = readJson(DECK_SAVED_AT_KEY, {})
+  const edits = readJson(DECK_EDITS_KEY, {})
+  const images = readJson(DECK_IMAGES_KEY, {})
+  const icons = readJson(DECK_ICONS_KEY, {})
+
+  const decksWithContent = new Set([
+    ...Object.keys(edits),
+    ...Object.keys(images),
+    ...Object.keys(icons),
+  ])
+
+  let migrated = false
+  for (const deck of decksWithContent) {
+    if (!timestamps[deck]) {
+      timestamps[deck] = Date.now()
+      migrated = true
+    }
+  }
+
+  if (migrated) writeJson(DECK_SAVED_AT_KEY, timestamps)
+}
+
 const DECK_EMOJI = {
   major: '🔢',
   sem3: '🧠',
