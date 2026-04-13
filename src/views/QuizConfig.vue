@@ -25,6 +25,45 @@
       <button v-tooltip="'Start timed speed drill mode (W)'" class="rounded-xl py-4 text-xl font-black bg-gradient-to-r from-amber-500 to-rose-500" @click="startDrill">⚡ Speed Drill</button>
     </div>
 
+    <div class="mt-3 rounded-xl border border-amber-500/40 bg-amber-900/10 p-4">
+      <div class="mb-3 text-xs uppercase tracking-wider text-amber-300/80">Competition Mode</div>
+      <div class="mb-3 grid grid-cols-2 gap-3 text-sm md:grid-cols-2">
+        <div>
+          <div class="mb-1 text-slate-400">Items to memorize</div>
+          <div class="flex gap-1">
+            <button
+              v-for="n in [10, 20, 50]"
+              :key="n"
+              @click="competitionItemCount = n"
+              class="rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors"
+              :class="competitionItemCount === n
+                ? 'border-amber-400 bg-amber-900/40 text-amber-100'
+                : 'border-slate-700 bg-slate-800/50 text-slate-400 hover:border-slate-500'"
+            >{{ n }}</button>
+          </div>
+        </div>
+        <div>
+          <div class="mb-1 text-slate-400">Study time per card</div>
+          <div class="flex flex-wrap gap-1">
+            <button
+              v-for="s in [2, 3, 5, 10]"
+              :key="s"
+              @click="competitionStudySpeed = s"
+              class="rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors"
+              :class="competitionStudySpeed === s
+                ? 'border-amber-400 bg-amber-900/40 text-amber-100'
+                : 'border-slate-700 bg-slate-800/50 text-slate-400 hover:border-slate-500'"
+            >{{ s }}s</button>
+          </div>
+        </div>
+      </div>
+      <button
+        v-tooltip="'Study cards then recall from memory (C)'"
+        class="w-full rounded-xl py-3 text-base font-black bg-gradient-to-r from-amber-500 to-rose-500"
+        @click="startCompetition"
+      >🏆 Start Competition</button>
+    </div>
+
     <div class="mt-4 rounded-xl border border-emerald-500/40 bg-emerald-900/15 p-4">
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div>
@@ -91,6 +130,8 @@ export default {
         highRiskCount: 0,
         lowAccCount: 0,
       },
+      competitionItemCount: 10,
+      competitionStudySpeed: 3,
     }
   },
   computed: {
@@ -168,6 +209,16 @@ export default {
         return
       }
       this.$emit('start', keys)
+    },
+    startCompetition() {
+      const chosen = this.groups.filter((g) => this.selected.has(g.label))
+      const keys = chosen.flatMap((g) => g.keys)
+      if (keys.length < 6) {
+        alert('Select at least 6 items for competition mode.')
+        return
+      }
+      const itemCount = Math.min(this.competitionItemCount, keys.length)
+      this.$emit('start-competition', { keys, itemCount, studySpeedSec: this.competitionStudySpeed })
     },
     startRecoveryDrill() {
       const keys = this.recovery.keys
