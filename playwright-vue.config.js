@@ -10,7 +10,7 @@ import { defineConfig, devices } from 'playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
-  testMatch: ['**/competition.spec.js'],
+  testMatch: ['**/competition.spec.js', '**/champion-evaluation.spec.js'],
   fullyParallel: false,   // competition tests share a dev server; serial is safer
   retries: process.env.CI ? 1 : 0,
   workers: 1,

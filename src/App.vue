@@ -22,7 +22,8 @@
         />
 
         <div class="mt-2">
-          <HomeView ref="homeView" v-if="view === 'home'" @start="openQuizConfig" @dashboard="openDashboard" @preview="openPreview" @edit="openEditor" @export="exportDeck" @view-ranking-info="showRankingInfo" @instant-start="instantStartQuiz"/>
+          <HomeView ref="homeView" v-if="view === 'home'" @start="openQuizConfig" @dashboard="openDashboard" @preview="openPreview" @edit="openEditor" @export="exportDeck" @view-ranking-info="showRankingInfo" @instant-start="instantStartQuiz" @open-champion-evaluation="openChampionEvaluation"/>
+          <ChampionEvaluation v-if="view === 'champion-evaluation'" @launch-goal="launchChampionGoal" />
           <QuizConfig ref="quizConfigView" v-if="view === 'quiz-config'" :deck="activeDeck || 'major'" :auto-recovery="recoveryPreset" @back="goBack" @start="startQuizFromConfig" @start-drill="startDrillFromConfig" @start-competition="startCompetitionFromConfig" />
           <Competition ref="competitionView" v-if="view === 'competition'" :key="competitionKey" :deck="activeDeck || 'major'" :subset-keys="selectedSubsetKeys" :item-count="competitionItemCount" :study-speed-sec="competitionStudySpeed" @back="goBack" @finished="onCompetitionFinished" />
           <CompetitionStats ref="competitionStatsView" v-if="view === 'competition-stats'" :session="session" @back="goBack" @replay="replayCompetition" @dashboard="openDashboardFromStats" />
@@ -66,13 +67,14 @@ import Editor from './views/Editor.vue';
 import TrainingLog from './views/TrainingLog.vue';
 import Competition from './views/Competition.vue';
 import CompetitionStats from './views/CompetitionStats.vue';
+import ChampionEvaluation from './views/ChampionEvaluation.vue';
 import { exportDeckPayload, migrateDeckSavedAtTimestamps } from './core/deck-loader'
 import { DECKS } from './data/decks'
 import { publishLeaderboardSnapshot } from './core/firebase-leaderboard'
 
 export default {
   name: 'App',
-  components: { Quiz, Header, SideNav, ShortcutsHelpModal, Toast, HomeView, QuizConfig, Dashboard, Preview, Stats, RankingInfoView, LeaderboardView, Editor, TrainingLog, Competition, CompetitionStats },
+  components: { Quiz, Header, SideNav, ShortcutsHelpModal, Toast, HomeView, QuizConfig, Dashboard, Preview, Stats, RankingInfoView, LeaderboardView, Editor, TrainingLog, Competition, CompetitionStats, ChampionEvaluation },
   data() {
     return {
       view: 'home',
@@ -107,6 +109,7 @@ export default {
           'home': 'Home', 'training-log': 'Training Log', 'ranking-info': 'Ranking',
           'leaderboard': 'Leaderboard', 'stats': 'Results', 'quiz': 'Quiz', 'quiz-config': 'Setup',
           'competition': 'Competition', 'competition-stats': 'Competition Results',
+          'champion-evaluation': 'Champion Evaluation',
         }
         if (view === 'dashboard') return (deck?.name || deck || 'Dashboard')
         if (view === 'preview') return (deck?.name || deck || 'Deck') + ' Preview'
@@ -185,7 +188,8 @@ export default {
               { keys: 'G then Q', action: 'Go to Quiz Config (active deck)' },
               { keys: 'G then D', action: 'Go to Dashboard (active deck)' },
               { keys: 'G then P', action: 'Go to Preview (active deck)' },
-              { keys: 'G then E', action: 'Go to Editor (active deck)' },
+              { keys: 'G then E', action: 'Go to Champion Evaluation' },
+              { keys: 'G then O', action: 'Go to Editor (active deck)' },
               { keys: 'G then R', action: 'Open Ranking docs + simulator' },
               { keys: 'H', action: 'Back to Home (from any non-home page)' },
               { keys: 'Esc', action: 'Close shortcut help' },
@@ -198,7 +202,8 @@ export default {
             items: [
               { keys: 'J / K', action: 'Move deck focus down / up' },
               { keys: 'Space / Enter', action: 'Open focused deck in Quiz Config' },
-              { keys: 'D / P / E / X', action: 'Focused deck: Dashboard / Preview / Editor / Export' },
+              { keys: 'D / P / I / X', action: 'Focused deck: Dashboard / Preview / Editor / Export' },
+              { keys: 'E', action: 'Open Champion Evaluation' },
               { keys: 'G then G / Shift+G', action: 'Jump to first / last deck' },
               { keys: '1..9', action: 'Open deck N in Quiz Config' },
               { keys: 'Shift+1..9', action: 'Open deck N Dashboard' },
@@ -328,7 +333,7 @@ export default {
       const raw = location.hash.slice(1)
       if (!raw) return
       const [view, deck] = raw.split('/')
-      const restorable = ['home', 'dashboard', 'preview', 'editor', 'training-log', 'ranking-info', 'leaderboard', 'quiz-config']
+      const restorable = ['home', 'dashboard', 'preview', 'editor', 'training-log', 'ranking-info', 'leaderboard', 'quiz-config', 'champion-evaluation']
       if (!restorable.includes(view)) return
       this.view = view
       if (deck) this.activeDeck = deck
@@ -409,7 +414,8 @@ export default {
       else if (key === 'q') this.openQuizConfig({ deck, mode: 'default' })
       else if (key === 'd') this.openDashboard(deck)
       else if (key === 'p') this.openPreview(deck)
-      else if (key === 'e') this.openEditor(deck)
+      else if (key === 'e') this.openChampionEvaluation()
+      else if (key === 'o') this.openEditor(deck)
       else if (key === 'r') this.showRankingInfo()
     },
     onGlobalKeydown(event) {
@@ -511,6 +517,11 @@ export default {
           return
         }
         if (key === 'e') {
+          this.openChampionEvaluation()
+          event.preventDefault()
+          return
+        }
+        if (key === 'i') {
           home.openFocusedEditor()
           event.preventDefault()
           return
@@ -702,12 +713,14 @@ export default {
     showRankingInfo(){ this.navigateTo('ranking-info') },
     openLeaderboard(){ this.navigateTo('leaderboard') },
     openTrainingLog(){ this.navigateTo('training-log') },
+    openChampionEvaluation(){ this.navigateTo('champion-evaluation') },
     openDashboardFromStats(deck){ this.navigateTo('dashboard', deck || this.activeDeck || 'major') },
     onSideNavNavigate(viewName) {
       if (viewName === 'home') this.showHome()
       else if (viewName === 'training-log') this.openTrainingLog()
       else if (viewName === 'ranking-info') this.showRankingInfo()
       else if (viewName === 'leaderboard') this.openLeaderboard()
+      else if (viewName === 'champion-evaluation') this.openChampionEvaluation()
       this.drawerOpen = false
     },
     onSideNavNavigateDeck(viewName, deck) {
@@ -745,6 +758,39 @@ export default {
     onCompetitionFinished(session) {
       this.session = session
       this.view = 'competition-stats'
+    },
+    launchChampionGoal(goal) {
+      const deck = goal?.deck || this.activeDeck || 'major'
+      const type = goal?.type
+
+      if (type === 'drill') {
+        this.navStack.push({ view: this.view, activeDeck: this.activeDeck })
+        this.activeDeck = deck
+        this.selectedSubsetKeys = []
+        this.drillDuration = Math.max(10, Number(goal?.config?.durationSec || this.drillDuration || 60))
+        this.quizMode = 'drill'
+        this.view = 'quiz'
+        this.quizKey++
+        return
+      }
+
+      if (type === 'competition') {
+        this.navStack.push({ view: this.view, activeDeck: this.activeDeck })
+        this.activeDeck = deck
+        this.selectedSubsetKeys = []
+        this.competitionItemCount = Number(goal?.config?.itemCount || 10)
+        this.competitionStudySpeed = Number(goal?.config?.studySpeedSec || 3)
+        this.view = 'competition'
+        this.competitionKey++
+        return
+      }
+
+      if (type === 'review') {
+        this.openQuizConfig({ deck, mode: 'recovery' })
+        return
+      }
+
+      this.openQuizConfig({ deck, mode: 'default' })
     },
   }
 }

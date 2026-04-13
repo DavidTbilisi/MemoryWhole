@@ -1,4 +1,5 @@
 import { readJson, writeJson } from './storage'
+import { getChampionTier, getUserChampionMetrics } from './champion-benchmarks'
 
 export const ANALYTICS_KEY = 'analytics_v1'
 export const DECK_STATS_KEY = 'deckStats_v1'
@@ -6,6 +7,7 @@ export const MASTERY_PEAK_KEY = 'masteryPeak_v1'
 export const ACTIVITY_LOG_KEY = 'activityLog_v1'
 export const DRILL_RECORDS_KEY = 'drillRecords_v1'
 export const SESSION_HISTORY_KEY = 'sessionHistory_v1'
+export const EVALUATION_SNAPSHOTS_KEY = 'evaluationSnapshots_v1'
 
 function makeSessionEntry(payload = {}) {
   return {
@@ -75,6 +77,7 @@ export function recordSession(deck, numStats) {
   writeJson(SESSION_HISTORY_KEY, sessionHistory)
 
   logActivity('session', attempts)
+  maybeSnapshotEvaluation()
 
   notifyStatsUpdated()
 
@@ -153,6 +156,7 @@ export function recordDrillResult(deck, payload = {}) {
   records[deck] = cur
   writeJson(DRILL_RECORDS_KEY, records)
   logActivity('drill', attempts)
+  maybeSnapshotEvaluation()
   notifyStatsUpdated()
 
   return { ...cur, previousDrill, recentDrills: cur.history || [] }
@@ -234,6 +238,7 @@ export function recordCompetitionResult(deck, payload = {}) {
   records[deck] = cur
   writeJson(COMPETITION_RECORDS_KEY, records)
   logActivity('session', attempts)
+  maybeSnapshotEvaluation()
   notifyStatsUpdated()
 
   return { ...cur, previousRun, recentRuns: cur.history || [] }
@@ -296,4 +301,25 @@ export function getDailyStreak() {
   }
 
   return { current, longest }
+}
+
+export function maybeSnapshotEvaluation() {
+  const today = new Date().toISOString().slice(0, 10)
+  const snapshots = readJson(EVALUATION_SNAPSHOTS_KEY, [])
+  const safeSnapshots = Array.isArray(snapshots) ? snapshots : []
+  const metrics = getUserChampionMetrics()
+  const tier = getChampionTier(metrics)
+
+  const entry = {
+    date: today,
+    ...metrics,
+    tierIndex: Number(tier?.tierIndex || 0),
+  }
+
+  const existingIdx = safeSnapshots.findIndex((item) => item?.date === today)
+  if (existingIdx >= 0) safeSnapshots[existingIdx] = entry
+  else safeSnapshots.push(entry)
+
+  safeSnapshots.sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')))
+  writeJson(EVALUATION_SNAPSHOTS_KEY, safeSnapshots.slice(-90))
 }
