@@ -17,6 +17,8 @@
 </template>
 
 <script>
+import { getDeckPeak } from '../core/analytics'
+
 export default {
   name: 'HomeBadge',
   props: {
@@ -64,14 +66,7 @@ export default {
   methods: {
     getDisplayFromStats() {
       try {
-        const peaks = JSON.parse(localStorage.getItem('masteryPeak_v1') || '{}')
-        const analytics = JSON.parse(localStorage.getItem('analytics_v1') || '{}')
-        const peak = Number(peaks?.[this.deck] || 0)
-        const deckTotals = analytics?.[this.deck] || {}
-        const attempts = Number(deckTotals.totalAttempts || 0)
-        const correct = Number(deckTotals.totalCorrect || 0)
-        const current = attempts > 0 ? Math.round((correct / attempts) * 100) : 0
-        return Math.max(peak, current)
+        return getDeckPeak(this.deck)
       } catch {
         return 0
       }

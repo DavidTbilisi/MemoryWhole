@@ -8,6 +8,7 @@ export const ACTIVITY_LOG_KEY = 'activityLog_v1'
 export const DRILL_RECORDS_KEY = 'drillRecords_v1'
 export const SESSION_HISTORY_KEY = 'sessionHistory_v1'
 export const EVALUATION_SNAPSHOTS_KEY = 'evaluationSnapshots_v1'
+export const DECK_MASTERY_WINDOW_ATTEMPTS = 100
 
 function makeSessionEntry(payload = {}) {
   return {
@@ -23,6 +24,37 @@ function makeSessionEntry(payload = {}) {
 
 function sumBy(items, field) {
   return Object.values(items || {}).reduce((acc, cur) => acc + Number(cur?.[field] || 0), 0)
+}
+
+function getWindowedAccuracyFromSessions(sessions = [], windowAttempts = DECK_MASTERY_WINDOW_ATTEMPTS) {
+  const maxAttempts = Math.max(1, Number(windowAttempts || 0))
+  let attempts = 0
+  let correct = 0
+
+  for (const session of sessions) {
+    const sessionAttempts = Number(session?.attempts || 0)
+    const sessionCorrect = Number(session?.correct || 0)
+    if (sessionAttempts <= 0) continue
+
+    const takeAttempts = Math.min(maxAttempts - attempts, sessionAttempts)
+    const takeRatio = takeAttempts / sessionAttempts
+
+    attempts += takeAttempts
+    correct += sessionCorrect * takeRatio
+
+    if (attempts >= maxAttempts) break
+  }
+
+  return {
+    attempts,
+    correct,
+    accuracy: attempts > 0 ? Math.round((correct / attempts) * 100) : 0,
+  }
+}
+
+function computeDeckMasteryFromSessions(sessions = []) {
+  const windowed = getWindowedAccuracyFromSessions(sessions)
+  return Number(windowed.accuracy || 0)
 }
 
 export function recordSession(deck, numStats) {
@@ -57,23 +89,28 @@ export function recordSession(deck, numStats) {
   }
   writeJson(DECK_STATS_KEY, deckStats)
 
+  const nextHistory = [
+    makeSessionEntry({
+      ts: Date.now(),
+      attempts,
+      correct,
+      wrong,
+      accuracy,
+    }),
+    ...(sessionHistory[deck] || []),
+  ].slice(0, 20)
+
   const peaks = readJson(MASTERY_PEAK_KEY, {})
-  const mastery = deckAnalytics.totalAttempts > 0
-    ? Math.round((deckAnalytics.totalCorrect / deckAnalytics.totalAttempts) * 100)
-    : 0
+  const mastery = computeDeckMasteryFromSessions(nextHistory)
   peaks[deck] = Math.max(Number(peaks[deck] || 0), mastery)
   writeJson(MASTERY_PEAK_KEY, peaks)
 
-  const nextEntry = makeSessionEntry({
-    ts: Date.now(),
-    attempts,
-    correct,
-    wrong,
-    accuracy,
+  nextHistory[0] = makeSessionEntry({
+    ...nextHistory[0],
     mastery,
     peak: peaks[deck],
   })
-  sessionHistory[deck] = [nextEntry, ...(sessionHistory[deck] || [])].slice(0, 20)
+  sessionHistory[deck] = nextHistory
   writeJson(SESSION_HISTORY_KEY, sessionHistory)
 
   logActivity('session', attempts)
@@ -176,6 +213,11 @@ export function getDeckAnalytics(deck) {
 export function getDeckPeak(deck) {
   const peaks = readJson(MASTERY_PEAK_KEY, {})
   return Number(peaks[deck] || 0)
+}
+
+export function getDeckMastery(deck) {
+  const sessionHistory = readJson(SESSION_HISTORY_KEY, {})
+  return computeDeckMasteryFromSessions(sessionHistory[deck] || [])
 }
 
 export function getDeckWeakItems(deck, limit = 10) {
