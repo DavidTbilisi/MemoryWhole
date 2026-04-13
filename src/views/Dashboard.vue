@@ -133,11 +133,35 @@
         </div>
       </template>
     </div>
+
+    <div class="mt-3 rounded-xl border border-slate-700/70 bg-slate-900/40 p-3">
+      <div class="mb-2 flex items-center justify-between">
+        <div class="font-semibold">Competition</div>
+        <div class="text-[11px] text-slate-500">runs: {{ competition.totalRuns || 0 }}</div>
+      </div>
+      <div v-if="!competition.totalRuns" class="text-sm text-slate-400">No competition runs yet for this deck.</div>
+      <template v-else>
+        <div class="grid grid-cols-2 gap-2 md:grid-cols-3 mb-3">
+          <div class="bg-slate-900/60 rounded p-2 text-sm">Best Score <strong class="block text-amber-200">{{ competition.bestScore }} correct</strong></div>
+          <div class="bg-slate-900/60 rounded p-2 text-sm">Best Accuracy <strong class="block text-cyan-200">{{ competition.bestAccuracy }}%</strong></div>
+          <div class="bg-slate-900/60 rounded p-2 text-sm">Most Items <strong class="block text-violet-200">{{ competition.bestItemCount }}</strong></div>
+        </div>
+        <div class="text-xs text-slate-400 mb-2">Recent runs (latest 5)</div>
+        <div class="space-y-1 text-sm">
+          <div v-for="row in recentCompetitionRuns" :key="row.ts" class="flex items-center justify-between rounded bg-slate-900/40 px-2 py-1">
+            <span class="text-slate-400">{{ row.date }}</span>
+            <span>{{ row.correct }}/{{ row.itemCount }}</span>
+            <span class="text-cyan-300">{{ row.accuracy }}%</span>
+            <span class="text-slate-500">{{ row.speed }}s/card</span>
+          </div>
+        </div>
+      </template>
+    </div>
   </div>
 </template>
 
 <script>
-import { getAllDeckAnalytics, getDeckAnalytics, getDeckDrillRecords, getDeckPeak, getDeckWeakItems } from '../core/analytics'
+import { getAllDeckAnalytics, getDeckAnalytics, getDeckDrillRecords, getDeckPeak, getDeckWeakItems, getDeckCompetitionRecords } from '../core/analytics'
 import { getDeckDataSync } from '../core/deck-loader'
 import { getDeckPrognosis } from '../core/spaced-repetition'
 import DeckAnalyticsChart from '../components/DeckAnalyticsChart.vue'
@@ -226,6 +250,20 @@ export default {
     drill() {
       this.refreshTick
       return getDeckDrillRecords(this.deck || 'major')
+    },
+    competition() {
+      this.refreshTick
+      return getDeckCompetitionRecords(this.deck || 'major')
+    },
+    recentCompetitionRuns() {
+      return (this.competition.history || []).slice(0, 5).map((entry) => ({
+        ts: entry.ts,
+        date: new Date(entry.ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        correct: Number(entry.correct || 0),
+        itemCount: Number(entry.itemCount || 0),
+        accuracy: Number(entry.accuracy || 0).toFixed(1),
+        speed: Number(entry.studySpeedSec || 0),
+      }))
     },
     activeDeckKey() {
       return this.deck || 'major'

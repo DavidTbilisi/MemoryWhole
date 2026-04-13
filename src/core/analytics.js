@@ -206,6 +206,44 @@ export function getDeckDrillRecords(deck) {
   }
 }
 
+export const COMPETITION_RECORDS_KEY = 'competitionRecords_v1'
+
+export function recordCompetitionResult(deck, payload = {}) {
+  const records = readJson(COMPETITION_RECORDS_KEY, {})
+  const cur = records[deck] || { totalRuns: 0, bestScore: 0, bestAccuracy: 0, bestItemCount: 0, history: [] }
+  const previousRun = Array.isArray(cur.history) && cur.history.length ? cur.history[0] : null
+
+  const itemCount = Number(payload.itemCount || 0)
+  const studySpeedSec = Number(payload.studySpeedSec || 0)
+  const correct = Number(payload.correct || 0)
+  const wrong = Number(payload.wrong || 0)
+  const attempts = correct + wrong
+  const accuracy = attempts > 0 ? Number(((correct / attempts) * 100).toFixed(2)) : 0
+  const itemResults = Array.isArray(payload.itemResults) ? payload.itemResults : []
+
+  cur.totalRuns += 1
+  cur.bestScore = Math.max(Number(cur.bestScore || 0), correct)
+  cur.bestAccuracy = Math.max(Number(cur.bestAccuracy || 0), accuracy)
+  cur.bestItemCount = Math.max(Number(cur.bestItemCount || 0), itemCount)
+
+  cur.history = [
+    { ts: Date.now(), itemCount, studySpeedSec, correct, wrong, accuracy, score: correct, itemResults },
+    ...(cur.history || []),
+  ].slice(0, 100)
+
+  records[deck] = cur
+  writeJson(COMPETITION_RECORDS_KEY, records)
+  logActivity('session', attempts)
+  notifyStatsUpdated()
+
+  return { ...cur, previousRun, recentRuns: cur.history || [] }
+}
+
+export function getDeckCompetitionRecords(deck) {
+  const all = readJson(COMPETITION_RECORDS_KEY, {})
+  return all[deck] || { totalRuns: 0, bestScore: 0, bestAccuracy: 0, bestItemCount: 0, history: [] }
+}
+
 export function getDeckSessionHistory(deck) {
   const all = readJson(SESSION_HISTORY_KEY, {})
   return all[deck] || []

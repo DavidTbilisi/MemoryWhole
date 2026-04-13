@@ -23,7 +23,9 @@
 
         <div class="mt-2">
           <HomeView ref="homeView" v-if="view === 'home'" @start="openQuizConfig" @dashboard="openDashboard" @preview="openPreview" @edit="openEditor" @export="exportDeck" @view-ranking-info="showRankingInfo" @instant-start="instantStartQuiz"/>
-          <QuizConfig ref="quizConfigView" v-if="view === 'quiz-config'" :deck="activeDeck || 'major'" :auto-recovery="recoveryPreset" @back="goBack" @start="startQuizFromConfig" @start-drill="startDrillFromConfig" />
+          <QuizConfig ref="quizConfigView" v-if="view === 'quiz-config'" :deck="activeDeck || 'major'" :auto-recovery="recoveryPreset" @back="goBack" @start="startQuizFromConfig" @start-drill="startDrillFromConfig" @start-competition="startCompetitionFromConfig" />
+          <Competition ref="competitionView" v-if="view === 'competition'" :key="competitionKey" :deck="activeDeck || 'major'" :subset-keys="selectedSubsetKeys" :item-count="competitionItemCount" :study-speed-sec="competitionStudySpeed" @back="goBack" @finished="onCompetitionFinished" />
+          <CompetitionStats ref="competitionStatsView" v-if="view === 'competition-stats'" :session="session" @back="goBack" @replay="replayCompetition" @dashboard="openDashboardFromStats" />
           <Dashboard ref="dashboardView" v-if="view === 'dashboard'" :deck="activeDeck" @back="goBack" />
           <Preview ref="previewView" v-if="view === 'preview'" :deck="activeDeck" @back="goBack" />
           <Editor ref="editorView" v-if="view === 'editor'" :deck="activeDeck || 'major'" @back="goBack" />
@@ -62,13 +64,15 @@ import RankingInfoView from './views/RankingInfoView.vue';
 import LeaderboardView from './views/LeaderboardView.vue';
 import Editor from './views/Editor.vue';
 import TrainingLog from './views/TrainingLog.vue';
+import Competition from './views/Competition.vue';
+import CompetitionStats from './views/CompetitionStats.vue';
 import { exportDeckPayload, migrateDeckSavedAtTimestamps } from './core/deck-loader'
 import { DECKS } from './data/decks'
 import { publishLeaderboardSnapshot } from './core/firebase-leaderboard'
 
 export default {
   name: 'App',
-  components: { Quiz, Header, SideNav, ShortcutsHelpModal, Toast, HomeView, QuizConfig, Dashboard, Preview, Stats, RankingInfoView, LeaderboardView, Editor, TrainingLog },
+  components: { Quiz, Header, SideNav, ShortcutsHelpModal, Toast, HomeView, QuizConfig, Dashboard, Preview, Stats, RankingInfoView, LeaderboardView, Editor, TrainingLog, Competition, CompetitionStats },
   data() {
     return {
       view: 'home',
@@ -78,6 +82,9 @@ export default {
       quizKey: 0,
       quizMode: 'quiz',
       drillDuration: 60,
+      competitionKey: 0,
+      competitionItemCount: 10,
+      competitionStudySpeed: 3,
       recoveryPreset: false,
       shortcutHelpOpen: false,
       pendingShortcutPrefix: '',
@@ -98,7 +105,8 @@ export default {
       const labelFor = (view, deck) => {
         const map = {
           'home': 'Home', 'training-log': 'Training Log', 'ranking-info': 'Ranking',
-          'leaderboard': 'Leaderboard', 'stats': 'Results', 'quiz': 'Quiz', 'quiz-config': 'Setup'
+          'leaderboard': 'Leaderboard', 'stats': 'Results', 'quiz': 'Quiz', 'quiz-config': 'Setup',
+          'competition': 'Competition', 'competition-stats': 'Competition Results',
         }
         if (view === 'dashboard') return (deck?.name || deck || 'Dashboard')
         if (view === 'preview') return (deck?.name || deck || 'Deck') + ' Preview'
@@ -208,9 +216,20 @@ export default {
               { keys: 'A', action: 'Toggle all groups' },
               { keys: 'Q', action: 'Start quiz with selected groups' },
               { keys: 'W', action: 'Start speed drill with selected groups' },
+              { keys: 'C', action: 'Start competition mode' },
               { keys: 'S', action: 'Select recovery suggestion' },
               { keys: 'R', action: 'Start recovery quiz' },
               { keys: 'T', action: 'Start recovery drill' },
+              { keys: 'B / H', action: 'Back to Home' },
+            ],
+          },
+        ],
+        'competition-stats': [
+          {
+            title: 'Competition Results',
+            items: [
+              { keys: 'R', action: 'Replay competition' },
+              { keys: 'D', action: 'Open deck dashboard' },
               { keys: 'B / H', action: 'Back to Home' },
             ],
           },
@@ -544,6 +563,7 @@ export default {
         else if (key === 'a') cfg.toggleAll()
         else if (key === 'q') cfg.startQuiz()
         else if (key === 'w') cfg.startDrill()
+        else if (key === 'c') cfg.startCompetition()
         else if (key === 's') cfg.applyRecoverySelection()
         else if (key === 'r') cfg.startRecoveryQuiz()
         else if (key === 't') cfg.startRecoveryDrill()
@@ -589,6 +609,15 @@ export default {
         else if (key === 'e') editor.exportNow()
         else if (key === 't') editor.downloadTemplate()
         else if (key === 'b') this.goBack()
+        else return
+        event.preventDefault()
+        return
+      }
+
+      if (this.view === 'competition-stats') {
+        if (key === 'r') this.replayCompetition()
+        else if (key === 'd') this.openDashboardFromStats(this.session?.deck)
+        else if (key === 'b' || key === 'h') this.goBack()
         else return
         event.preventDefault()
         return
@@ -701,7 +730,22 @@ export default {
     onQuizFinished(session){
       this.session = session
       this.view = 'stats'
-    }
+    },
+    startCompetitionFromConfig({ keys, itemCount, studySpeedSec }) {
+      this.selectedSubsetKeys = Array.isArray(keys) ? keys : []
+      this.competitionItemCount = itemCount || 10
+      this.competitionStudySpeed = studySpeedSec || 3
+      this.view = 'competition'
+      this.competitionKey++
+    },
+    replayCompetition() {
+      this.view = 'competition'
+      this.competitionKey++
+    },
+    onCompetitionFinished(session) {
+      this.session = session
+      this.view = 'competition-stats'
+    },
   }
 }
 </script>
