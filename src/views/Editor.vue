@@ -76,7 +76,12 @@
             class="odd:bg-slate-900/30"
             :class="isRowModified(row) ? 'ring-1 ring-inset ring-amber-500/50 bg-amber-950/10' : ''"
           >
-            <td class="border border-slate-700 p-2 text-slate-300">{{ row.key }}</td>
+            <td class="border border-slate-700 p-2 text-slate-300">
+              <div class="flex items-start justify-between gap-1">
+                <span>{{ row.key }}</span>
+                <span v-if="rowDueLabel(row.key)" :class="rowDueTone(row.key)" class="text-[10px] leading-none mt-0.5 shrink-0">{{ rowDueLabel(row.key) }}</span>
+              </div>
+            </td>
             <td class="border border-slate-700 p-2">
               <input
                 v-model="row.value"
@@ -147,6 +152,7 @@
 <script>
 import { DECKS } from '../data/decks'
 import { exportDeckPayload, getDeckBaseDataSync, getDeckDataSync, getDeckDefaultIconsSync, getDeckDefaultImagesSync, getDeckIconsSync, getDeckImagesSync, makeEmojiFallbackDataUri, saveDeckEdits, saveDeckIconEdits, saveDeckImageEdits } from '../core/deck-loader'
+import { getDeckReviewState } from '../core/spaced-repetition'
 import { getCurrentUser } from '../core/firebase-auth'
 import { syncCloudForCurrentUser } from '../core/firebase-sync'
 
@@ -174,6 +180,9 @@ export default {
       redoStack: [],
       suppressHistory: false,
       modifiedCursor: -1,
+      historyCommitTimer: null,
+      historyCommitDelayMs: 180,
+      reviewMap: {},
     }
   },
   computed: {
@@ -207,6 +216,25 @@ export default {
     },
     modifiedKeys() {
       return this.rows.filter((row) => this.isRowModified(row)).map((row) => String(row.key))
+    },
+  },
+  methods: {
+    rowDueLabel(key) {
+      const item = this.reviewMap[String(key)]
+      if (!item || !item.nextDueAt) return ''
+      const diffMs = item.nextDueAt - Date.now()
+      const diffDays = Math.round(diffMs / 86400000)
+      if (diffDays <= 0) return 'due'
+      return `in ${diffDays}d`
+    },
+    rowDueTone(key) {
+      const item = this.reviewMap[String(key)]
+      if (!item || !item.nextDueAt) return ''
+      const diffMs = item.nextDueAt - Date.now()
+      const diffDays = Math.round(diffMs / 86400000)
+      if (diffDays <= 0) return 'text-rose-400'
+      if (diffDays <= 3) return 'text-amber-400'
+      return 'text-slate-500'
     },
   },
   mounted() {
@@ -403,6 +431,7 @@ export default {
       this.snapshotOriginalRows()
       this.initHistory()
       this.message = ''
+      this.reviewMap = getDeckReviewState(this.deck)
     },
     async save() {
       const next = {}

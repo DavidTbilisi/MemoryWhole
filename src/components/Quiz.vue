@@ -120,6 +120,7 @@
                   <div class="absolute inset-x-0 bottom-0 h-6 sm:h-7 flex items-center px-1.5 sm:px-2 gap-1 quiz-option-label rounded-b-lg">
                     <span class="text-[9px] font-bold shrink-0 hidden sm:inline quiz-text-muted">{{ idx + 1 }}</span>
                     <span class="truncate text-[11px] sm:text-xs font-semibold" :class="optionLabelClass(opt)">{{ opt }}</span>
+                    <button v-if="optionDueLabel(opt)" class="ml-auto shrink-0 text-[10px] text-slate-500 hover:text-cyan-300 transition-colors" @click.stop="openSrModal(opt)">{{ optionDueLabel(opt) }}</button>
                   </div>
                 </button>
               </div>
@@ -195,6 +196,63 @@
         </template>
       </div>
     </div>
+
+    <!-- SR item detail modal -->
+    <Teleport to="body">
+      <div v-if="srModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="srModal = null">
+        <div class="absolute inset-0 bg-black/70" @click="srModal = null"></div>
+        <div class="relative z-10 w-full max-w-sm rounded-2xl border border-slate-700 bg-[#0d1b2b] p-5 shadow-2xl text-sky-100">
+          <div class="mb-4 flex items-start justify-between gap-2">
+            <div>
+              <div class="text-xs uppercase tracking-widest text-slate-500">Item Review State</div>
+              <div class="mt-1 text-xl font-black">{{ srModal.key }}</div>
+              <div class="text-sm text-slate-400">{{ srModal.value }}</div>
+            </div>
+            <button class="shrink-0 text-slate-500 hover:text-white text-lg leading-none" @click="srModal = null">✕</button>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 mb-4 text-center">
+            <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-2">
+              <div class="text-[10px] text-slate-500 uppercase">Reps</div>
+              <div class="text-lg font-bold text-cyan-300">{{ srModal.item.reps }}</div>
+            </div>
+            <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-2">
+              <div class="text-[10px] text-slate-500 uppercase">Lapses</div>
+              <div class="text-lg font-bold text-rose-300">{{ srModal.item.lapses }}</div>
+            </div>
+            <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-2">
+              <div class="text-[10px] text-slate-500 uppercase">Ease</div>
+              <div class="text-lg font-bold text-amber-300">{{ srModal.item.ease?.toFixed(2) }}</div>
+            </div>
+          </div>
+
+          <div class="mb-3 space-y-2 text-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Interval</span>
+              <span class="font-semibold">{{ srModal.item.intervalDays?.toFixed(1) }} days</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Last reviewed</span>
+              <span class="font-semibold">{{ srModal.lastReviewedLabel }}</span>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-xs text-slate-400 mb-1 uppercase tracking-wide">Due date</label>
+            <input
+              v-model="srModal.dueDateInput"
+              type="date"
+              class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-500"
+            />
+          </div>
+
+          <div class="flex gap-2">
+            <button class="flex-1 rounded-lg bg-gradient-to-r from-purple-600 to-cyan-400 py-2 text-sm font-bold text-white" @click="saveSrOverride">Save</button>
+            <button class="flex-1 rounded-lg border border-slate-600 bg-slate-900/60 py-2 text-sm font-semibold text-slate-300" @click="srModal = null">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -202,6 +260,7 @@
 import { getDeckEmojiMapSync, getDeckImagesSync, loadDeckData, makeEmojiFallbackDataUri, makeSimpleEmojiFallbackDataUri } from '../core/deck-loader'
 import { createQuizEngine } from '../core/quiz-engine'
 import { recordDrillResult, recordSession } from '../core/analytics'
+import { getDeckReviewState, patchReviewItem } from '../core/spaced-repetition'
 
 export default {
   name: 'Quiz',
@@ -220,6 +279,8 @@ export default {
       imageMap: {},
       emojiMap: {},
       valueToKey: {},
+      reviewMap: {},
+      srModal: null,
       options: [],
       answered: false,
       feedback: '',
@@ -399,6 +460,7 @@ export default {
     syncFromEngine() {
       const st = this.engine?.state
       if (!st) return
+      this.reviewMap = getDeckReviewState(this.deck)
       this.currentNum = st.currentNum
       this.currentAnswer = st.currentAnswer
       this.options = st.options
@@ -437,6 +499,70 @@ export default {
     },
     optionKeyForLabel(opt) {
       return this.valueToKey[String(opt)] || ''
+    },
+    reviewItemForKey(rawKey) {
+      const base = String(rawKey || '')
+      if (!base) return null
+
+      const numeric = Number(base)
+      const normalized = Number.isFinite(numeric) ? String(Math.trunc(Math.abs(numeric))) : ''
+      const stripLeading = base.replace(/^0+/, '') || '0'
+      const candidates = [
+        base,
+        stripLeading,
+        normalized,
+        normalized ? normalized.padStart(2, '0') : '',
+      ].filter(Boolean)
+
+      for (const candidate of candidates) {
+        const item = this.reviewMap[String(candidate)]
+        if (item && (item.nextDueAt || item.intervalDays)) return item
+      }
+      return null
+    },
+    openSrModal(opt) {
+      const key = this.optionKeyForLabel(opt)
+      const rawItem = this.reviewItemForKey(key) || {}
+      const reps = rawItem.reps || 0
+      const lapses = rawItem.lapses || 0
+      const ease = rawItem.ease || 2.3
+      const intervalDays = rawItem.intervalDays || 0
+      const lastReviewedAt = Number(rawItem.lastReviewedAt || 0)
+      const nextDueAt = Number(rawItem.nextDueAt || Date.now())
+      const lastReviewedLabel = lastReviewedAt
+        ? new Date(lastReviewedAt).toLocaleDateString()
+        : 'never'
+      const dueDateInput = new Date(nextDueAt).toISOString().slice(0, 10)
+      this.srModal = {
+        key,
+        value: opt,
+        item: { reps, lapses, ease, intervalDays },
+        lastReviewedLabel,
+        dueDateInput,
+        originalNextDueAt: nextDueAt,
+      }
+    },
+    saveSrOverride() {
+      if (!this.srModal) return
+      const { key, dueDateInput } = this.srModal
+      if (!key || !dueDateInput) return
+      const newDueAt = new Date(dueDateInput + 'T00:00:00').getTime()
+      if (!Number.isFinite(newDueAt)) return
+      patchReviewItem(this.deck, key, { nextDueAt: newDueAt })
+      this.reviewMap = getDeckReviewState(this.deck)
+      this.srModal = null
+    },
+    optionDueLabel(opt) {
+      const key = this.optionKeyForLabel(opt)
+      if (!key) return 'new'
+      const item = this.reviewItemForKey(key)
+      if (!item) return 'new'
+      const nextDueAt = Number(item.nextDueAt || 0)
+      if (!nextDueAt) return 'new'
+      const diffDays = Math.round((nextDueAt - Date.now()) / 86400000)
+      if (diffDays <= 0) return 'due today'
+      if (diffDays === 1) return 'due 1 day'
+      return `due ${diffDays} days`
     },
     optionImage(opt) {
       const key = this.optionKeyForLabel(opt)
@@ -489,6 +615,7 @@ export default {
         const data = await loadDeckData(this.deck)
         this.imageMap = getDeckImagesSync(this.deck)
         this.emojiMap = getDeckEmojiMapSync(this.deck)
+        this.reviewMap = getDeckReviewState(this.deck)
         const scoped = this.subsetKeys.length
           ? Object.fromEntries(Object.entries(data).filter(([k]) => this.subsetKeys.includes(String(k)) || this.subsetKeys.includes(String(k).padStart(2, '0'))))
           : data

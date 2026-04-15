@@ -139,6 +139,15 @@ export function updateReviewState(deck, key, payload = {}) {
     return next
 }
 
+export function patchReviewItem(deck, key, fields = {}) {
+    const root = getReviewStateRoot()
+    const deckState = { ...(root[deck] || {}) }
+    const existing = normalizeItem(deckState[String(key)] || {})
+    deckState[String(key)] = { ...existing, ...fields }
+    root[deck] = deckState
+    writeJson(REVIEW_STATE_KEY, root)
+}
+
 export function getDeckPrognosis(deck, dataMap = {}, options = {}) {
     const now = Number(options.now || Date.now())
     const horizonDays = Math.max(1, Number(options.horizonDays || 7))
