@@ -685,8 +685,13 @@ export default {
       this.view = 'quiz'
       this.quizKey++
     },
-    navigateTo(view, deck = null) {
-      this.navStack.push({ view: this.view, activeDeck: this.activeDeck })
+    navigateTo(view, deck = null, { replace = false } = {}) {
+      const targetDeck = deck !== null ? deck : this.activeDeck
+      // Don't push a duplicate entry if already on this view+deck
+      if (this.view === view && this.activeDeck === targetDeck) return
+      if (!replace) {
+        this.navStack.push({ view: this.view, activeDeck: this.activeDeck })
+      }
       this.view = view
       if (deck !== null) this.activeDeck = deck
     },
@@ -724,9 +729,10 @@ export default {
       this.drawerOpen = false
     },
     onSideNavNavigateDeck(viewName, deck) {
+      // Remove any existing entry for the same view+deck from the stack to avoid duplicates
+      this.navStack = this.navStack.filter(s => !(s.view === viewName && s.activeDeck === deck))
       if (viewName === 'quiz-config') this.openQuizConfig(deck)
-      else
-      if (viewName === 'dashboard') this.openDashboard(deck)
+      else if (viewName === 'dashboard') this.openDashboard(deck)
       else if (viewName === 'preview') this.openPreview(deck)
       else if (viewName === 'editor') this.openEditor(deck)
       this.drawerOpen = false

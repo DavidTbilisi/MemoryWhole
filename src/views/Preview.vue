@@ -171,7 +171,12 @@
         </thead>
         <tbody>
           <tr v-for="row in visibleBibleBookRows" :key="row.key" class="odd:bg-slate-900/30">
-            <td class="p-2 border border-slate-700 text-slate-300">{{ row.key }}</td>
+            <td class="p-2 border border-slate-700 text-slate-300">
+              <div class="flex items-center justify-between gap-1">
+                <span>{{ row.key }}</span>
+                <span class="text-[10px] text-slate-500 shrink-0">{{ rowDueLabel(row.key) }}</span>
+              </div>
+            </td>
             <td class="p-2 border border-slate-700">{{ row.value }}</td>
             <td class="p-2 border border-slate-700 text-cyan-200">{{ row.assoc }}</td>
                 <td class="p-2 border border-slate-700"><img :src="imageForKey(row.key)" alt="" class="h-10 w-14 rounded border border-slate-700 object-cover" @error="onImageError($event, row.key)" /></td>
@@ -191,7 +196,12 @@
         </thead>
         <tbody>
           <tr v-for="row in visibleRows" :key="row.key" class="odd:bg-slate-900/30">
-            <td class="p-2 border border-slate-700 text-slate-300">{{ row.key }}</td>
+            <td class="p-2 border border-slate-700 text-slate-300">
+              <div class="flex items-center justify-between gap-1">
+                <span>{{ row.key }}</span>
+                <span class="text-[10px] text-slate-500 shrink-0">{{ rowDueLabel(row.key) }}</span>
+              </div>
+            </td>
             <td class="p-2 border border-slate-700">{{ row.value }}</td>
                 <td class="p-2 border border-slate-700"><img :src="imageForKey(row.key)" alt="" class="h-10 w-14 rounded border border-slate-700 object-cover" @error="onImageError($event, row.key)" /></td>
           </tr>
@@ -203,6 +213,7 @@
 
 <script>
 import { getDeckEmojiMapSync, getDeckImagesSync, loadDeckData, makeEmojiFallbackDataUri } from '../core/deck-loader'
+import { getDeckReviewState } from '../core/spaced-repetition'
 import { DECKS } from '../data/decks'
 import { MAJOR_DATA } from '../data/major-system'
 import { SEM3_DATA } from '../data/sem3'
@@ -231,6 +242,7 @@ export default {
       dataMap: {},
       imageMap: {},
       emojiMap: {},
+      reviewMap: {},
       bits2: ['00', '01', '10', '11'],
       currentPage: 1,
       pageSize: 100,
@@ -413,10 +425,19 @@ export default {
       const emoji = this.emojiMap[String(key)] || '🧩'
       img.src = makeEmojiFallbackDataUri(emoji)
     },
+    rowDueLabel(key) {
+      const item = this.reviewMap[String(key)]
+      if (!item || !item.nextDueAt) return 'new'
+      const diffDays = Math.round((Number(item.nextDueAt) - Date.now()) / 86400000)
+      if (diffDays <= 0) return 'due today'
+      if (diffDays === 1) return '1 day'
+      return `${diffDays}d`
+    },
     async load() {
       this.dataMap = await loadDeckData(this.deck)
       this.imageMap = getDeckImagesSync(this.deck)
       this.emojiMap = getDeckEmojiMapSync(this.deck)
+      this.reviewMap = getDeckReviewState(this.deck)
       this.currentPage = 1
       if (this.deck === 'sem3major' && !this.sem3MajorBlockOptions.some((item) => item.code === this.selectedSem3Block)) {
         this.selectedSem3Block = '00'

@@ -218,6 +218,14 @@ export default {
       return this.rows.filter((row) => this.isRowModified(row)).map((row) => String(row.key))
     },
   },
+  mounted() {
+    window.addEventListener('beforeunload', this.onBeforeUnload)
+    window.addEventListener('keydown', this.onGlobalKeyDown)
+  },
+  beforeUnmount() {
+    window.removeEventListener('beforeunload', this.onBeforeUnload)
+    window.removeEventListener('keydown', this.onGlobalKeyDown)
+  },
   methods: {
     rowDueLabel(key) {
       const item = this.reviewMap[String(key)]
@@ -236,16 +244,6 @@ export default {
       if (diffDays <= 3) return 'text-amber-400'
       return 'text-slate-500'
     },
-  },
-  mounted() {
-    window.addEventListener('beforeunload', this.onBeforeUnload)
-    window.addEventListener('keydown', this.onGlobalKeyDown)
-  },
-  beforeUnmount() {
-    window.removeEventListener('beforeunload', this.onBeforeUnload)
-    window.removeEventListener('keydown', this.onGlobalKeyDown)
-  },
-  methods: {
     snapshotRows() {
       return JSON.stringify(this.rows.map((row) => ({
         key: String(row.key),

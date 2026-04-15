@@ -212,54 +212,99 @@
       <div v-if="srModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="srModal = null">
         <div class="absolute inset-0 bg-black/70" @click="srModal = null"></div>
         <div class="relative z-10 w-full max-w-sm rounded-2xl border border-slate-700 bg-[#0d1b2b] p-5 shadow-2xl text-sky-100">
-          <div class="mb-4 flex items-start justify-between gap-2">
+
+          <!-- Header -->
+          <div class="mb-3 flex items-start justify-between gap-2">
             <div>
-              <div class="text-xs uppercase tracking-widest text-slate-500">Item Review State</div>
-              <div class="mt-1 text-xl font-black">{{ srModal.key }}</div>
+              <div class="text-xl font-black">{{ srModal.key }}</div>
               <div class="text-sm text-slate-400">{{ srModal.value }}</div>
             </div>
             <button class="shrink-0 text-slate-500 hover:text-white text-lg leading-none" @click="srModal = null">✕</button>
           </div>
 
-          <div class="grid grid-cols-3 gap-2 mb-4 text-center">
-            <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-2">
-              <div class="text-[10px] text-slate-500 uppercase">Reps</div>
-              <div class="text-lg font-bold text-cyan-300">{{ srModal.item.reps }}</div>
+          <!-- Tabs -->
+          <div class="mb-4 flex gap-1 rounded-lg border border-slate-700 bg-slate-900/60 p-1">
+            <button
+              class="flex-1 rounded-md py-1 text-xs font-semibold transition-colors"
+              :class="srModalTab === 'edit' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-slate-200'"
+              @click="srModalTab = 'edit'"
+            >Edit Item</button>
+            <button
+              class="flex-1 rounded-md py-1 text-xs font-semibold transition-colors"
+              :class="srModalTab === 'sr' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-slate-200'"
+              @click="srModalTab = 'sr'"
+            >Schedule</button>
+          </div>
+
+          <!-- EDIT TAB -->
+          <div v-if="srModalTab === 'edit'" class="space-y-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1 uppercase tracking-wide">Label / Association</label>
+              <input
+                v-model="srModal.editValue"
+                type="text"
+                class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-500"
+                placeholder="Association text"
+              />
             </div>
-            <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-2">
-              <div class="text-[10px] text-slate-500 uppercase">Lapses</div>
-              <div class="text-lg font-bold text-rose-300">{{ srModal.item.lapses }}</div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1 uppercase tracking-wide">Image URL / Path</label>
+              <input
+                v-model="srModal.editImage"
+                type="text"
+                class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-500"
+                placeholder="https://... or /deck-images/..."
+              />
             </div>
-            <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-2">
-              <div class="text-[10px] text-slate-500 uppercase">Ease</div>
-              <div class="text-lg font-bold text-amber-300">{{ srModal.item.ease?.toFixed(2) }}</div>
+            <div v-if="srModal.editImage" class="flex justify-center">
+              <img :src="srModal.editImage" alt="preview" class="h-24 w-32 rounded-lg border border-slate-700 object-cover" />
+            </div>
+            <div class="flex gap-2 pt-1">
+              <button class="flex-1 rounded-lg bg-gradient-to-r from-purple-600 to-cyan-400 py-2 text-sm font-bold text-white" @click="saveItemEdit">Save</button>
+              <button class="flex-1 rounded-lg border border-slate-600 bg-slate-900/60 py-2 text-sm font-semibold text-slate-300" @click="srModal = null">Cancel</button>
             </div>
           </div>
 
-          <div class="mb-3 space-y-2 text-sm">
-            <div class="flex items-center justify-between">
-              <span class="text-slate-400">Interval</span>
-              <span class="font-semibold">{{ srModal.item.intervalDays?.toFixed(1) }} days</span>
+          <!-- SCHEDULE TAB -->
+          <div v-else class="space-y-3">
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-2">
+                <div class="text-[10px] text-slate-500 uppercase">Reps</div>
+                <div class="text-lg font-bold text-cyan-300">{{ srModal.item.reps }}</div>
+              </div>
+              <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-2">
+                <div class="text-[10px] text-slate-500 uppercase">Lapses</div>
+                <div class="text-lg font-bold text-rose-300">{{ srModal.item.lapses }}</div>
+              </div>
+              <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-2">
+                <div class="text-[10px] text-slate-500 uppercase">Ease</div>
+                <div class="text-lg font-bold text-amber-300">{{ srModal.item.ease?.toFixed(2) }}</div>
+              </div>
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-slate-400">Last reviewed</span>
-              <span class="font-semibold">{{ srModal.lastReviewedLabel }}</span>
+            <div class="space-y-2 text-sm">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Interval</span>
+                <span class="font-semibold">{{ srModal.item.intervalDays?.toFixed(1) }} days</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Last reviewed</span>
+                <span class="font-semibold">{{ srModal.lastReviewedLabel }}</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1 uppercase tracking-wide">Due date</label>
+              <input
+                v-model="srModal.dueDateInput"
+                type="date"
+                class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-500"
+              />
+            </div>
+            <div class="flex gap-2">
+              <button class="flex-1 rounded-lg bg-gradient-to-r from-purple-600 to-cyan-400 py-2 text-sm font-bold text-white" @click="saveSrOverride">Save</button>
+              <button class="flex-1 rounded-lg border border-slate-600 bg-slate-900/60 py-2 text-sm font-semibold text-slate-300" @click="srModal = null">Cancel</button>
             </div>
           </div>
 
-          <div class="mb-4">
-            <label class="block text-xs text-slate-400 mb-1 uppercase tracking-wide">Due date</label>
-            <input
-              v-model="srModal.dueDateInput"
-              type="date"
-              class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-500"
-            />
-          </div>
-
-          <div class="flex gap-2">
-            <button class="flex-1 rounded-lg bg-gradient-to-r from-purple-600 to-cyan-400 py-2 text-sm font-bold text-white" @click="saveSrOverride">Save</button>
-            <button class="flex-1 rounded-lg border border-slate-600 bg-slate-900/60 py-2 text-sm font-semibold text-slate-300" @click="srModal = null">Cancel</button>
-          </div>
         </div>
       </div>
     </Teleport>
@@ -267,7 +312,7 @@
 </template>
 
 <script>
-import { getDeckEmojiMapSync, getDeckImagesSync, loadDeckData, makeEmojiFallbackDataUri, makeSimpleEmojiFallbackDataUri } from '../core/deck-loader'
+import { getDeckEmojiMapSync, getDeckImagesSync, loadDeckData, makeEmojiFallbackDataUri, makeSimpleEmojiFallbackDataUri, saveDeckEdits, saveDeckImageEdits, getDeckDataSync } from '../core/deck-loader'
 import { createQuizEngine } from '../core/quiz-engine'
 import { recordDrillResult, recordSession } from '../core/analytics'
 import { getDeckReviewState, patchReviewItem } from '../core/spaced-repetition'
@@ -291,6 +336,7 @@ export default {
       valueToKey: {},
       reviewMap: {},
       srModal: null,
+      srModalTab: 'edit',
       notDueBannerDismissed: false,
       options: [],
       answered: false,
@@ -544,6 +590,7 @@ export default {
       return null
     },
     openSrModal(opt) {
+      this.srModalTab = 'edit'
       const key = this.optionKeyForLabel(opt)
       const rawItem = this.reviewItemForKey(key) || {}
       const reps = rawItem.reps || 0
@@ -556,6 +603,8 @@ export default {
         ? new Date(lastReviewedAt).toLocaleDateString()
         : 'never'
       const dueDateInput = new Date(nextDueAt).toISOString().slice(0, 10)
+      const currentImage = (this.imageMap[String(key)] && typeof this.imageMap[String(key)] === 'string')
+        ? this.imageMap[String(key)] : ''
       this.srModal = {
         key,
         value: opt,
@@ -563,7 +612,29 @@ export default {
         lastReviewedLabel,
         dueDateInput,
         originalNextDueAt: nextDueAt,
+        editValue: opt,
+        editImage: currentImage,
       }
+    },
+    saveItemEdit() {
+      if (!this.srModal) return
+      const { key, editValue, editImage } = this.srModal
+      if (!key) return
+      if (editValue && editValue !== this.srModal.value) {
+        const existing = getDeckDataSync(this.deck)
+        const edits = { ...existing, [key]: editValue }
+        saveDeckEdits(this.deck, edits)
+        // Update local valueToKey map
+        this.valueToKey[editValue] = key
+        delete this.valueToKey[this.srModal.value]
+      }
+      if (editImage !== undefined) {
+        const existingImages = getDeckImagesSync(this.deck)
+        const images = { ...existingImages, [key]: editImage }
+        saveDeckImageEdits(this.deck, images)
+        this.imageMap = { ...this.imageMap, [key]: editImage }
+      }
+      this.srModal = null
     },
     saveSrOverride() {
       if (!this.srModal) return
