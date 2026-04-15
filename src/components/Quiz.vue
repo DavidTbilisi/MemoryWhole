@@ -29,6 +29,16 @@
     </div>
 
     <div v-else class="flex-1 min-h-0 flex flex-col gap-1 md:gap-1.5">
+      <!-- Not-due banner -->
+      <div v-if="notDueBanner && !notDueBannerDismissed"
+           class="shrink-0 flex items-center justify-between gap-2 rounded-xl border border-amber-500/50 bg-amber-900/20 px-3 py-2 text-xs">
+        <span class="text-amber-200">⚠ {{ notDueBanner }}</span>
+        <div class="flex gap-2 shrink-0">
+          <button class="rounded border border-amber-500/60 px-2 py-0.5 text-amber-100 hover:bg-amber-800/40" @click="notDueBannerDismissed = true">Continue anyway</button>
+          <button class="rounded border border-rose-500/60 bg-rose-900/30 px-2 py-0.5 text-rose-200 hover:bg-rose-800/40" @click="$emit('back')">Quit deck</button>
+        </div>
+      </div>
+
       <!-- Unified progress bar -->
       <div class="flex items-center gap-2 text-[10px] md:text-xs quiz-text-soft shrink-0">
         <span class="shrink-0">{{ questionLabel }}</span>
@@ -281,6 +291,7 @@ export default {
       valueToKey: {},
       reviewMap: {},
       srModal: null,
+      notDueBannerDismissed: false,
       options: [],
       answered: false,
       feedback: '',
@@ -319,6 +330,18 @@ export default {
     }
   },
   computed: {
+    notDueBanner() {
+      const vals = Object.values(this.reviewMap)
+      if (!vals.length) return ''
+      const now = Date.now()
+      const monthMs = 30 * 24 * 60 * 60 * 1000
+      const farCount = vals.filter(item => item && (Number(item.nextDueAt || 0) - now) > monthMs).length
+      if (farCount === 0) return ''
+      const total = vals.length
+      const pct = Math.round((farCount / total) * 100)
+      if (pct < 70) return ''
+      return `${farCount} of ${total} items aren't due for 30+ days — this deck is well learned.`
+    },
     isDrillMode() {
       return this.mode === 'drill'
     },
