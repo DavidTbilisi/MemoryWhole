@@ -4,6 +4,7 @@ import { MONTHS_DATA, MONTHS_IMAGES } from '../data/month-days'
 import { CLOCKS_DATA, CLOCKS_IMAGES } from '../data/clocks'
 import { PAO_DATA, PAO_IMAGES } from '../data/pao'
 import { BINARY_DATA, BINARY_IMAGES } from '../data/binary'
+import { BINARY8_DATA, BINARY8_IMAGES } from '../data/binary8'
 import { HEX_DATA, HEX_IMAGES } from '../data/hex'
 import { CALENDAR_DATA, CALENDAR_IMAGES } from '../data/calendar'
 import { BIBLE_OVERVIEW_DATA } from '../data/bible-overview'
@@ -55,6 +56,7 @@ const DECK_EMOJI = {
   clocks: '🕐',
   pao: '🎭',
   binary: '⬛',
+  binary8: '🔲',
   hex: '🔶',
   primes: '🔺',
   calendar: '🗓️',
@@ -86,6 +88,7 @@ const DECK_DATA = {
   clocks: CLOCKS_DATA,
   pao: PAO_DATA,
   binary: BINARY_DATA,
+  binary8: BINARY8_DATA,
   hex: HEX_DATA,
   calendar: CALENDAR_DATA,
   bibleoverview: BIBLE_OVERVIEW_DATA,
@@ -207,6 +210,7 @@ const LEGACY_DEFAULT_IMAGES = {
   clocks: CLOCKS_IMAGES,
   pao: PAO_IMAGES,
   binary: BINARY_IMAGES,
+  binary8: BINARY8_IMAGES,
   hex: HEX_IMAGES,
   calendar: CALENDAR_IMAGES,
   bibleoverview: BIBLE_OVERVIEW_IMAGES,

@@ -11,6 +11,7 @@ export const DECKS = [
   { deck: 'sem3major', name: 'SEM3 Major', count: '10,000 items · 4 digits', icon: '🧠' },
   { deck: 'hex', name: 'Hex (Aristotelian)', count: '16 symbols (0-F)', icon: '🔶' },
   { deck: 'binary', name: 'Binary (4-bit)', count: '16 patterns', icon: '⬛' },
+  { deck: 'binary8', name: 'Binary 8-bit', count: '256 patterns · cross-matrix', icon: '🔲' },
   { deck: 'pao', name: 'PAO System', count: '100 items · 10 franchises', icon: '🎭' },
   { deck: 'bibleoverview', name: 'Bible Overview', count: '10 sections', icon: '✝️' },
   { deck: 'biblebooks', name: 'Bible Books', count: '66 books', icon: '📖' },
