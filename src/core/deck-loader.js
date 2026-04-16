@@ -279,6 +279,53 @@ function makeDefaultImage(deck, key, assocText) {
   return encodeSvg(svg)
 }
 
+
+// Sprite-based SVG for binary/binary8 decks
+
+function makeBinarySpriteSvg(deck, key) {
+  // Use the user's mapping
+  const people = ['🗿', '🧜', '🧙', '🐉']
+  const actions = ['🪨', '🫗', '🌬', '💥']
+  const objects = ['🧱', '💧', '☁️', '🔋']
+  const envs = ['🕳', '🌊', '🌤', '🌋']
+  let ab, cd, ef, gh
+  if (deck === 'binary8') {
+    const n = parseInt(key, 2)
+    ab = (n >> 6) & 3
+    cd = (n >> 4) & 3
+    ef = (n >> 2) & 3
+    gh = n & 3
+  } else if (deck === 'binary') {
+    const n = parseInt(key, 2)
+    ab = (n >> 2) & 3
+    cd = n & 3
+    ef = 0
+    gh = 0
+  } else {
+    ab = cd = ef = gh = 0
+  }
+  // 2x2 grid
+  const e1 = people[ab]
+  const e2 = actions[cd]
+  const e3 = objects[ef]
+  const e4 = envs[gh]
+  // SVG 128x128, 2x2 grid, light background, faint border
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'>
+    <rect width='128' height='128' rx='24' fill='#f3f4f6' stroke='#cbd5e1' stroke-width='2'/>
+    <text x='38' y='56' font-size='36' text-anchor='middle' dominant-baseline='middle' filter='url(#shadow)'>${e1}</text>
+    <text x='90' y='56' font-size='36' text-anchor='middle' dominant-baseline='middle' filter='url(#shadow)'>${e2}</text>
+    <text x='38' y='108' font-size='36' text-anchor='middle' dominant-baseline='middle' filter='url(#shadow)'>${e3}</text>
+    <text x='90' y='108' font-size='36' text-anchor='middle' dominant-baseline='middle' filter='url(#shadow)'>${e4}</text>
+    <defs>
+      <filter id='shadow' x='-20%' y='-20%' width='140%' height='140%'>
+        <feDropShadow dx='0' dy='1' stdDeviation='1' flood-color='#fff' flood-opacity='0.7'/>
+        <feDropShadow dx='0' dy='2' stdDeviation='2' flood-color='#000' flood-opacity='0.18'/>
+      </filter>
+    </defs>
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
+
 function buildDefaultDeckImages(deck) {
   const merged = getDeckDataSync(deck)
   const legacy = LEGACY_DEFAULT_IMAGES[deck] || {}
@@ -286,7 +333,11 @@ function buildDefaultDeckImages(deck) {
   for (const [key, value] of Object.entries(merged)) {
     const normalizedKey = String(key)
     const paddedKey = normalizedKey.padStart(2, '0')
-    const legacyImg = legacy[normalizedKey] || legacy[paddedKey]
+    let legacyImg = legacy[normalizedKey] || legacy[paddedKey]
+    // Sprite SVG for binary/binary8
+    if ((deck === 'binary8' && key.length === 8) || (deck === 'binary' && key.length === 4)) {
+      legacyImg = legacyImg || makeBinarySpriteSvg(deck, normalizedKey)
+    }
     out[normalizedKey] = legacyImg || makeDefaultImage(deck, normalizedKey, String(value || ''))
   }
   return out
