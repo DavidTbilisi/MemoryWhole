@@ -159,7 +159,7 @@
       </div>
     </div>
 
-    <div v-else-if="mode === 'pao10'" class="overflow-auto rounded-lg border border-slate-700">
+    <div v-else-if="mode === 'pao'" class="overflow-auto rounded-lg border border-slate-700">
       <table class="w-full border-collapse text-sm">
         <thead class="bg-slate-900/70 sticky top-0">
           <tr>
@@ -173,14 +173,14 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="i in 10" :key="i - 1" class="odd:bg-slate-900/30">
-            <td class="p-2 border border-slate-700 text-center font-bold text-slate-300">{{ i - 1 }}</td>
-            <td class="p-2 border border-slate-700">{{ pao10people[String(i - 1)] || '—' }}</td>
-            <td class="p-2 border border-slate-700"><img :src="pao10peopleImages[String(i - 1)] || ''" alt="" class="h-10 w-14 rounded border border-slate-700 object-cover" @error="onImageError($event, String(i - 1))" /></td>
-            <td class="p-2 border border-slate-700">{{ pao10actions[String(i - 1)] || '—' }}</td>
-            <td class="p-2 border border-slate-700"><img :src="pao10actionsImages[String(i - 1)] || ''" alt="" class="h-10 w-14 rounded border border-slate-700 object-cover" @error="onImageError($event, String(i - 1))" /></td>
-            <td class="p-2 border border-slate-700">{{ pao10objects[String(i - 1)] || '—' }}</td>
-            <td class="p-2 border border-slate-700"><img :src="pao10objectsImages[String(i - 1)] || ''" alt="" class="h-10 w-14 rounded border border-slate-700 object-cover" @error="onImageError($event, String(i - 1))" /></td>
+          <tr v-for="row in paoRows" :key="row.digit" class="odd:bg-slate-900/30">
+            <td class="p-2 border border-slate-700 text-center font-bold text-slate-300">{{ row.digit }}</td>
+            <td class="p-2 border border-slate-700">{{ row.person.value || '—' }}</td>
+            <td class="p-2 border border-slate-700"><img :src="paoPreviewImage(row.person, 'person')" alt="" class="h-10 w-14 rounded border border-slate-700 object-cover" @error="onImageError($event, row.person.key)" /></td>
+            <td class="p-2 border border-slate-700">{{ row.action.value || '—' }}</td>
+            <td class="p-2 border border-slate-700"><img :src="paoPreviewImage(row.action, 'action')" alt="" class="h-10 w-14 rounded border border-slate-700 object-cover" @error="onImageError($event, row.action.key)" /></td>
+            <td class="p-2 border border-slate-700">{{ row.object.value || '—' }}</td>
+            <td class="p-2 border border-slate-700"><img :src="paoPreviewImage(row.object, 'object')" alt="" class="h-10 w-14 rounded border border-slate-700 object-cover" @error="onImageError($event, row.object.key)" /></td>
           </tr>
         </tbody>
       </table>
@@ -239,17 +239,15 @@
 </template>
 
 <script>
-import { getDeckEmojiMapSync, getDeckImagesSync, loadDeckData, makeEmojiFallbackDataUri } from '../core/deck-loader'
+import { getDeckEmojiMapSync, getDeckImagesSync, getPaoPartRowsSync, loadDeckData, makeEmojiFallbackDataUri } from '../core/deck-loader'
 import { getDeckReviewState } from '../core/spaced-repetition'
 import { DECKS } from '../data/decks'
 import { MAJOR_DATA } from '../data/major-system'
 import { SEM3_DATA } from '../data/sem3'
 import { PEG_AUDIO, PEG_VISUAL } from '../data/peg-matrix'
 import { PEG_AUDIO_RU, PEG_VISUAL_RU } from '../data/peg-matrix-ru'
-import { PAO10_PEOPLE_DATA, PAO10_ACTIONS_DATA, PAO10_OBJECTS_DATA, PAO10_PEOPLE_IMAGES, PAO10_ACTIONS_IMAGES, PAO10_OBJECTS_IMAGES } from '../data/pao10'
 
 const SEM3_LABELS = ['Vision', 'Sound', 'Smell', 'Taste', 'Touch', 'Sensation', 'Animals', 'Birds', 'Rainbow', 'Solar-System']
-import { PAO_PEOPLE, PAO_ACTIONS, PAO_OBJECTS } from '../data/pao'
 
 export default {
   name: 'PreviewView',
@@ -276,17 +274,14 @@ export default {
       if (this.deck === 'sem3major') return 'sem3major-matrix'
       if (this.deck === 'binary') return 'binary'
       if (this.deck === 'hex') return 'hex'
-      if (this.deck === 'sem3' || this.deck === 'pao') return 'grouped'
-      if (this.deck === 'pao10people' || this.deck === 'pao10actions' || this.deck === 'pao10objects') return 'pao10'
+      if (this.deck === 'sem3') return 'grouped'
+      if (this.deck === 'pao') return 'pao'
       if (this.deck === 'biblebooks') return 'biblebooks'
       return 'table'
     },
-    pao10people() { return PAO10_PEOPLE_DATA },
-    pao10actions() { return PAO10_ACTIONS_DATA },
-    pao10objects() { return PAO10_OBJECTS_DATA },
-    pao10peopleImages() { return PAO10_PEOPLE_IMAGES },
-    pao10actionsImages() { return PAO10_ACTIONS_IMAGES },
-    pao10objectsImages() { return PAO10_OBJECTS_IMAGES },
+    paoRows() {
+      return this.deck === 'pao' ? getPaoPartRowsSync() : []
+    },
     pegAudio() {
       const src = this.deck === 'pegmatrixru' ? PEG_AUDIO_RU : PEG_AUDIO
       return Object.values(src)
@@ -384,33 +379,6 @@ export default {
         return grouped.filter((g) => g.rows.length)
       }
 
-      if (this.deck === 'pao') {
-        // Show three groups: People, Actions, Objects
-        return [
-          {
-            name: 'People (0–9)',
-            rows: PAO_PEOPLE.map((p) => ({
-              key: p.num,
-              value: `${p.person} (${p.consonant})`,
-            })),
-          },
-          {
-            name: 'Actions (0–9)',
-            rows: PAO_ACTIONS.map((a) => ({
-              key: a.num,
-              value: `${a.action} (${a.consonant})`,
-            })),
-          },
-          {
-            name: 'Objects (0–9)',
-            rows: PAO_OBJECTS.map((o) => ({
-              key: o.num,
-              value: `${o.object} (${o.consonant})`,
-            })),
-          },
-        ]
-      }
-
       return []
     },
     bibleBookRows() {
@@ -455,6 +423,12 @@ export default {
     },
     hexCodeFor(highBits, lowBits) {
       return Number.parseInt(`${highBits}${lowBits}`, 2).toString(16).toUpperCase()
+    },
+    paoPreviewImage(part, kind) {
+      const src = String(part?.image || '').trim()
+      if (src) return src
+      const emoji = kind === 'person' ? '🧑' : kind === 'action' ? '⚡' : '🗡️'
+      return makeEmojiFallbackDataUri(emoji, `No ${kind} image`)
     },
     imageForKey(key) {
       return this.imageMap[String(key)] || ''

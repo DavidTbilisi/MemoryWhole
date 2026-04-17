@@ -37,7 +37,7 @@
           <option value="invalid-image">Invalid image</option>
         </select>
         <div class="rounded-lg border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-400">
-          Showing <span class="font-semibold text-slate-200">{{ filteredRows.length }}</span> / {{ rows.length }}
+          Showing <span class="font-semibold text-slate-200">{{ visibleDisplayRows }}</span> / {{ totalDisplayRows }}
         </div>
         <div class="rounded-lg border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-400">
           Dirty <span class="font-semibold text-amber-200">{{ dirtyCount }}</span>
@@ -49,8 +49,8 @@
         <button class="rounded border border-slate-600 px-2.5 py-1 text-xs text-slate-200 disabled:opacity-40" @click="redo" :disabled="!canRedo">Redo</button>
         <button class="rounded border border-amber-700/70 px-2.5 py-1 text-xs text-amber-200 disabled:opacity-40" @click="jumpModified(-1)" :disabled="!modifiedKeys.length">Prev changed</button>
         <button class="rounded border border-amber-700/70 px-2.5 py-1 text-xs text-amber-200 disabled:opacity-40" @click="jumpModified(1)" :disabled="!modifiedKeys.length">Next changed</button>
-        <button class="rounded border border-slate-600 px-2.5 py-1 text-xs text-slate-200 disabled:opacity-40" @click="bulkClearImages" :disabled="!filteredRows.length">Clear images (visible)</button>
-        <button class="rounded border border-slate-600 px-2.5 py-1 text-xs text-slate-200 disabled:opacity-40" @click="bulkRevertVisible" :disabled="!filteredRows.some((r) => isRowModified(r))">Revert visible modified</button>
+        <button class="rounded border border-slate-600 px-2.5 py-1 text-xs text-slate-200 disabled:opacity-40" @click="bulkClearImages" :disabled="!visibleEditableRows.length">Clear images (visible)</button>
+        <button class="rounded border border-slate-600 px-2.5 py-1 text-xs text-slate-200 disabled:opacity-40" @click="bulkRevertVisible" :disabled="!visibleEditableRows.some((r) => isRowModified(r))">Revert visible modified</button>
       </div>
     </div>
 
@@ -59,7 +59,7 @@
 
     <div ref="tableWrap" class="overflow-auto rounded-lg border border-slate-700">
       <table class="w-full border-collapse text-sm">
-        <thead class="sticky top-0 bg-slate-900/70">
+        <thead v-if="!isPaoDeck" class="sticky top-0 bg-slate-900/70">
           <tr>
             <th class="w-28 border border-slate-700 p-2 text-left">Key</th>
             <th class="border border-slate-700 p-2 text-left">Association</th>
@@ -68,7 +68,7 @@
             <th class="w-24 border border-slate-700 p-2 text-left">Preview</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody v-if="!isPaoDeck">
           <tr
             v-for="row in filteredRows"
             :key="row.key"
@@ -120,8 +120,125 @@
             </td>
           </tr>
         </tbody>
+        <thead v-else class="sticky top-0 bg-slate-900/70">
+          <tr>
+            <th class="w-12 border border-slate-700 p-2 text-center">#</th>
+            <th class="border border-slate-700 p-2 text-left">Person</th>
+            <th class="border border-slate-700 p-2 text-left">Action</th>
+            <th class="border border-slate-700 p-2 text-left">Object</th>
+          </tr>
+        </thead>
+        <tbody v-if="isPaoDeck">
+          <tr
+            v-for="bundle in paoGridRows"
+            :key="bundle.digit"
+            :data-row-key="bundle.digit"
+            class="odd:bg-slate-900/30 align-top"
+          >
+            <td class="border border-slate-700 p-2 text-center font-semibold text-slate-300">{{ bundle.digit }}</td>
+            <td class="border border-slate-700 p-2">
+              <div class="space-y-2">
+                <input
+                  v-model="bundle.person.value"
+                  @input="onFieldInput(bundle.person, 'value')"
+                  type="text"
+                  class="w-full rounded-md border border-slate-700 bg-slate-950/80 px-2 py-1 text-slate-100 outline-none focus:border-cyan-500"
+                />
+                <div class="flex items-center gap-2">
+                  <input
+                    v-model="bundle.person.icon"
+                    @input="onFieldInput(bundle.person, 'icon')"
+                    type="text"
+                    class="w-14 rounded-md border border-slate-700 bg-slate-950/80 px-2 py-1 text-center text-lg text-slate-100 outline-none focus:border-cyan-500"
+                  />
+                  <button class="rounded border border-slate-700 px-2 py-0.5 text-xs text-slate-300" @click="resetIcon(bundle.person)">Reset</button>
+                </div>
+                <div @dragover.prevent="onDragOver" @drop.prevent="onDropImage(bundle.person, $event)">
+                  <input
+                    v-model="bundle.person.image"
+                    @input="onImageInput(bundle.person)"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-950/80 px-2 py-1 text-slate-100 outline-none focus:border-cyan-500"
+                  />
+                  <div class="mt-1 flex items-center gap-2">
+                    <button class="rounded border border-slate-700 px-2 py-0.5 text-xs text-slate-300" @click="triggerUpload(bundle.person.key)">Upload</button>
+                    <button class="rounded border border-slate-700 px-2 py-0.5 text-xs text-slate-300" @click="clearImage(bundle.person)">Clear</button>
+                    <button class="rounded border border-amber-700/70 px-2 py-0.5 text-xs text-amber-200" @click="revertRow(bundle.person)" :disabled="!isRowModified(bundle.person)">Revert</button>
+                  </div>
+                </div>
+                <img :src="bundle.person.image" alt="" class="h-12 w-16 rounded border border-slate-700 object-cover" @error="onImageError($event, bundle.person.key)" />
+              </div>
+            </td>
+            <td class="border border-slate-700 p-2">
+              <div class="space-y-2">
+                <input
+                  v-model="bundle.action.value"
+                  @input="onFieldInput(bundle.action, 'value')"
+                  type="text"
+                  class="w-full rounded-md border border-slate-700 bg-slate-950/80 px-2 py-1 text-slate-100 outline-none focus:border-cyan-500"
+                />
+                <div class="flex items-center gap-2">
+                  <input
+                    v-model="bundle.action.icon"
+                    @input="onFieldInput(bundle.action, 'icon')"
+                    type="text"
+                    class="w-14 rounded-md border border-slate-700 bg-slate-950/80 px-2 py-1 text-center text-lg text-slate-100 outline-none focus:border-cyan-500"
+                  />
+                  <button class="rounded border border-slate-700 px-2 py-0.5 text-xs text-slate-300" @click="resetIcon(bundle.action)">Reset</button>
+                </div>
+                <div @dragover.prevent="onDragOver" @drop.prevent="onDropImage(bundle.action, $event)">
+                  <input
+                    v-model="bundle.action.image"
+                    @input="onImageInput(bundle.action)"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-950/80 px-2 py-1 text-slate-100 outline-none focus:border-cyan-500"
+                  />
+                  <div class="mt-1 flex items-center gap-2">
+                    <button class="rounded border border-slate-700 px-2 py-0.5 text-xs text-slate-300" @click="triggerUpload(bundle.action.key)">Upload</button>
+                    <button class="rounded border border-slate-700 px-2 py-0.5 text-xs text-slate-300" @click="clearImage(bundle.action)">Clear</button>
+                    <button class="rounded border border-amber-700/70 px-2 py-0.5 text-xs text-amber-200" @click="revertRow(bundle.action)" :disabled="!isRowModified(bundle.action)">Revert</button>
+                  </div>
+                </div>
+                <img :src="bundle.action.image" alt="" class="h-12 w-16 rounded border border-slate-700 object-cover" @error="onImageError($event, bundle.action.key)" />
+              </div>
+            </td>
+            <td class="border border-slate-700 p-2">
+              <div class="space-y-2">
+                <input
+                  v-model="bundle.object.value"
+                  @input="onFieldInput(bundle.object, 'value')"
+                  type="text"
+                  class="w-full rounded-md border border-slate-700 bg-slate-950/80 px-2 py-1 text-slate-100 outline-none focus:border-cyan-500"
+                />
+                <div class="flex items-center gap-2">
+                  <input
+                    v-model="bundle.object.icon"
+                    @input="onFieldInput(bundle.object, 'icon')"
+                    type="text"
+                    class="w-14 rounded-md border border-slate-700 bg-slate-950/80 px-2 py-1 text-center text-lg text-slate-100 outline-none focus:border-cyan-500"
+                  />
+                  <button class="rounded border border-slate-700 px-2 py-0.5 text-xs text-slate-300" @click="resetIcon(bundle.object)">Reset</button>
+                </div>
+                <div @dragover.prevent="onDragOver" @drop.prevent="onDropImage(bundle.object, $event)">
+                  <input
+                    v-model="bundle.object.image"
+                    @input="onImageInput(bundle.object)"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-950/80 px-2 py-1 text-slate-100 outline-none focus:border-cyan-500"
+                  />
+                  <div class="mt-1 flex items-center gap-2">
+                    <button class="rounded border border-slate-700 px-2 py-0.5 text-xs text-slate-300" @click="triggerUpload(bundle.object.key)">Upload</button>
+                    <button class="rounded border border-slate-700 px-2 py-0.5 text-xs text-slate-300" @click="clearImage(bundle.object)">Clear</button>
+                    <button class="rounded border border-amber-700/70 px-2 py-0.5 text-xs text-amber-200" @click="revertRow(bundle.object)" :disabled="!isRowModified(bundle.object)">Revert</button>
+                  </div>
+                </div>
+                <img :src="bundle.object.image" alt="" class="h-12 w-16 rounded border border-slate-700 object-cover" @error="onImageError($event, bundle.object.key)" />
+              </div>
+            </td>
+          </tr>
+        </tbody>
       </table>
-      <div v-if="!filteredRows.length" class="p-4 text-sm text-slate-400">No rows match current search/filter.</div>
+      <div v-if="!visibleEditableRows.length" class="p-4 text-sm text-slate-400">No rows match current search/filter.</div>
     </div>
 
     <div v-if="message" class="mt-3 text-sm" :class="messageOk ? 'text-emerald-300' : 'text-rose-300'">{{ message }}</div>
@@ -143,7 +260,7 @@
         <button class="rounded border border-slate-600 px-2.5 py-1 text-xs text-slate-200 disabled:opacity-40" @click="redo" :disabled="!canRedo">Redo</button>
         <button class="rounded border border-cyan-700/70 px-2.5 py-1 text-xs text-cyan-200" @click="save">Save now</button>
         <button class="rounded border border-amber-700/70 px-2.5 py-1 text-xs text-amber-200 disabled:opacity-40" @click="jumpModified(1)" :disabled="!modifiedKeys.length">Next changed</button>
-        <button class="rounded border border-slate-600 px-2.5 py-1 text-xs text-slate-200 disabled:opacity-40" @click="bulkRevertVisible" :disabled="!filteredRows.some((r) => isRowModified(r))">Revert visible</button>
+        <button class="rounded border border-slate-600 px-2.5 py-1 text-xs text-slate-200 disabled:opacity-40" @click="bulkRevertVisible" :disabled="!visibleEditableRows.some((r) => isRowModified(r))">Revert visible</button>
       </div>
     </div>
   </div>
@@ -151,7 +268,7 @@
 
 <script>
 import { DECKS } from '../data/decks'
-import { exportDeckPayload, getDeckBaseDataSync, getDeckDataSync, getDeckDefaultIconsSync, getDeckDefaultImagesSync, getDeckIconsSync, getDeckImagesSync, makeEmojiFallbackDataUri, saveDeckEdits, saveDeckIconEdits, saveDeckImageEdits } from '../core/deck-loader'
+import { exportDeckPayload, getDeckBaseDataSync, getDeckDefaultIconsSync, getDeckDefaultImagesSync, getDeckIconsSync, getDeckImagesSync, makeEmojiFallbackDataUri, saveDeckEdits, saveDeckIconEdits, saveDeckImageEdits } from '../core/deck-loader'
 import { getDeckReviewState } from '../core/spaced-repetition'
 import { getCurrentUser } from '../core/firebase-auth'
 import { syncCloudForCurrentUser } from '../core/firebase-sync'
@@ -186,6 +303,9 @@ export default {
     }
   },
   computed: {
+    isPaoDeck() {
+      return this.deck === 'pao'
+    },
     title() {
       return DECKS.find((d) => d.deck === this.deck)?.name || this.deck
     },
@@ -201,6 +321,39 @@ export default {
           .map((v) => String(v || '').toLowerCase())
           .some((v) => v.includes(query))
       })
+    },
+    paoGridRows() {
+      const rowMap = new Map(this.rows.map((row) => [String(row.key), row]))
+      const query = String(this.searchQuery || '').trim().toLowerCase()
+      return Array.from({ length: 10 }, (_, digit) => {
+        const key = String(digit)
+        return {
+          digit: key,
+          person: rowMap.get(`P${key}`),
+          action: rowMap.get(`A${key}`),
+          object: rowMap.get(`O${key}`),
+        }
+      }).filter((bundle) => {
+        const parts = [bundle.person, bundle.action, bundle.object].filter(Boolean)
+        if (!parts.length) return false
+        if (this.rowFilter === 'modified' && !parts.some((row) => this.isRowModified(row))) return false
+        if (this.rowFilter === 'missing-image' && !parts.some((row) => this.isMissingImage(row))) return false
+        if (this.rowFilter === 'invalid-image' && !parts.some((row) => this.isInvalidImage(row))) return false
+        if (!query) return true
+        return parts.some((row) => [row.key, row.value, row.icon, row.image]
+          .map((value) => String(value || '').toLowerCase())
+          .some((value) => value.includes(query)))
+      })
+    },
+    visibleEditableRows() {
+      if (!this.isPaoDeck) return this.filteredRows
+      return this.paoGridRows.flatMap((bundle) => [bundle.person, bundle.action, bundle.object].filter(Boolean))
+    },
+    visibleDisplayRows() {
+      return this.isPaoDeck ? this.paoGridRows.length : this.filteredRows.length
+    },
+    totalDisplayRows() {
+      return this.isPaoDeck ? 10 : this.rows.length
     },
     dirtyCount() {
       return this.rows.reduce((count, row) => count + (this.isRowModified(row) ? 1 : 0), 0)
@@ -321,23 +474,23 @@ export default {
       } else {
         this.modifiedCursor = (this.modifiedCursor + direction + keys.length) % keys.length
       }
-      const key = keys[this.modifiedCursor]
+      const key = this.isPaoDeck ? String(keys[this.modifiedCursor]).slice(-1) : keys[this.modifiedCursor]
       const selectorKey = String(key).replace(/"/g, '\\"')
       const rowEl = this.$refs.tableWrap?.querySelector(`[data-row-key="${selectorKey}"]`)
       if (rowEl) rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
     },
     bulkClearImages() {
-      if (!this.filteredRows.length) return
-      const ok = window.confirm(`Clear image path for ${this.filteredRows.length} visible row(s)?`)
+      if (!this.visibleEditableRows.length) return
+      const ok = window.confirm(`Clear image path for ${this.visibleEditableRows.length} visible row(s)?`)
       if (!ok) return
-      for (const row of this.filteredRows) {
+      for (const row of this.visibleEditableRows) {
         row.image = ''
         this.clearInvalidFlag(row.key)
       }
       this.pushHistory()
     },
     bulkRevertVisible() {
-      const target = this.filteredRows.filter((row) => this.isRowModified(row))
+      const target = this.visibleEditableRows.filter((row) => this.isRowModified(row))
       if (!target.length) return
       const ok = window.confirm(`Revert ${target.length} visible modified row(s)?`)
       if (!ok) return
@@ -413,9 +566,10 @@ export default {
       this.$emit('back')
     },
     loadRows() {
-      const current = getDeckDataSync(this.deck)
-      const images = getDeckImagesSync(this.deck)
-      const icons = getDeckIconsSync(this.deck)
+      const payload = exportDeckPayload(this.deck)
+      const current = payload.data || {}
+      const images = payload.images || {}
+      const icons = payload.icons || {}
       this.emojiMap = { ...icons }
       this.rows = Object.entries(current)
         .sort(([a], [b]) => byDeckKey(a, b))

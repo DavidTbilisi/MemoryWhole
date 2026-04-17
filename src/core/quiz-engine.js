@@ -1,3 +1,6 @@
+import { getPaoSceneImagesSync } from './deck-loader'
+import { sortPoolByReviewUrgency, updateReviewState } from './spaced-repetition'
+
 function shuffle(items) {
   const out = [...items]
   for (let i = out.length - 1; i > 0; i -= 1) {
@@ -7,12 +10,22 @@ function shuffle(items) {
   return out
 }
 
-import { sortPoolByReviewUrgency, updateReviewState } from './spaced-repetition'
-
 export function createQuizEngine(deck, dataMap) {
-  const pool = Object.entries(dataMap || {})
-    .filter(([, v]) => typeof v === 'string' && v.trim())
-    .map(([k, v]) => ({ key: String(k), value: v.trim() }))
+  let pool = []
+
+  if (deck === 'pao') {
+    pool = Object.entries(dataMap || {})
+      .filter(([, v]) => typeof v === 'string' && v.trim())
+      .map(([k, v]) => ({
+        key: String(k).padStart(3, '0'),
+        value: v.trim(),
+        images: getPaoSceneImagesSync(k),
+      }))
+  } else {
+    pool = Object.entries(dataMap || {})
+      .filter(([, v]) => typeof v === 'string' && v.trim())
+      .map(([k, v]) => ({ key: String(k), value: v.trim() }))
+  }
 
   if (pool.length < 6) {
     throw new Error(`Deck '${deck}' needs at least 6 items to run quiz`)
@@ -23,7 +36,8 @@ export function createQuizEngine(deck, dataMap) {
     pool: sortPoolByReviewUrgency(shuffle(pool), deck),
     currentIndex: 0,
     currentNum: '—',
-    currentAnswer: '',
+    currentAnswer: null,
+    currentImages: {},
     options: [],
     answered: false,
     feedback: '',
@@ -34,17 +48,28 @@ export function createQuizEngine(deck, dataMap) {
   function loadQuestion() {
     const item = state.pool[state.currentIndex % state.pool.length]
     state.currentNum = item.key
-    state.currentAnswer = item.value
-    const wrongs = shuffle(state.pool.filter((p) => p.key !== item.key).map((p) => p.value)).slice(0, 5)
-    state.options = shuffle([item.value, ...wrongs])
+    state.currentAnswer = deck === 'pao' ? item : item.value
+    state.currentImages = item.images || {}
+
+    if (deck === 'pao') {
+      const wrongs = shuffle(state.pool.filter((p) => p.key !== item.key)).slice(0, 5)
+      state.options = shuffle([item, ...wrongs])
+    } else {
+      const wrongs = shuffle(state.pool.filter((p) => p.key !== item.key).map((p) => p.value)).slice(0, 5)
+      state.options = shuffle([item.value, ...wrongs])
+    }
+
     state.answered = false
     state.feedback = ''
   }
 
   function answer(opt, responseMs = 0) {
     if (state.answered) return false
+
     state.answered = true
-    const isCorrect = opt === state.currentAnswer
+    const isCorrect = deck === 'pao'
+      ? opt?.key === state.currentNum
+      : opt === state.currentAnswer
 
     state.numStats[state.currentNum] = state.numStats[state.currentNum] || { attempts: 0, correct: 0, wrong: 0 }
     state.numStats[state.currentNum].attempts += 1
@@ -56,9 +81,8 @@ export function createQuizEngine(deck, dataMap) {
     } else {
       state.score.wrong += 1
       state.numStats[state.currentNum].wrong += 1
-      state.feedback = `Wrong - ${state.currentAnswer}`
+      state.feedback = `Wrong - ${deck === 'pao' ? state.currentAnswer?.value || '' : state.currentAnswer}`
 
-      // Re-surface failed prompts soon so the learner can repair memory traces.
       const itemIdx = state.pool.findIndex((item) => item.key === state.currentNum)
       if (itemIdx >= 0) {
         const [failedItem] = state.pool.splice(itemIdx, 1)
@@ -68,7 +92,6 @@ export function createQuizEngine(deck, dataMap) {
     }
 
     updateReviewState(state.deck, state.currentNum, { correct: isCorrect, responseMs })
-
     return isCorrect
   }
 

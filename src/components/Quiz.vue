@@ -84,7 +84,7 @@
               <div class="flex items-center justify-center py-1 sm:py-2 md:py-2 shrink-0">
                 <div class="text-center">
                   <div class="text-5xl sm:text-6xl md:text-7xl font-black leading-none quiz-prompt tabular-nums">{{ currentNum }}</div>
-                  <div class="mt-1 text-[10px] uppercase tracking-widest" :class="feedbackClass">{{ feedback || 'match this' }}</div>
+                  <div class="mt-1 text-[10px] uppercase tracking-widest" :class="feedbackClass">{{ feedback || promptHelperText }}</div>
                 </div>
               </div>
 
@@ -101,36 +101,33 @@
                   @touchend="onOptionTouchEnd($event, idx)"
                   :style="optionSwipeStyle(idx)"
                 >
-                  <!-- Image area -->
-                  <div class="absolute inset-x-0 top-0 bottom-6 sm:bottom-7 overflow-hidden rounded-t-lg">
-                    <template v-if="optionHasDualImages(opt)">
-                      <img
-                        :src="optionAudioImage(opt)"
-                        :alt="`${opt} - Audio`"
-                        class="absolute left-0 top-0 h-full w-1/2 object-contain p-0.5"
-                        @error="onOptionImageError($event, opt)"
-                      />
-                      <img
-                        :src="optionVisualImage(opt)"
-                        :alt="`${opt} - Visual`"
-                        class="absolute right-0 top-0 h-full w-1/2 object-contain p-0.5"
-                        @error="onOptionImageError($event, opt)"
-                      />
-                    </template>
+                  <!-- PAO combined images for 3-digit quiz -->
+                  <div v-if="deck === 'pao'" class="absolute inset-x-0 top-0 bottom-9 sm:bottom-10 flex items-stretch justify-center gap-1 px-1 py-1 overflow-hidden rounded-t-lg">
+                    <div class="flex-1 min-w-0 flex items-center justify-center">
+                      <img :src="paoImageForOption(opt, 'person')" alt="person" class="h-full w-full object-contain rounded" />
+                    </div>
+                    <div class="flex-1 min-w-0 flex items-center justify-center">
+                      <img :src="paoImageForOption(opt, 'action')" alt="action" class="h-full w-full object-contain rounded" />
+                    </div>
+                    <div class="flex-1 min-w-0 flex items-center justify-center">
+                      <img :src="paoImageForOption(opt, 'object')" alt="object" class="h-full w-full object-contain rounded" />
+                    </div>
+                  </div>
+                  <!-- Fallback for other decks -->
+                  <div v-else class="absolute inset-x-0 top-0 bottom-6 sm:bottom-7 overflow-hidden rounded-t-lg">
                     <img
-                      v-else
                       :src="optionImage(opt)"
-                      :alt="opt"
+                      :alt="optionDisplayLabel(opt)"
                       class="h-full w-full object-contain p-0.5"
                       @error="onOptionImageError($event, opt)"
                     />
                     <div class="absolute inset-0" :class="optionOverlayClass(opt, idx)"></div>
                   </div>
                   <!-- Label area -->
-                  <div class="absolute inset-x-0 bottom-0 h-6 sm:h-7 flex items-center px-1.5 sm:px-2 gap-1 quiz-option-label rounded-b-lg">
+                  <div class="absolute inset-x-0 bottom-0 flex items-center px-1.5 sm:px-2 gap-1 quiz-option-label rounded-b-lg" :class="deck === 'pao' ? 'h-9 sm:h-10' : 'h-6 sm:h-7'">
                     <span class="text-[9px] font-bold shrink-0 hidden sm:inline quiz-text-muted">{{ idx + 1 }}</span>
-                    <span class="truncate text-[11px] sm:text-xs font-semibold" :class="optionLabelClass(opt)">{{ opt }}</span>
-                    <button v-if="optionDueLabel(opt)" class="ml-auto shrink-0 text-[10px] text-slate-500 hover:text-cyan-300 transition-colors" @click.stop="openSrModal(opt)">{{ optionDueLabel(opt) }}</button>
+                    <span class="font-semibold leading-tight" :class="[optionLabelClass(opt), deck === 'pao' ? 'text-[9px] sm:text-[10px] line-clamp-2' : 'truncate text-[11px] sm:text-xs']">{{ optionDisplayLabel(opt) }}</span>
+                    <button v-if="deck !== 'pao' && optionDueLabel(opt)" class="ml-auto shrink-0 text-[10px] text-slate-500 hover:text-cyan-300 transition-colors" @click.stop="openSrModal(opt)">{{ optionDueLabel(opt) }}</button>
                   </div>
                 </button>
               </div>
@@ -431,6 +428,11 @@ export default {
       if (!this.loopSize) return '-'
       return `${this.questionIndex + 1} / ${this.loopSize}`
     },
+    promptHelperText() {
+      return this.deck === 'pao'
+        ? `match ${this.currentNum} (3 numbers)`
+        : 'match this'
+    },
     feedbackClass() {
       if (!this.feedback) return 'quiz-text-muted'
       if (this.feedback.startsWith('Correct')) return 'quiz-feedback-correct'
@@ -526,6 +528,28 @@ export default {
       }
       return true
     },
+    optionId(opt) {
+      if (this.deck === 'pao' && opt && typeof opt === 'object') return String(opt.key || '')
+      return String(opt ?? '')
+    },
+    isSameOption(left, right) {
+      return this.optionId(left) === this.optionId(right)
+    },
+    optionDisplayLabel(opt) {
+      if (this.deck === 'pao' && opt && typeof opt === 'object') return String(opt.value || '')
+      return String(opt ?? '')
+    },
+    paoPlaceholderEmoji(part) {
+      if (part === 'person') return '🧑'
+      if (part === 'action') return '⚡'
+      return '🗡️'
+    },
+    paoImageForOption(opt, part) {
+      if (this.deck !== 'pao') return ''
+      const src = String(opt?.images?.[part] || '').trim()
+      if (src) return src
+      return makeEmojiFallbackDataUri(this.paoPlaceholderEmoji(part), `No ${part} image`)
+    },
     syncFromEngine() {
       const st = this.engine?.state
       if (!st) return
@@ -546,27 +570,28 @@ export default {
       if (!this.answered) {
         return `${base} quiz-option-border hover:quiz-option-hover`
       }
-      if (opt === this.currentAnswer) {
+      if (this.isSameOption(opt, this.currentAnswer)) {
         return `${base} border-emerald-500 shadow-[0_0_16px_rgba(52,211,153,0.25)] option-reveal-correct`
       }
-      if (opt === this.selectedOption && opt !== this.currentAnswer) {
+      if (this.isSameOption(opt, this.selectedOption) && !this.isSameOption(opt, this.currentAnswer)) {
         return `${base} border-rose-500 shadow-[0_0_16px_rgba(251,113,133,0.2)] option-reveal-wrong`
       }
       return `${base} quiz-option-border opacity-40`
     },
     optionLabelClass(opt) {
       if (!this.answered) return 'quiz-text-main'
-      if (opt === this.currentAnswer) return 'text-emerald-600 dark:text-emerald-300'
-      if (opt === this.selectedOption && opt !== this.currentAnswer) return 'text-rose-600 dark:text-rose-300'
+      if (this.isSameOption(opt, this.currentAnswer)) return 'text-emerald-600 dark:text-emerald-300'
+      if (this.isSameOption(opt, this.selectedOption) && !this.isSameOption(opt, this.currentAnswer)) return 'text-rose-600 dark:text-rose-300'
       return 'quiz-text-muted'
     },
     optionOverlayClass(opt, idx) {
       if (!this.answered) return 'bg-slate-950/20'
-      if (opt === this.currentAnswer) return 'bg-emerald-900/25'
-      if (opt === this.selectedOption && opt !== this.currentAnswer) return 'bg-rose-900/30'
+      if (this.isSameOption(opt, this.currentAnswer)) return 'bg-emerald-900/25'
+      if (this.isSameOption(opt, this.selectedOption) && !this.isSameOption(opt, this.currentAnswer)) return 'bg-rose-900/30'
       return 'bg-slate-950/55'
     },
     optionKeyForLabel(opt) {
+      if (this.deck === 'pao' && opt && typeof opt === 'object') return String(opt.key || '')
       return this.valueToKey[String(opt)] || ''
     },
     reviewItemForKey(rawKey) {
@@ -592,6 +617,9 @@ export default {
     openSrModal(opt) {
       this.srModalTab = 'edit'
       const key = this.optionKeyForLabel(opt)
+      const displayValue = this.deck === 'pao' && opt && typeof opt === 'object'
+        ? String(opt.value || '')
+        : String(opt || '')
       const rawItem = this.reviewItemForKey(key) || {}
       const reps = rawItem.reps || 0
       const lapses = rawItem.lapses || 0
@@ -607,12 +635,12 @@ export default {
         ? this.imageMap[String(key)] : ''
       this.srModal = {
         key,
-        value: opt,
+        value: displayValue,
         item: { reps, lapses, ease, intervalDays },
         lastReviewedLabel,
         dueDateInput,
         originalNextDueAt: nextDueAt,
-        editValue: opt,
+        editValue: displayValue,
         editImage: currentImage,
       }
     },
@@ -907,7 +935,7 @@ export default {
         this.choose(this.currentAnswer)
       } else if (deltaX < -80) {
         // Swipe left — mark wrong (choose the first wrong option, or any non-correct option)
-        const wrongOpt = this.options.find(o => o !== this.currentAnswer)
+        const wrongOpt = this.options.find((o) => !this.isSameOption(o, this.currentAnswer))
         if (wrongOpt !== undefined) this.choose(wrongOpt)
       }
     },
@@ -925,7 +953,7 @@ export default {
         this.choose(this.currentAnswer)
       } else {
         this.haptic([40, 30, 40])
-        const wrongOpt = this.options.find(o => o !== this.currentAnswer)
+        const wrongOpt = this.options.find((o) => !this.isSameOption(o, this.currentAnswer))
         if (wrongOpt !== undefined) this.choose(wrongOpt)
       }
     },

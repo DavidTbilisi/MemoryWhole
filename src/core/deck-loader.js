@@ -2,8 +2,7 @@ import { MAJOR_DATA, MAJOR_IMAGES } from '../data/major-system'
 import { SEM3_DATA, SEM3_IMAGES } from '../data/sem3'
 import { MONTHS_DATA, MONTHS_IMAGES } from '../data/month-days'
 import { CLOCKS_DATA, CLOCKS_IMAGES } from '../data/clocks'
-import { PAO_DATA, PAO_IMAGES } from '../data/pao'
-import { PAO10_PEOPLE_DATA, PAO10_ACTIONS_DATA, PAO10_OBJECTS_DATA, PAO10_PEOPLE_IMAGES, PAO10_ACTIONS_IMAGES, PAO10_OBJECTS_IMAGES } from '../data/pao10'
+import { PAO_DATA, PAO_IMAGES, PAO_ICONS, getPAOSceneLabel } from '../data/pao'
 import { BINARY_DATA, BINARY_IMAGES } from '../data/binary'
 import { BINARY8_DATA, BINARY8_IMAGES } from '../data/binary8'
 import { HEX_DATA, HEX_IMAGES } from '../data/hex'
@@ -56,9 +55,6 @@ const DECK_EMOJI = {
   months: '📅',
   clocks: '🕐',
   pao: '🎭',
-  pao10people: '🧑',
-  pao10actions: '⚡',
-  pao10objects: '🗡️',
   binary: '⬛',
   binary8: '🔲',
   hex: '🔶',
@@ -91,9 +87,6 @@ const DECK_DATA = {
   months: MONTHS_DATA,
   clocks: CLOCKS_DATA,
   pao: PAO_DATA,
-  pao10people: PAO10_PEOPLE_DATA,
-  pao10actions: PAO10_ACTIONS_DATA,
-  pao10objects: PAO10_OBJECTS_DATA,
   binary: BINARY_DATA,
   binary8: BINARY8_DATA,
   hex: HEX_DATA,
@@ -216,9 +209,6 @@ const LEGACY_DEFAULT_IMAGES = {
   months: MONTHS_IMAGES,
   clocks: CLOCKS_IMAGES,
   pao: PAO_IMAGES,
-  pao10people: PAO10_PEOPLE_IMAGES,
-  pao10actions: PAO10_ACTIONS_IMAGES,
-  pao10objects: PAO10_OBJECTS_IMAGES,
   binary: BINARY_IMAGES,
   binary8: BINARY8_IMAGES,
   hex: HEX_IMAGES,
@@ -235,6 +225,71 @@ const LEGACY_DEFAULT_IMAGES = {
 
 function cloneMap(value) {
   return { ...(value || {}) }
+}
+
+function getEditableDeckDataSync(deck) {
+  const base = getDeckBaseDataSync(deck)
+  const edits = getDeckEdits(deck)
+  return { ...base, ...edits }
+}
+
+function isPaoPartKey(key) {
+  return /^[PAO]\d$/.test(String(key || ''))
+}
+
+function getPaoPartsSync() {
+  const data = getEditableDeckDataSync('pao')
+  const images = { ...PAO_IMAGES, ...getDeckImageEdits('pao') }
+  const icons = { ...PAO_ICONS, ...getDeckIconEdits('pao') }
+  return { data, images, icons }
+}
+
+export function getPaoSceneImagesSync(num) {
+  const digits = String(num).padStart(3, '0')
+  const { images } = getPaoPartsSync()
+  return {
+    person: String(images[`P${digits[0]}`] || ''),
+    action: String(images[`A${digits[1]}`] || ''),
+    object: String(images[`O${digits[2]}`] || ''),
+  }
+}
+
+export function getPaoPartRowsSync() {
+  const { data, images, icons } = getPaoPartsSync()
+  return Array.from({ length: 10 }, (_, digit) => {
+    const key = String(digit)
+    return {
+      digit: key,
+      person: {
+        key: `P${key}`,
+        value: String(data[`P${key}`] || ''),
+        icon: String(icons[`P${key}`] || '🧑'),
+        image: String(images[`P${key}`] || ''),
+      },
+      action: {
+        key: `A${key}`,
+        value: String(data[`A${key}`] || ''),
+        icon: String(icons[`A${key}`] || '⚡'),
+        image: String(images[`A${key}`] || ''),
+      },
+      object: {
+        key: `O${key}`,
+        value: String(data[`O${key}`] || ''),
+        icon: String(icons[`O${key}`] || '🗡️'),
+        image: String(images[`O${key}`] || ''),
+      },
+    }
+  })
+}
+
+function buildPaoSceneDataSync() {
+  const { data } = getPaoPartsSync()
+  const out = {}
+  for (let value = 0; value < 1000; value += 1) {
+    const key = String(value).padStart(3, '0')
+    out[key] = getPAOSceneLabel(key, data)
+  }
+  return out
 }
 
 function hashColor(seed) {
@@ -337,7 +392,7 @@ function makeBinarySpriteSvg(deck, key) {
 }
 
 function buildDefaultDeckImages(deck) {
-  const merged = getDeckDataSync(deck)
+  const merged = deck === 'pao' ? getEditableDeckDataSync(deck) : getDeckDataSync(deck)
   const legacy = LEGACY_DEFAULT_IMAGES[deck] || {}
   const out = {}
   for (const [key, value] of Object.entries(merged)) {
@@ -358,6 +413,7 @@ export function getDeckEmojiMapSync(deck) {
 }
 
 export function getDeckDefaultIconsSync(deck) {
+  if (deck === 'pao') return cloneMap(PAO_ICONS)
   const merged = getDeckDataSync(deck)
   const out = {}
   for (const [key, value] of Object.entries(merged)) {
@@ -461,10 +517,11 @@ export function getDeckIconsSync(deck) {
 }
 
 export function exportDeckPayload(deck) {
+  const data = deck === 'pao' ? getEditableDeckDataSync(deck) : getDeckDataSync(deck)
   return {
     deck,
     exportedAt: new Date().toISOString(),
-    data: getDeckDataSync(deck),
+    data,
     images: getDeckImagesSync(deck),
     icons: getDeckIconsSync(deck),
   }
@@ -475,7 +532,6 @@ export async function loadDeckData(deck) {
 }
 
 export function getDeckDataSync(deck) {
-  const base = getDeckBaseDataSync(deck)
-  const edits = getDeckEdits(deck)
-  return { ...base, ...edits }
+  if (deck === 'pao') return buildPaoSceneDataSync()
+  return getEditableDeckDataSync(deck)
 }

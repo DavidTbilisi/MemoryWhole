@@ -112,7 +112,20 @@ export function getChunkGroups(deck, dataMap) {
     ]
   }
 
-  if (deck === 'pao' || deck === 'pegmatrix' || deck === 'pegmatrixru') {
+  if (deck === 'pao') {
+    return Array.from({ length: 10 }, (_, i) => {
+      const start = i * 100
+      const end = start + 99
+      const label = `${String(start).padStart(3, '0')}-${String(end).padStart(3, '0')}`
+      const inDeck = keys.filter((k) => {
+        const value = Number(k)
+        return Number.isFinite(value) && value >= start && value <= end
+      })
+      return { label, keys: inDeck }
+    })
+  }
+
+  if (deck === 'pegmatrix' || deck === 'pegmatrixru') {
     return Array.from({ length: 10 }, (_, i) => {
       const start = i * 10
       const end = i === 9 ? 99 : start + 9
