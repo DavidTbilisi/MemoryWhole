@@ -221,18 +221,7 @@ import { PEG_AUDIO, PEG_VISUAL } from '../data/peg-matrix'
 import { PEG_AUDIO_RU, PEG_VISUAL_RU } from '../data/peg-matrix-ru'
 
 const SEM3_LABELS = ['Vision', 'Sound', 'Smell', 'Taste', 'Touch', 'Sensation', 'Animals', 'Birds', 'Rainbow', 'Solar-System']
-const PAO_GROUPS = [
-  { title: '0. Mononoke', min: 0, max: 10 },
-  { title: '1. Death Note', min: 11, max: 20 },
-  { title: '2. Naruto', min: 21, max: 30 },
-  { title: '3. Avatar', min: 31, max: 40 },
-  { title: '4. Mortal Combat', min: 41, max: 50 },
-  { title: '5. Sherlock', min: 51, max: 60 },
-  { title: '6. Harry Potter', min: 61, max: 70 },
-  { title: '7. Matrix', min: 71, max: 80 },
-  { title: '8. Caribbean', min: 81, max: 90 },
-  { title: '9. GOT', min: 91, max: 99 },
-]
+import { PAO_PEOPLE, PAO_ACTIONS, PAO_OBJECTS } from '../data/pao'
 
 export default {
   name: 'PreviewView',
@@ -361,13 +350,30 @@ export default {
       }
 
       if (this.deck === 'pao') {
-        return PAO_GROUPS.map((g) => {
-          const rows = this.rows.filter((r) => {
-            const n = Number(r.key)
-            return Number.isFinite(n) && n >= g.min && n <= g.max
-          })
-          return { name: g.title, rows }
-        }).filter((g) => g.rows.length)
+        // Show three groups: People, Actions, Objects
+        return [
+          {
+            name: 'People (0–9)',
+            rows: PAO_PEOPLE.map((p) => ({
+              key: p.num,
+              value: `${p.person} (${p.consonant})`,
+            })),
+          },
+          {
+            name: 'Actions (0–9)',
+            rows: PAO_ACTIONS.map((a) => ({
+              key: a.num,
+              value: `${a.action} (${a.consonant})`,
+            })),
+          },
+          {
+            name: 'Objects (0–9)',
+            rows: PAO_OBJECTS.map((o) => ({
+              key: o.num,
+              value: `${o.object} (${o.consonant})`,
+            })),
+          },
+        ]
       }
 
       return []
