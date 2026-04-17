@@ -159,6 +159,33 @@
       </div>
     </div>
 
+    <div v-else-if="mode === 'pao10'" class="overflow-auto rounded-lg border border-slate-700">
+      <table class="w-full border-collapse text-sm">
+        <thead class="bg-slate-900/70 sticky top-0">
+          <tr>
+            <th class="p-2 border border-slate-700 text-center w-12">#</th>
+            <th class="p-2 border border-slate-700 text-left">🧑 Person</th>
+            <th class="p-2 border border-slate-700 text-left w-28">Image</th>
+            <th class="p-2 border border-slate-700 text-left">⚡ Action</th>
+            <th class="p-2 border border-slate-700 text-left w-28">Image</th>
+            <th class="p-2 border border-slate-700 text-left">🗡️ Object</th>
+            <th class="p-2 border border-slate-700 text-left w-28">Image</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="i in 10" :key="i - 1" class="odd:bg-slate-900/30">
+            <td class="p-2 border border-slate-700 text-center font-bold text-slate-300">{{ i - 1 }}</td>
+            <td class="p-2 border border-slate-700">{{ pao10people[String(i - 1)] || '—' }}</td>
+            <td class="p-2 border border-slate-700"><img :src="pao10peopleImages[String(i - 1)] || ''" alt="" class="h-10 w-14 rounded border border-slate-700 object-cover" @error="onImageError($event, String(i - 1))" /></td>
+            <td class="p-2 border border-slate-700">{{ pao10actions[String(i - 1)] || '—' }}</td>
+            <td class="p-2 border border-slate-700"><img :src="pao10actionsImages[String(i - 1)] || ''" alt="" class="h-10 w-14 rounded border border-slate-700 object-cover" @error="onImageError($event, String(i - 1))" /></td>
+            <td class="p-2 border border-slate-700">{{ pao10objects[String(i - 1)] || '—' }}</td>
+            <td class="p-2 border border-slate-700"><img :src="pao10objectsImages[String(i - 1)] || ''" alt="" class="h-10 w-14 rounded border border-slate-700 object-cover" @error="onImageError($event, String(i - 1))" /></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <div v-else-if="mode === 'biblebooks'" class="overflow-auto rounded-lg border border-slate-700">
       <table class="w-full border-collapse text-sm">
         <thead class="bg-slate-900/70 sticky top-0">
@@ -219,6 +246,7 @@ import { MAJOR_DATA } from '../data/major-system'
 import { SEM3_DATA } from '../data/sem3'
 import { PEG_AUDIO, PEG_VISUAL } from '../data/peg-matrix'
 import { PEG_AUDIO_RU, PEG_VISUAL_RU } from '../data/peg-matrix-ru'
+import { PAO10_PEOPLE_DATA, PAO10_ACTIONS_DATA, PAO10_OBJECTS_DATA, PAO10_PEOPLE_IMAGES, PAO10_ACTIONS_IMAGES, PAO10_OBJECTS_IMAGES } from '../data/pao10'
 
 const SEM3_LABELS = ['Vision', 'Sound', 'Smell', 'Taste', 'Touch', 'Sensation', 'Animals', 'Birds', 'Rainbow', 'Solar-System']
 const PAO_GROUPS = [
@@ -260,9 +288,16 @@ export default {
       if (this.deck === 'binary') return 'binary'
       if (this.deck === 'hex') return 'hex'
       if (this.deck === 'sem3' || this.deck === 'pao') return 'grouped'
+      if (this.deck === 'pao10people' || this.deck === 'pao10actions' || this.deck === 'pao10objects') return 'pao10'
       if (this.deck === 'biblebooks') return 'biblebooks'
       return 'table'
     },
+    pao10people() { return PAO10_PEOPLE_DATA },
+    pao10actions() { return PAO10_ACTIONS_DATA },
+    pao10objects() { return PAO10_OBJECTS_DATA },
+    pao10peopleImages() { return PAO10_PEOPLE_IMAGES },
+    pao10actionsImages() { return PAO10_ACTIONS_IMAGES },
+    pao10objectsImages() { return PAO10_OBJECTS_IMAGES },
     pegAudio() {
       const src = this.deck === 'pegmatrixru' ? PEG_AUDIO_RU : PEG_AUDIO
       return Object.values(src)
