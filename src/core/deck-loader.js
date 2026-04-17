@@ -3,6 +3,7 @@ import { SEM3_DATA, SEM3_IMAGES } from '../data/sem3'
 import { MONTHS_DATA, MONTHS_IMAGES } from '../data/month-days'
 import { CLOCKS_DATA, CLOCKS_IMAGES } from '../data/clocks'
 import { PAO_DATA, PAO_IMAGES } from '../data/pao'
+import { PAO10_PEOPLE_DATA, PAO10_ACTIONS_DATA, PAO10_OBJECTS_DATA, PAO10_PEOPLE_IMAGES, PAO10_ACTIONS_IMAGES, PAO10_OBJECTS_IMAGES } from '../data/pao10'
 import { BINARY_DATA, BINARY_IMAGES } from '../data/binary'
 import { BINARY8_DATA, BINARY8_IMAGES } from '../data/binary8'
 import { HEX_DATA, HEX_IMAGES } from '../data/hex'
@@ -55,6 +56,9 @@ const DECK_EMOJI = {
   months: '📅',
   clocks: '🕐',
   pao: '🎭',
+  pao10people: '🧑',
+  pao10actions: '⚡',
+  pao10objects: '🗡️',
   binary: '⬛',
   binary8: '🔲',
   hex: '🔶',
@@ -87,6 +91,9 @@ const DECK_DATA = {
   months: MONTHS_DATA,
   clocks: CLOCKS_DATA,
   pao: PAO_DATA,
+  pao10people: PAO10_PEOPLE_DATA,
+  pao10actions: PAO10_ACTIONS_DATA,
+  pao10objects: PAO10_OBJECTS_DATA,
   binary: BINARY_DATA,
   binary8: BINARY8_DATA,
   hex: HEX_DATA,
@@ -209,6 +216,9 @@ const LEGACY_DEFAULT_IMAGES = {
   months: MONTHS_IMAGES,
   clocks: CLOCKS_IMAGES,
   pao: PAO_IMAGES,
+  pao10people: PAO10_PEOPLE_IMAGES,
+  pao10actions: PAO10_ACTIONS_IMAGES,
+  pao10objects: PAO10_OBJECTS_IMAGES,
   binary: BINARY_IMAGES,
   binary8: BINARY8_IMAGES,
   hex: HEX_IMAGES,
