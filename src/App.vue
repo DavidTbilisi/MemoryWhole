@@ -23,6 +23,7 @@
 
         <div class="mt-2">
           <HomeView ref="homeView" v-if="view === 'home'" @start="openQuizConfig" @dashboard="openDashboard" @preview="openPreview" @edit="openEditor" @export="exportDeck" @view-ranking-info="showRankingInfo" @instant-start="instantStartQuiz" @open-champion-evaluation="openChampionEvaluation"/>
+          <StackLibraryView v-if="view === 'stack-library'" @back="showHome" @start-drill="onStackStartDrill" />
           <ChampionEvaluation v-if="view === 'champion-evaluation'" @launch-goal="launchChampionGoal" />
           <QuizConfig ref="quizConfigView" v-if="view === 'quiz-config'" :deck="activeDeck || 'major'" :auto-recovery="recoveryPreset" @back="goBack" @start="startQuizFromConfig" @start-drill="startDrillFromConfig" @start-competition="startCompetitionFromConfig" />
           <Competition ref="competitionView" v-if="view === 'competition'" :key="competitionKey" :deck="activeDeck || 'major'" :subset-keys="selectedSubsetKeys" :item-count="competitionItemCount" :study-speed-sec="competitionStudySpeed" @back="goBack" @finished="onCompetitionFinished" />
@@ -57,6 +58,7 @@ import SideNav from './components/SideNav.vue';
 import ShortcutsHelpModal from './components/ShortcutsHelpModal.vue';
 import Toast from './components/Toast.vue';
 import HomeView from './views/Home.vue';
+import StackLibraryView from './views/StackLibrary.vue';
 import QuizConfig from './views/QuizConfig.vue';
 import Dashboard from './views/Dashboard.vue';
 import Preview from './views/Preview.vue';
@@ -74,7 +76,7 @@ import { publishLeaderboardSnapshot } from './core/firebase-leaderboard'
 
 export default {
   name: 'App',
-  components: { Quiz, Header, SideNav, ShortcutsHelpModal, Toast, HomeView, QuizConfig, Dashboard, Preview, Stats, RankingInfoView, LeaderboardView, Editor, TrainingLog, Competition, CompetitionStats, ChampionEvaluation },
+  components: { Quiz, Header, SideNav, ShortcutsHelpModal, Toast, HomeView, StackLibraryView, QuizConfig, Dashboard, Preview, Stats, RankingInfoView, LeaderboardView, Editor, TrainingLog, Competition, CompetitionStats, ChampionEvaluation },
   data() {
     return {
       view: 'home',
@@ -110,6 +112,7 @@ export default {
           'leaderboard': 'Leaderboard', 'stats': 'Results', 'quiz': 'Quiz', 'quiz-config': 'Setup',
           'competition': 'Competition', 'competition-stats': 'Competition Results',
           'champion-evaluation': 'Champion Evaluation',
+          'stack-library': 'Stack library',
         }
         if (view === 'dashboard') return (deck?.name || deck || 'Dashboard')
         if (view === 'preview') return (deck?.name || deck || 'Deck') + ' Preview'
@@ -333,7 +336,7 @@ export default {
       const raw = location.hash.slice(1)
       if (!raw) return
       const [view, deck] = raw.split('/')
-      const restorable = ['home', 'dashboard', 'preview', 'editor', 'training-log', 'ranking-info', 'leaderboard', 'quiz-config', 'champion-evaluation']
+      const restorable = ['home', 'dashboard', 'preview', 'editor', 'training-log', 'ranking-info', 'leaderboard', 'quiz-config', 'champion-evaluation', 'stack-library']
       if (!restorable.includes(view)) return
       this.view = view
       if (deck) this.activeDeck = deck
@@ -722,11 +725,21 @@ export default {
     openDashboardFromStats(deck){ this.navigateTo('dashboard', deck || this.activeDeck || 'major') },
     onSideNavNavigate(viewName) {
       if (viewName === 'home') this.showHome()
+      else if (viewName === 'stack-library') {
+        this.navigateTo('stack-library', null)
+        this.activeDeck = null
+      }
       else if (viewName === 'training-log') this.openTrainingLog()
       else if (viewName === 'ranking-info') this.showRankingInfo()
       else if (viewName === 'leaderboard') this.openLeaderboard()
       else if (viewName === 'champion-evaluation') this.openChampionEvaluation()
       this.drawerOpen = false
+    },
+    onStackStartDrill(deckId) {
+      const id = String(deckId || '').trim()
+      if (!id) return
+      this.navStack.push({ view: 'stack-library', activeDeck: null })
+      this.openQuizConfig(id)
     },
     onSideNavNavigateDeck(viewName, deck) {
       // Remove any existing entry for the same view+deck from the stack to avoid duplicates

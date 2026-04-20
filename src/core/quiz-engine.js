@@ -1,5 +1,17 @@
 import { getPaoSceneImagesSync } from './deck-loader'
+import { CAST_PROMPTS } from '../data/cast'
+import { STACKFUND_PROMPTS } from '../data/stack-fundamentals'
 import { sortPoolByReviewUrgency, updateReviewState } from './spaced-repetition'
+
+/** Decks where the prompt is prose and the answer is the map value (SRS key = stable id). */
+export const PROMPT_DECK_TABLES = {
+  cast: CAST_PROMPTS,
+  stackfund: STACKFUND_PROMPTS,
+}
+
+export function isPromptDeck(deck) {
+  return Boolean(PROMPT_DECK_TABLES[deck])
+}
 
 function shuffle(items) {
   const out = [...items]
@@ -13,7 +25,16 @@ function shuffle(items) {
 export function createQuizEngine(deck, dataMap) {
   let pool = []
 
-  if (deck === 'pao') {
+  const promptTable = PROMPT_DECK_TABLES[deck]
+  if (promptTable) {
+    pool = Object.entries(dataMap || {})
+      .filter(([, v]) => typeof v === 'string' && v.trim())
+      .map(([k, v]) => ({
+        key: String(k),
+        value: v.trim(),
+        prompt: String(promptTable[k] || '').trim() || String(k),
+      }))
+  } else if (deck === 'pao') {
     pool = Object.entries(dataMap || {})
       .filter(([, v]) => typeof v === 'string' && v.trim())
       .map(([k, v]) => ({
@@ -36,6 +57,7 @@ export function createQuizEngine(deck, dataMap) {
     pool: sortPoolByReviewUrgency(shuffle(pool), deck),
     currentIndex: 0,
     currentNum: '—',
+    currentPrompt: '',
     currentAnswer: null,
     currentImages: {},
     options: [],
@@ -48,6 +70,7 @@ export function createQuizEngine(deck, dataMap) {
   function loadQuestion() {
     const item = state.pool[state.currentIndex % state.pool.length]
     state.currentNum = item.key
+    state.currentPrompt = promptTable ? (item.prompt || '') : ''
     state.currentAnswer = deck === 'pao' ? item : item.value
     state.currentImages = item.images || {}
 
@@ -81,7 +104,8 @@ export function createQuizEngine(deck, dataMap) {
     } else {
       state.score.wrong += 1
       state.numStats[state.currentNum].wrong += 1
-      state.feedback = `Wrong - ${deck === 'pao' ? state.currentAnswer?.value || '' : state.currentAnswer}`
+      const reveal = deck === 'pao' ? state.currentAnswer?.value || '' : state.currentAnswer
+      state.feedback = `Wrong - ${reveal}`
 
       const itemIdx = state.pool.findIndex((item) => item.key === state.currentNum)
       if (itemIdx >= 0) {

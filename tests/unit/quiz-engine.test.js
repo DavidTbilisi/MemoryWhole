@@ -250,3 +250,40 @@ describe('createQuizEngine — numStats', () => {
     expect(state.numStats[key].correct).toBe(0)
   })
 })
+
+describe('createQuizEngine — stackfund (prompt deck)', () => {
+  it('behaves like cast: prompt + string answers', async () => {
+    const { STACKFUND_DECK_DATA } = await import('../../src/data/stack-fundamentals')
+    const entries = Object.entries(STACKFUND_DECK_DATA)
+    const { state } = createQuizEngine('stackfund', Object.fromEntries(entries))
+    expect(state.currentPrompt).toBeTruthy()
+    expect(state.options).toHaveLength(6)
+    expect(state.options).toContain(state.currentAnswer)
+  })
+})
+
+describe('createQuizEngine — CAST forward', () => {
+  it('uses string options and review keys; sets currentPrompt', async () => {
+    const { CAST_DECK_DATA } = await import('../../src/data/cast')
+    const entries = Object.entries(CAST_DECK_DATA).slice(0, 10)
+    const castMap = Object.fromEntries(entries)
+    const { state } = createQuizEngine('cast', castMap)
+    expect(state.pool.length).toBeGreaterThanOrEqual(6)
+    expect(state.currentPrompt).toBeTruthy()
+    expect(state.options).toHaveLength(6)
+    expect(typeof state.currentAnswer).toBe('string')
+    expect(state.options).toContain(state.currentAnswer)
+  })
+
+  it('grades by chosen byte string and calls updateReviewState with review key', async () => {
+    const { CAST_DECK_DATA } = await import('../../src/data/cast')
+    const entries = Object.entries(CAST_DECK_DATA).slice(0, 10)
+    const castMap = Object.fromEntries(entries)
+    vi.mocked(updateReviewState).mockClear()
+    const { state, answer } = createQuizEngine('cast', castMap)
+    const key = state.currentNum
+    expect(key.startsWith('cast1_')).toBe(true)
+    expect(answer(state.currentAnswer)).toBe(true)
+    expect(updateReviewState).toHaveBeenCalledWith('cast', key, expect.objectContaining({ correct: true }))
+  })
+})

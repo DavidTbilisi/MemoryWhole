@@ -46,6 +46,20 @@ export function getChunkGroups(deck, dataMap) {
     ]
   }
 
+  if (deck === 'cast' || deck === 'castrev') {
+    const buckets = {}
+    for (const k of keys) {
+      const answerStr = deck === 'cast' ? String(dataMap[k] || '') : String(k)
+      const parts = answerStr.trim().split(/\s+/).filter(Boolean)
+      const label = parts.length >= 2 ? `${parts[0]} ${parts[1]}` : (parts[0] || 'other')
+      if (!buckets[label]) buckets[label] = []
+      buckets[label].push(k)
+    }
+    return Object.entries(buckets)
+      .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
+      .map(([label, bucketKeys]) => ({ label, keys: bucketKeys }))
+  }
+
   if (deck === 'binary') {
     const sorted = [...keys].sort()
     return [

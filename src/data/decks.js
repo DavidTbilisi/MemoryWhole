@@ -16,4 +16,7 @@ export const DECKS = [
   { deck: 'bibleoverview', name: 'Bible Overview', count: '10 sections', icon: '✝️' },
   { deck: 'biblebooks', name: 'Bible Books', count: '66 books', icon: '📖' },
   { deck: 'primes', name: 'Prime Numbers', count: '1229 primes · ≤ 9999', icon: '🔺' },
+  { deck: 'stackfund', name: 'Stack fundamentals', count: '12 items · map + gates', icon: '📚' },
+  { deck: 'cast', name: 'CAST edges', count: '256 edges · story → byte', icon: '🧬' },
+  { deck: 'castrev', name: 'CAST reverse', count: '256 edges · byte → story', icon: '🔁' },
 ]

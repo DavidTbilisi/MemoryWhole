@@ -12,6 +12,8 @@ import { BIBLE_OVERVIEW_IMAGES } from '../data/bible-overview'
 import { BIBLE_BOOKS_DATA, BIBLE_BOOKS_IMAGES } from '../data/bible-books'
 import { PEG_AUDIO, PEG_VISUAL, PEG_IMAGES, PEG_MATRIX_DATA, PEG_MATRIX_IMAGES } from '../data/peg-matrix'
 import { PEG_AUDIO_RU, PEG_VISUAL_RU, PEG_IMAGES_RU, PEG_MATRIX_RU_DATA, PEG_MATRIX_RU_IMAGES } from '../data/peg-matrix-ru'
+import { CAST_DECK_DATA, CASTREV_DECK_DATA } from '../data/cast'
+import { STACKFUND_DECK_DATA } from '../data/stack-fundamentals'
 import { readDeckMap, writeDeckMap, readJson, writeJson } from './storage'
 
 export const DECK_EDITS_KEY = 'deckEdits_v1'
@@ -66,6 +68,9 @@ const DECK_EMOJI = {
   pegvisual: '👁️',
   pegmatrix: '🔲',
   pegmatrixru: '🇷🇺',
+  cast: '🧬',
+  castrev: '🔁',
+  stackfund: '📚',
 }
 
 const EMOJI_KEYWORDS = [
@@ -95,9 +100,12 @@ const DECK_DATA = {
   biblebooks: BIBLE_BOOKS_DATA,
   pegmatrix: PEG_MATRIX_DATA,
   pegmatrixru: PEG_MATRIX_RU_DATA,
+  cast: CAST_DECK_DATA,
+  castrev: CASTREV_DECK_DATA,
+  stackfund: STACKFUND_DECK_DATA,
 }
 
-const LIGHTWEIGHT_IMAGE_DECKS = new Set(['primes', 'sem3major'])
+const LIGHTWEIGHT_IMAGE_DECKS = new Set(['primes', 'sem3major', 'cast', 'castrev', 'stackfund'])
 
 function isPrime(value) {
   const n = Number(value)

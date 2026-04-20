@@ -81,9 +81,22 @@
           <Transition name="qslide" mode="out-in">
             <div :key="`q-${questionIndex}-${currentNum}`" class="flex flex-col h-full">
               <!-- Hero prompt -->
-              <div class="flex items-center justify-center py-1 sm:py-2 md:py-2 shrink-0">
-                <div class="text-center">
-                  <div class="text-5xl sm:text-6xl md:text-7xl font-black leading-none quiz-prompt tabular-nums">{{ currentNum }}</div>
+              <div class="flex items-center justify-center py-1 sm:py-2 md:py-2 shrink-0 min-h-0">
+                <div v-if="usesStoryPrompt" class="w-full max-h-[38vh] md:max-h-[42vh] overflow-y-auto px-1 text-center">
+                  <p class="text-sm sm:text-base md:text-lg font-semibold text-slate-100 leading-snug whitespace-pre-wrap quiz-text-main">{{ heroPromptText }}</p>
+                  <div class="mt-2 flex flex-wrap items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      data-testid="stack-ref-toggle"
+                      class="rounded-lg border border-cyan-600/50 bg-cyan-950/50 px-3 py-1.5 text-xs font-bold text-cyan-100"
+                      @click="refDrawerOpen = true"
+                    >{{ storyRefButtonLabel }}</button>
+                    <span v-if="castEdgeTooltip" v-tooltip="castEdgeTooltip" class="cursor-help text-[10px] text-slate-500 underline decoration-dotted">Edge hints</span>
+                  </div>
+                  <div class="mt-1 text-[10px] uppercase tracking-widest" :class="feedbackClass">{{ feedback || promptHelperText }}</div>
+                </div>
+                <div v-else class="text-center">
+                  <div class="text-5xl sm:text-6xl md:text-7xl font-black leading-none quiz-prompt tabular-nums">{{ heroPromptText }}</div>
                   <div class="mt-1 text-[10px] uppercase tracking-widest" :class="feedbackClass">{{ feedback || promptHelperText }}</div>
                 </div>
               </div>
@@ -124,9 +137,9 @@
                     <div class="absolute inset-0" :class="optionOverlayClass(opt, idx)"></div>
                   </div>
                   <!-- Label area -->
-                  <div class="absolute inset-x-0 bottom-0 flex items-center px-1.5 sm:px-2 gap-1 quiz-option-label rounded-b-lg" :class="deck === 'pao' ? 'h-9 sm:h-10' : 'h-6 sm:h-7'">
+                  <div class="absolute inset-x-0 bottom-0 flex items-center px-1.5 sm:px-2 gap-1 quiz-option-label rounded-b-lg" :class="optionLabelRowHeightClass">
                     <span class="text-[9px] font-bold shrink-0 hidden sm:inline quiz-text-muted">{{ idx + 1 }}</span>
-                    <span class="font-semibold leading-tight" :class="[optionLabelClass(opt), deck === 'pao' ? 'text-[9px] sm:text-[10px] line-clamp-2' : 'truncate text-[11px] sm:text-xs']">{{ optionDisplayLabel(opt) }}</span>
+                    <span class="font-semibold leading-tight" :class="[optionLabelClass(opt), optionLabelTextClass]">{{ optionDisplayLabel(opt) }}</span>
                     <button v-if="deck !== 'pao' && optionDueLabel(opt)" class="ml-auto shrink-0 text-[10px] text-slate-500 hover:text-cyan-300 transition-colors" @click.stop="openSrModal(opt)">{{ optionDueLabel(opt) }}</button>
                   </div>
                 </button>
@@ -157,6 +170,13 @@
 
           <!-- Navigation -->
           <div class="flex flex-col gap-1.5 shrink-0">
+            <button
+              v-if="usesStoryPrompt"
+              type="button"
+              data-testid="stack-ref-toggle"
+              class="rounded-xl border border-cyan-600/50 bg-cyan-950/40 px-3 py-2 text-xs font-bold text-cyan-100 transition hover:bg-cyan-900/50 w-full text-left"
+              @click="refDrawerOpen = true"
+            >{{ storyRefButtonLabel }}</button>
             <button v-tooltip="'Return to Home (B)'" class="quiz-btn-secondary rounded-xl border px-3 py-2 text-xs font-semibold transition w-full text-left" @click="$emit('back')">← Back</button>
             <button v-tooltip="'Next Question (Enter or N)'" class="quiz-btn-secondary rounded-xl border px-3 py-2 text-xs font-semibold transition w-full text-left" @click="nextQuestion">Next →</button>
             <button v-tooltip="'Save Session Results (F)'" class="rounded-xl bg-gradient-to-r from-purple-600 to-cyan-400 px-3 py-2 text-xs font-bold text-white shadow-lg transition hover:brightness-110 w-full" @click="finish">Finish &amp; Save</button>
@@ -184,6 +204,13 @@
 
       <!-- Mobile footer -->
       <div class="md:hidden flex flex-wrap items-center gap-1 shrink-0">
+        <button
+          v-if="usesStoryPrompt"
+          type="button"
+          data-testid="stack-ref-toggle"
+          class="rounded-xl border border-cyan-600/50 bg-cyan-950/40 px-2 py-1.5 text-xs font-bold text-cyan-100 min-h-[36px]"
+          @click="refDrawerOpen = true"
+        >{{ storyRefButtonLabel }}</button>
         <button v-tooltip="'Return to Home (B)'" class="quiz-btn-secondary rounded-xl border px-3 py-1.5 text-xs font-semibold transition min-h-[36px]" @click="$emit('back')">Back</button>
         <button v-tooltip="'Next Question (Enter or N)'" class="quiz-btn-secondary rounded-xl border px-3 py-1.5 text-xs font-semibold transition min-h-[36px]" @click="nextQuestion">Next</button>
         <button v-tooltip="'Save Session Results (F)'" class="rounded-xl bg-gradient-to-r from-purple-600 to-cyan-400 px-3 py-1.5 text-xs font-bold text-white shadow-lg transition hover:brightness-110 min-h-[36px]" @click="finish">Finish</button>
@@ -305,12 +332,35 @@
         </div>
       </div>
     </Teleport>
+
+    <Teleport to="body">
+      <div
+        v-if="usesStoryPrompt && refDrawerOpen"
+        class="fixed inset-0 z-[80] flex justify-end bg-black/60"
+        data-testid="stack-ref-drawer"
+        @click.self="refDrawerOpen = false"
+      >
+        <div
+          class="h-full w-full max-w-md overflow-y-auto border-l border-slate-700 bg-slate-950 p-4 text-slate-200 shadow-2xl"
+          role="dialog"
+          :aria-label="refDrawerTitle"
+        >
+          <div class="mb-3 flex items-center justify-between gap-2">
+            <h3 class="text-lg font-bold text-cyan-200">{{ refDrawerTitle }}</h3>
+            <button type="button" class="rounded-lg border border-slate-600 px-2 py-1 text-xs text-slate-300" @click="refDrawerOpen = false">Close</button>
+          </div>
+          <pre class="whitespace-pre-wrap font-sans text-xs leading-relaxed text-slate-300">{{ refDrawerBody }}</pre>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script>
 import { getDeckEmojiMapSync, getDeckImagesSync, loadDeckData, makeEmojiFallbackDataUri, makeSimpleEmojiFallbackDataUri, saveDeckEdits, saveDeckImageEdits, getDeckDataSync } from '../core/deck-loader'
-import { createQuizEngine } from '../core/quiz-engine'
+import { CAST_HELP_DRAWER, CAST_TOOLTIPS } from '../data/cast'
+import { STACKFUND_HELP } from '../data/stack-fundamentals'
+import { createQuizEngine, isPromptDeck } from '../core/quiz-engine'
 import { recordDrillResult, recordSession } from '../core/analytics'
 import { getDeckReviewState, patchReviewItem } from '../core/spaced-repetition'
 
@@ -327,7 +377,9 @@ export default {
       running: false,
       engine: null,
       currentNum: '-',
+      currentPrompt: '',
       currentAnswer: '',
+      refDrawerOpen: false,
       imageMap: {},
       emojiMap: {},
       valueToKey: {},
@@ -428,10 +480,47 @@ export default {
       if (!this.loopSize) return '-'
       return `${this.questionIndex + 1} / ${this.loopSize}`
     },
+    usesStoryPrompt() {
+      return isPromptDeck(this.deck)
+    },
+    storyRefButtonLabel() {
+      if (this.deck === 'cast') return 'CAST help'
+      if (this.deck === 'stackfund') return 'Stack notes'
+      return 'Reference'
+    },
     promptHelperText() {
-      return this.deck === 'pao'
-        ? `match ${this.currentNum} (3 numbers)`
-        : 'match this'
+      if (this.deck === 'cast') return 'pick the 8-bit label (AB CD EF GH)'
+      if (this.deck === 'stackfund') return 'pick the best short answer'
+      if (this.deck === 'pao') return `match ${this.currentNum} (3 numbers)`
+      return 'match this'
+    },
+    heroPromptText() {
+      if (this.usesStoryPrompt) return this.currentPrompt || this.currentNum
+      return this.currentNum
+    },
+    refDrawerTitle() {
+      if (this.deck === 'cast') return 'CAST reference'
+      if (this.deck === 'stackfund') return 'Stack fundamentals'
+      return 'Reference'
+    },
+    refDrawerBody() {
+      if (this.deck === 'cast') return CAST_HELP_DRAWER
+      if (this.deck === 'stackfund') return STACKFUND_HELP
+      return ''
+    },
+    castEdgeTooltip() {
+      if (this.deck !== 'cast' || !this.currentNum) return ''
+      return String(CAST_TOOLTIPS[this.currentNum] || '')
+    },
+    optionLabelRowHeightClass() {
+      if (this.deck === 'pao') return 'h-9 sm:h-10'
+      if (this.deck === 'castrev') return 'h-14 sm:h-16'
+      return 'h-6 sm:h-7'
+    },
+    optionLabelTextClass() {
+      if (this.deck === 'pao') return 'text-[9px] sm:text-[10px] line-clamp-2'
+      if (this.deck === 'castrev') return 'text-[9px] sm:text-[10px] line-clamp-3 text-left'
+      return 'truncate text-[11px] sm:text-xs'
     },
     feedbackClass() {
       if (!this.feedback) return 'quiz-text-muted'
@@ -555,6 +644,7 @@ export default {
       if (!st) return
       this.reviewMap = getDeckReviewState(this.deck)
       this.currentNum = st.currentNum
+      this.currentPrompt = st.currentPrompt || ''
       this.currentAnswer = st.currentAnswer
       this.options = st.options
       this.answered = st.answered

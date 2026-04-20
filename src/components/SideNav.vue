@@ -348,6 +348,7 @@ export default {
       // nav
       mainNavItems: [
         { view: 'home', icon: '🏠', label: 'Home' },
+        { view: 'stack-library', icon: '📚', label: 'Stack library' },
         { view: 'champion-evaluation', icon: '🏆', label: 'Champion Eval' },
         { view: 'training-log', icon: '📊', label: 'Training Log' },
         { view: 'ranking-info', icon: '🏆', label: 'Ranking' },

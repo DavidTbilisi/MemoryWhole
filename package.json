@@ -5,7 +5,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sync:cast": "node scripts/sync-cast-lexicon.mjs",
+    "sync:stack-manifest": "node scripts/sync-stack-manifest.mjs",
+    "sync:stack-fundamentals": "node scripts/sync-stack-fundamentals.mjs",
+    "sync:stack": "npm run sync:stack-manifest && npm run sync:stack-fundamentals && npm run sync:cast",
+    "test:unit": "vitest run"
   },
   "dependencies": {
     "echarts": "^6.0.0",
@@ -16,6 +21,7 @@
     "vue": "^3.3.4"
   },
   "devDependencies": {
+    "vitest": "^2.1.9",
     "@vitejs/plugin-vue": "^4.0.0",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.9",
