@@ -4,7 +4,7 @@
       <div>
         <h1 class="text-2xl md:text-3xl font-black tracking-tight text-white">Stack library</h1>
         <p class="mt-2 text-sm text-slate-400 max-w-2xl">
-          Train against the same families the LearningSystem atlas documents. Open canonical markdown for depth; start drills here in MemoryWhole.
+          A calm bridge between reading and doing: the same themes the atlas explains, with drills that write into your usual MemoryWhole habits — streaks, dashboards, and spaced repetition — not a separate mini-app.
         </p>
         <p class="mt-1 text-xs text-slate-500">
           Atlas docs base: <span class="text-cyan-600/90 break-all">{{ atlasBase }}</span>
@@ -60,6 +60,17 @@
         <p v-else class="text-xs text-amber-200/80 mt-auto">Deck coming in a later milestone — use reference links above.</p>
       </article>
     </div>
+
+    <div class="mt-8 rounded-xl border border-slate-700/60 bg-slate-900/30 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <p class="text-sm text-slate-400 max-w-2xl">
+        Sessions you start from here still land in <strong class="text-slate-200">Training Log</strong> and the same review engine as deck cards on Home — nothing gets orphaned.
+      </p>
+      <button
+        type="button"
+        class="shrink-0 rounded-lg border border-slate-600 bg-slate-800/60 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800"
+        @click="$emit('open-training-log')"
+      >Open training log</button>
+    </div>
   </div>
 </template>
 
@@ -68,7 +79,7 @@ import { STACK_MANIFEST_MODULES, STACK_MANIFEST_ATLAS_BASE } from '../data/stack
 
 export default {
   name: 'StackLibraryView',
-  emits: ['back', 'start-drill'],
+  emits: ['back', 'start-drill', 'open-training-log'],
   data() {
     return {
       modules: STACK_MANIFEST_MODULES,

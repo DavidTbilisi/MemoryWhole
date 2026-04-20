@@ -56,16 +56,19 @@ describe('updateReviewState — correct answers', () => {
     expect(r.reps).toBe(1)
   })
 
-  it('sets intervalDays to 1 after first correct answer', () => {
+  it('schedules FSRS interval after first correct (default timing = Easy)', () => {
     const r = updateReviewState('major', '42', { correct: true, now: Date.now() })
-    expect(r.intervalDays).toBeCloseTo(1, 3)
+    // Default responseMs → Easy (rating 4); initial stability W[3] → ~15 day interval at 90% retention target
+    expect(r.intervalDays).toBe(15)
+    expect(r.stabilityDays).toBeCloseTo(15.472, 2)
   })
 
-  it('sets intervalDays to 3 after second correct answer', () => {
+  it('grows interval after second correct answer (FSRS recall)', () => {
     const now = Date.now()
-    updateReviewState('major', '42', { correct: true, now })
-    const r = updateReviewState('major', '42', { correct: true, now: now + DAY_MS })
-    expect(r.intervalDays).toBeCloseTo(3, 3)
+    const r1 = updateReviewState('major', '42', { correct: true, now })
+    const r2 = updateReviewState('major', '42', { correct: true, now: now + DAY_MS })
+    expect(r2.intervalDays).toBeGreaterThan(r1.intervalDays)
+    expect(r2.intervalDays).toBe(22)
   })
 
   it('uses ease factor to grow interval after 3+ correct answers', () => {
@@ -86,13 +89,14 @@ describe('updateReviewState — correct answers', () => {
     expect(ease).toBeGreaterThanOrEqual(1.3)
   })
 
-  it('does not increase ease above 3.2', () => {
+  it('keeps difficulty (ease field) within FSRS bounds after many Easy reviews', () => {
     const now = Date.now()
     for (let i = 0; i < 20; i++) {
       updateReviewState('major', '42', { correct: true, responseMs: 100, now: now + i * DAY_MS })
     }
     const { ease } = getDeckReviewState('major')['42']
-    expect(ease).toBeLessThanOrEqual(3.2)
+    expect(ease).toBeGreaterThanOrEqual(1)
+    expect(ease).toBeLessThanOrEqual(10)
   })
 
   it('sets nextDueAt in the future', () => {
@@ -136,20 +140,22 @@ describe('updateReviewState — wrong answers', () => {
     expect(r.lapses).toBe(1)
   })
 
-  it('decreases ease by 0.2 on wrong (clamped)', () => {
+  it('updates difficulty on wrong after a correct (FSRS Again path)', () => {
     const now = Date.now()
-    // First answer sets ease from default 2.3
     const r1 = updateReviewState('major', '1', { correct: true, responseMs: 100, now })
     const easeBefore = r1.ease
     const r2 = updateReviewState('major', '1', { correct: false, now: now + DAY_MS })
-    expect(r2.ease).toBeCloseTo(Math.max(1.3, easeBefore - 0.2), 1)
+    expect(r2.ease).not.toBe(easeBefore)
+    expect(r2.ease).toBeGreaterThanOrEqual(1)
+    expect(r2.ease).toBeLessThanOrEqual(10)
   })
 
-  it('sets intervalDays to 0.2 (re-review tomorrow) on wrong', () => {
+  it('shortens interval after wrong (FSRS forget stability)', () => {
     const now = Date.now()
-    updateReviewState('major', '1', { correct: true, now })
-    const r = updateReviewState('major', '1', { correct: false, now: now + DAY_MS })
-    expect(r.intervalDays).toBeCloseTo(0.2, 3)
+    const r1 = updateReviewState('major', '1', { correct: true, now })
+    const r2 = updateReviewState('major', '1', { correct: false, now: now + DAY_MS })
+    expect(r2.intervalDays).toBeLessThan(r1.intervalDays)
+    expect(r2.intervalDays).toBeGreaterThanOrEqual(1)
   })
 
   it('reduces stabilityDays on wrong answer', () => {

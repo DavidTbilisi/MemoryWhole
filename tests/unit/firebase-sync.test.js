@@ -27,6 +27,7 @@ vi.mock('../../src/core/deck-loader', () => ({
   DECK_EDITS_KEY: 'deckEdits_v1',
   DECK_IMAGES_KEY: 'deckImages_v1',
   DECK_ICONS_KEY: 'deckIcons_v1',
+  DECK_SAVED_AT_KEY: 'deckSavedAt_v1',
 }))
 
 describe('syncCloudForCurrentUser', () => {
@@ -49,6 +50,7 @@ describe('syncCloudForCurrentUser', () => {
       .mockResolvedValueOnce({ major: { '00': 'cloud phrase' }, sem3: { '1': 'cloud only' } })
       .mockResolvedValueOnce({ major: { '00': 'https://cloud-image' } })
       .mockResolvedValueOnce({ major: { '00': '☁️' } })
+      .mockResolvedValueOnce({ major: 50, sem3: 2 })
 
     readJsonMock
       .mockReturnValueOnce({ major: { totalAttempts: 2 } })
@@ -59,6 +61,7 @@ describe('syncCloudForCurrentUser', () => {
       .mockReturnValueOnce({ major: { '00': 'local phrase' } })
       .mockReturnValueOnce({ major: { '00': 'https://local-image' } })
       .mockReturnValueOnce({ major: { '00': '🔥' } })
+      .mockReturnValueOnce({ major: 200 })
 
     const { syncCloudForCurrentUser } = await import('../../src/core/firebase-sync')
     await syncCloudForCurrentUser()
@@ -98,6 +101,7 @@ describe('syncCloudForCurrentUser', () => {
       .mockResolvedValueOnce({ major: { '00': 'cloud phrase' } })
       .mockResolvedValueOnce({})
       .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({})
 
     readJsonMock
       .mockReturnValueOnce({})
@@ -108,6 +112,7 @@ describe('syncCloudForCurrentUser', () => {
       .mockReturnValueOnce({ major: {} })
       .mockReturnValueOnce({})
       .mockReturnValueOnce({})
+      .mockReturnValueOnce({ major: 1 })
 
     const { syncCloudForCurrentUser } = await import('../../src/core/firebase-sync')
     await syncCloudForCurrentUser()

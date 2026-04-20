@@ -1,52 +1,93 @@
 <template>
-  <div id="quiz-config" class="bg-[#071421] p-4 rounded-xl text-sky-100">
-    <div class="mb-4">
-      <div class="flex flex-wrap items-center gap-2">
-        <h2 class="min-w-0 flex-1 truncate text-2xl font-black sm:text-3xl">{{ title }}</h2>
-        <button
-          type="button"
-          v-tooltip="'Timed study → recall. Next screen: pool size & speed.'"
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-600 bg-slate-800/70 text-base leading-none text-slate-200 hover:bg-slate-700"
-          aria-label="What is competition mode?"
-        >❓</button>
-        <button
-          type="button"
-          v-tooltip="'Competition setup — pool size & speed (then 🏆 or C)'"
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-500/45 bg-amber-950/40 text-base hover:bg-amber-900/50"
-          aria-label="Competition setup"
-          @click="$emit('open-competition-setup')"
-        >🏆</button>
-        <button
-          type="button"
-          v-tooltip="'Return to Home (B or H)'"
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cyan-500/50 bg-cyan-950/50 text-lg hover:bg-cyan-900/40"
-          aria-label="Back"
-          @click="$emit('back')"
-        >⬅️</button>
-      </div>
-      <p v-if="showAtlasHint" class="mt-2 text-sm text-slate-400 max-w-2xl">
-        This deck lines up with the LearningSystem atlas. Open the <strong class="text-cyan-200/90">Stack library</strong> from the sidebar for canonical markdown, or press <kbd class="rounded border border-slate-600 bg-slate-800 px-1 py-0.5 font-mono text-[10px] text-slate-200">G</kbd> then <kbd class="rounded border border-slate-600 bg-slate-800 px-1 py-0.5 font-mono text-[10px] text-slate-200">L</kbd> from here.
-      </p>
+  <div id="competition-setup" class="rounded-xl bg-[#071421] p-4 text-sky-100">
+    <div class="mb-3 flex flex-wrap items-center gap-2">
+      <h2 class="min-w-0 flex-1 truncate text-xl font-black tracking-tight sm:text-2xl">{{ titleShort }}</h2>
+      <button
+        type="button"
+        v-tooltip="'Timed study → recall. Pick groups, size & speed, then 🏆 (or C).'"
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-600 bg-slate-800/70 text-base leading-none text-slate-200 hover:bg-slate-700"
+        aria-label="What is competition mode?"
+      >❓</button>
+      <button
+        type="button"
+        v-tooltip="'Quiz & drill setup (same deck)'"
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-600 bg-slate-800/70 text-base hover:bg-slate-700"
+        aria-label="Quiz and drill setup"
+        @click="$emit('open-quiz-setup')"
+      >📋</button>
+      <button
+        type="button"
+        v-tooltip="'Back (B or H)'"
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cyan-500/50 bg-cyan-950/50 text-lg hover:bg-cyan-900/40"
+        aria-label="Back"
+        @click="$emit('back')"
+      >⬅️</button>
     </div>
 
-    <div class="grid grid-cols-2 gap-2 md:grid-cols-4 mb-6">
+    <div class="mb-6 grid grid-cols-2 gap-2 md:grid-cols-4">
       <button
         v-for="(group, index) in groups"
         :key="group.label"
-        v-tooltip="`Toggle ${group.label} (Space/Enter on focused group)`"
-        @click="toggle(group.label)"
-        class="px-4 py-3 rounded-xl font-bold border"
+        v-tooltip="`Toggle ${group.label}`"
+        type="button"
+        class="rounded-xl border px-4 py-3 font-bold"
         :class="groupClass(group, index)"
+        @click="toggle(group.label)"
       >
         {{ group.label }}
       </button>
     </div>
 
-    <button v-tooltip="'Select or deselect all items (A)'" class="mb-4 w-full rounded-xl border border-slate-700 bg-slate-800 py-3 text-lg font-bold" type="button" @click="toggleAll">🔁 All</button>
+    <button
+      type="button"
+      v-tooltip="'Toggle all groups (A)'"
+      class="mb-5 w-full rounded-xl border border-slate-700 bg-slate-800 py-2.5 text-base font-bold"
+      @click="toggleAll"
+    >
+      🔁 All
+    </button>
 
-    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-      <button v-tooltip="'Start standard quiz mode (Q)'" class="rounded-xl py-4 text-xl font-black bg-gradient-to-r from-violet-600 to-cyan-400" @click="startQuiz">▶ Start Quiz</button>
-      <button v-tooltip="'Start timed speed drill mode (W)'" class="rounded-xl py-4 text-xl font-black bg-gradient-to-r from-amber-500 to-rose-500" @click="startDrill">⚡ Speed Drill</button>
+    <div class="rounded-xl border border-amber-500/40 bg-amber-900/10 p-3 sm:p-4">
+      <div class="mb-2 text-xs font-bold uppercase tracking-wider text-amber-300/80">COMPETITION MODE</div>
+      <div class="mb-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-2">
+        <div>
+          <div class="mb-1 text-xs text-slate-500" title="Pool size">🎯</div>
+          <div class="flex flex-wrap gap-1">
+            <button
+              v-for="n in [10, 20, 50]"
+              :key="n"
+              type="button"
+              class="rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors"
+              :class="competitionItemCount === n
+                ? 'border-amber-400 bg-amber-900/40 text-amber-100'
+                : 'border-slate-700 bg-slate-800/50 text-slate-400 hover:border-slate-500'"
+              @click="competitionItemCount = n"
+            >{{ n }}</button>
+          </div>
+        </div>
+        <div>
+          <div class="mb-1 text-xs text-slate-500" title="Seconds per study card">⏱️</div>
+          <div class="flex flex-wrap gap-1">
+            <button
+              v-for="s in [2, 3, 5, 10]"
+              :key="s"
+              type="button"
+              class="rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors"
+              :class="competitionStudySpeed === s
+                ? 'border-amber-400 bg-amber-900/40 text-amber-100'
+                : 'border-slate-700 bg-slate-800/50 text-slate-400 hover:border-slate-500'"
+              @click="competitionStudySpeed = s"
+            >{{ s }}s</button>
+          </div>
+        </div>
+      </div>
+      <button
+        type="button"
+        v-tooltip="'Study phase then recall (C)'"
+        aria-label="Start competition"
+        class="w-full rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 py-3 text-base font-black"
+        @click="startCompetition"
+      >🏆</button>
     </div>
 
     <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-emerald-500/35 bg-emerald-950/20 px-2.5 py-2 text-xs text-slate-300">
@@ -60,25 +101,11 @@
       <span class="min-w-0 truncate text-slate-500" v-tooltip="'Keys in suggested pool'">🔑 {{ recovery.keys.length }}</span>
       <button
         type="button"
-        v-tooltip="'Select suggested weak groups (S)'"
-        class="flex h-8 min-w-[2rem] items-center justify-center rounded-md border border-emerald-400/45 bg-emerald-900/35 px-2 text-sm hover:bg-emerald-900/55"
+        v-tooltip="'Apply suggested groups (S)'"
+        class="ml-auto flex h-8 min-w-[2rem] items-center justify-center rounded-md border border-emerald-400/45 bg-emerald-900/35 px-2 text-sm hover:bg-emerald-900/55"
         aria-label="Select suggested groups"
         @click="applyRecoverySelection"
       >✨</button>
-      <button
-        type="button"
-        v-tooltip="'Start quiz with weak-item subset (R)'"
-        class="flex h-8 min-w-[2rem] items-center justify-center rounded-md border border-emerald-500/40 bg-gradient-to-r from-emerald-700/80 to-cyan-600/70 px-2.5 text-base font-bold text-white hover:opacity-95"
-        aria-label="Start recovery quiz"
-        @click="startRecoveryQuiz"
-      >▶️</button>
-      <button
-        type="button"
-        v-tooltip="'Start drill with weak-item subset (T)'"
-        class="flex h-8 min-w-[2rem] items-center justify-center rounded-md border border-amber-500/45 bg-gradient-to-r from-amber-600/85 to-rose-600/75 px-2.5 text-base font-bold text-white hover:opacity-95"
-        aria-label="Recovery drill"
-        @click="startRecoveryDrill"
-      >⚡</button>
     </div>
   </div>
 </template>
@@ -91,12 +118,12 @@ import { getDeckStatsMap } from '../core/analytics'
 import { DECKS } from '../data/decks'
 
 export default {
-  name: 'QuizConfigView',
-  emits: ['back', 'start', 'start-drill', 'open-competition-setup'],
+  name: 'CompetitionSetupView',
   props: {
     deck: { type: String, required: true },
-    autoRecovery: { type: Boolean, default: false }
+    autoRecovery: { type: Boolean, default: false },
   },
+  emits: ['back', 'start-competition', 'open-quiz-setup'],
   data() {
     return {
       groups: [],
@@ -108,17 +135,31 @@ export default {
         highRiskCount: 0,
         lowAccCount: 0,
       },
+      competitionItemCount: 10,
+      competitionStudySpeed: 3,
     }
   },
   computed: {
     deckMeta() {
       return DECKS.find((d) => d.deck === this.deck)
     },
-    title() {
-      return this.deckMeta?.name || (this.deck || '').toUpperCase()
+    titleShort() {
+      return this.deckMeta?.name || this.deck || 'Deck'
     },
-    showAtlasHint() {
-      return ['stackfund', 'cast', 'castrev'].includes(this.deck)
+  },
+  watch: {
+    deck: {
+      immediate: true,
+      handler() {
+        this.setup().catch((e) => {
+          console.error(e)
+          this.groups = []
+          this.selected = new Set()
+        })
+      },
+    },
+    autoRecovery() {
+      if (this.autoRecovery) this.applyRecoverySelection()
     },
   },
   methods: {
@@ -143,8 +184,7 @@ export default {
     moveCursor(delta = 0) {
       const total = this.groups.length
       if (!total) return
-      const next = (this.cursorIndex + Number(delta || 0) + total) % total
-      this.cursorIndex = next
+      this.cursorIndex = (this.cursorIndex + Number(delta || 0) + total) % total
     },
     moveCursorToStart() {
       this.cursorIndex = 0
@@ -159,24 +199,6 @@ export default {
         this.selected = new Set(this.groups.map((g) => g.label))
       }
     },
-    startQuiz() {
-      const chosen = this.groups.filter((g) => this.selected.has(g.label))
-      const keys = chosen.flatMap((g) => g.keys)
-      if (keys.length < 6) {
-        alert('Select at least 6 items to quiz.')
-        return
-      }
-      this.$emit('start', keys)
-    },
-    startDrill() {
-      const chosen = this.groups.filter((g) => this.selected.has(g.label))
-      const keys = chosen.flatMap((g) => g.keys)
-      if (keys.length < 6) {
-        alert('Select at least 6 items to drill.')
-        return
-      }
-      this.$emit('start-drill', keys)
-    },
     applyRecoverySelection() {
       const keySet = new Set(this.recovery.keys.map((k) => String(k)))
       const recoveredLabels = this.groups
@@ -184,21 +206,15 @@ export default {
         .map((g) => g.label)
       this.selected = new Set(recoveredLabels)
     },
-    startRecoveryQuiz() {
-      const keys = this.recovery.keys
+    startCompetition() {
+      const chosen = this.groups.filter((g) => this.selected.has(g.label))
+      const keys = chosen.flatMap((g) => g.keys)
       if (keys.length < 6) {
-        alert('Need at least 6 weak items for recovery mode.')
+        alert('Select at least 6 items for competition mode.')
         return
       }
-      this.$emit('start', keys)
-    },
-    startRecoveryDrill() {
-      const keys = this.recovery.keys
-      if (keys.length < 6) {
-        alert('Need at least 6 weak items for recovery mode.')
-        return
-      }
-      this.$emit('start-drill', keys)
+      const itemCount = Math.min(this.competitionItemCount, keys.length)
+      this.$emit('start-competition', { keys, itemCount, studySpeedSec: this.competitionStudySpeed })
     },
     buildRecoverySuggestion(data) {
       const entries = Object.entries(data || {}).map(([key, value]) => ({
@@ -244,22 +260,7 @@ export default {
       this.cursorIndex = 0
       this.buildRecoverySuggestion(data)
       if (this.autoRecovery) this.applyRecoverySelection()
-    }
-  },
-  watch: {
-    deck: {
-      immediate: true,
-      handler() {
-        this.setup().catch((e) => {
-          console.error(e)
-          this.groups = []
-          this.selected = new Set()
-        })
-      }
     },
-    autoRecovery() {
-      if (this.autoRecovery) this.applyRecoverySelection()
-    }
-  }
+  },
 }
 </script>

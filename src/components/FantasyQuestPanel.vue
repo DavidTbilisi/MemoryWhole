@@ -1,85 +1,99 @@
 <template>
-  <div class="rounded-2xl border border-fuchsia-500/30 bg-gradient-to-br from-slate-900 via-[#140a24] to-slate-950 p-5">
-    <div class="mb-3 flex items-center justify-between gap-3">
-      <div>
-        <div class="text-xs font-bold uppercase tracking-widest text-fuchsia-300">Chronicle of Realms</div>
-        <h3 class="text-lg font-black text-slate-100">Collectible Realm Tracks</h3>
-      </div>
-      <div class="text-right">
-        <div class="text-sm font-bold text-emerald-300">{{ awakenedTracks }} awakened</div>
-        <div class="text-[11px] text-slate-500">of {{ tracks.length }} realms</div>
-      </div>
-    </div>
-
-    <div class="mb-4 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-      <button
-        v-for="track in featuredTracks"
-        :key="track.deck"
-        class="rounded-xl border p-3 text-left transition hover:brightness-110"
-        :class="trackClass(track)"
-        @click="$emit('start', track.deck)"
-        v-tooltip="`Enter ${track.name} realm`"
-      >
-        <div class="mb-1 flex items-start justify-between gap-2">
+  <div class="rounded-xl border border-fuchsia-500/30 bg-gradient-to-br from-slate-900 via-[#140a24] to-slate-950 p-2 sm:p-3">
+    <div class="rounded-lg border border-amber-500/35 bg-amber-950/15 p-0">
+      <details class="group/duel rounded-lg">
+        <summary class="flex min-h-[40px] cursor-pointer list-none items-center justify-between gap-2 px-2 py-2 hover:bg-amber-950/25 [&::-webkit-details-marker]:hidden sm:min-h-[44px] sm:px-3">
           <div class="min-w-0">
-            <div class="truncate text-sm font-bold text-slate-100">{{ track.name }}</div>
-            <div class="text-[11px] text-slate-400">{{ track.tier.icon }} {{ track.tier.label }}</div>
+            <div class="text-[10px] font-bold uppercase tracking-widest text-amber-300">Daily duel</div>
+            <div class="text-[10px] text-slate-500">vs yesterday</div>
           </div>
-          <div class="shrink-0 text-xs font-bold text-cyan-200">{{ track.peak }}%</div>
+          <div class="flex shrink-0 items-center gap-2 tabular-nums">
+            <div class="text-right">
+              <div class="text-base font-black leading-none text-amber-200 sm:text-lg">{{ todayScore }} / {{ dailyTarget }}</div>
+            </div>
+            <span class="text-[10px] text-slate-500" aria-hidden="true"><span class="group-open/duel:hidden">Show</span><span class="hidden group-open/duel:inline">Hide</span></span>
+          </div>
+        </summary>
+        <div class="space-y-2 border-t border-amber-500/20 px-2 pb-2 pt-2 sm:px-3 sm:pb-3 sm:pt-3">
+          <div class="h-1.5 overflow-hidden rounded-full bg-slate-800 sm:h-2">
+            <div class="h-full rounded-full bg-gradient-to-r from-amber-500 to-rose-500" :style="{ width: `${questProgressPct}%` }"></div>
+          </div>
+
+          <button
+            type="button"
+            class="flex min-h-[40px] w-full items-center justify-center rounded-lg bg-gradient-to-r from-amber-500 to-rose-500 px-3 text-sm font-bold text-white hover:brightness-110 sm:min-h-[44px]"
+            @click="$emit('start', questDeck)"
+            v-tooltip="'Start daily duel quest'"
+          >
+            Start daily duel
+          </button>
+
+          <details class="group/stats rounded-lg border border-slate-700/40 bg-slate-950/20">
+            <summary class="flex min-h-[40px] cursor-pointer list-none items-center justify-between gap-2 px-2 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-800/25 [&::-webkit-details-marker]:hidden sm:px-3 sm:py-2">
+              <span>Stats and shortcuts</span>
+              <span class="text-slate-500" aria-hidden="true"><span class="group-open/stats:hidden">Show</span><span class="hidden group-open/stats:inline">Hide</span></span>
+            </summary>
+            <div class="space-y-2 border-t border-slate-700/40 p-2 sm:space-y-3 sm:p-3">
+              <div class="grid grid-cols-1 gap-1.5 text-xs sm:grid-cols-3 sm:gap-2">
+                <div class="rounded border border-slate-700/70 bg-slate-900/45 p-1.5 text-slate-300 sm:p-2">Yesterday <strong class="mt-0.5 block text-slate-100">{{ yesterdayScore }}</strong></div>
+                <div class="rounded border border-slate-700/70 bg-slate-900/45 p-1.5 text-slate-300 sm:p-2">To go <strong class="mt-0.5 block" :class="questRemaining > 0 ? 'text-amber-200' : 'text-emerald-300'">{{ Math.max(0, questRemaining) }}</strong></div>
+                <div class="rounded border border-slate-700/70 bg-slate-900/45 p-1.5 text-slate-300 sm:p-2">Focus <strong class="mt-0.5 block truncate text-cyan-200">{{ questDeckName }}</strong></div>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  class="min-h-[40px] flex-1 rounded-lg bg-gradient-to-r from-fuchsia-600 to-cyan-500 px-3 py-2 text-xs font-bold text-white sm:flex-none"
+                  @click="startSprintQuest"
+                  v-tooltip="'Quick win: focus deck in recovery mode'"
+                >
+                  {{ sprintLabelShort }}
+                </button>
+                <button
+                  type="button"
+                  class="min-h-[40px] rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-2 text-xs font-semibold text-slate-200"
+                  @click="$emit('dashboard', questDeck)"
+                  v-tooltip="'Open dashboard for focus deck'"
+                >
+                  Dashboard
+                </button>
+              </div>
+            </div>
+          </details>
         </div>
-        <div class="h-2 overflow-hidden rounded-full bg-slate-800">
-          <div class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-fuchsia-500" :style="{ width: `${track.peak}%` }"></div>
-        </div>
-        <div class="mt-1 text-[11px] text-slate-500">{{ track.attempts }} attempts · {{ track.totalSessions }} sessions</div>
-      </button>
+      </details>
     </div>
 
-    <div class="rounded-xl border border-amber-500/35 bg-amber-950/15 p-4">
-      <div class="mb-2 flex items-center justify-between gap-2">
-        <div>
-          <div class="text-xs font-bold uppercase tracking-widest text-amber-300">Daily Duel Quest</div>
-          <div class="text-sm text-slate-200">Beat your yesterday self</div>
+    <details class="group/tracks mt-2 rounded-lg border border-fuchsia-500/25 bg-slate-950/20 sm:mt-2.5">
+      <summary class="flex min-h-[40px] cursor-pointer list-none items-center justify-between gap-2 px-2 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-800/25 sm:min-h-[44px] sm:px-3 [&::-webkit-details-marker]:hidden">
+        <span class="min-w-0 truncate"><span class="text-fuchsia-300/90">Tracks</span> · {{ awakenedTracks }}/{{ tracks.length }} hot</span>
+        <span class="shrink-0 text-xs font-normal text-slate-500" aria-hidden="true"><span class="group-open/tracks:hidden">Show</span><span class="hidden group-open/tracks:inline">Hide</span></span>
+      </summary>
+      <div class="border-t border-fuchsia-500/15 p-2 sm:p-3">
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          <button
+            v-for="track in featuredTracks"
+            :key="track.deck"
+            type="button"
+            class="min-h-[44px] rounded-xl border p-3 text-left transition hover:brightness-110"
+            :class="trackClass(track)"
+            @click="$emit('start', track.deck)"
+            v-tooltip="`Start ${track.name}`"
+          >
+            <div class="mb-1 flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="truncate text-sm font-bold text-slate-100">{{ track.name }}</div>
+                <div class="text-[10px] text-slate-400">{{ track.tier.icon }} {{ track.tier.label }}</div>
+              </div>
+              <div class="shrink-0 text-xs font-bold text-cyan-200">{{ track.peak }}%</div>
+            </div>
+            <div class="h-1.5 overflow-hidden rounded-full bg-slate-800">
+              <div class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-fuchsia-500" :style="{ width: `${track.peak}%` }"></div>
+            </div>
+            <div class="mt-1 text-[10px] text-slate-500">{{ track.attempts }} tries</div>
+          </button>
         </div>
-        <div class="text-right">
-          <div class="text-base font-black text-amber-200">{{ todayScore }} / {{ dailyTarget }}</div>
-          <div class="text-[11px] text-slate-500">battle score</div>
-        </div>
       </div>
-
-      <div class="h-2 overflow-hidden rounded-full bg-slate-800">
-        <div class="h-full rounded-full bg-gradient-to-r from-amber-500 to-rose-500" :style="{ width: `${questProgressPct}%` }"></div>
-      </div>
-
-      <div class="mt-2 grid grid-cols-1 gap-2 text-xs md:grid-cols-3">
-        <div class="rounded border border-slate-700/70 bg-slate-900/45 p-2 text-slate-300">Yesterday <strong class="block text-slate-100">{{ yesterdayScore }}</strong></div>
-        <div class="rounded border border-slate-700/70 bg-slate-900/45 p-2 text-slate-300">Needed now <strong class="block" :class="questRemaining > 0 ? 'text-amber-200' : 'text-emerald-300'">{{ Math.max(0, questRemaining) }}</strong></div>
-        <div class="rounded border border-slate-700/70 bg-slate-900/45 p-2 text-slate-300">Realm focus <strong class="block text-cyan-200">{{ questDeckName }}</strong></div>
-      </div>
-
-      <div class="mt-3 flex flex-wrap gap-2">
-        <button
-          class="rounded-lg bg-gradient-to-r from-fuchsia-600 to-cyan-500 px-3 py-2 text-xs font-black text-white"
-          @click="startSprintQuest"
-          v-tooltip="'Quick win route: opens focus realm in recovery mode'"
-        >
-          {{ sprintLabel }}
-        </button>
-        <button
-          class="rounded-lg bg-gradient-to-r from-amber-500 to-rose-500 px-3 py-2 text-xs font-bold text-white"
-          @click="$emit('start', questDeck)"
-          v-tooltip="'Start daily duel quest'"
-        >
-          Start Daily Duel
-        </button>
-        <button
-          class="rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-2 text-xs font-semibold text-slate-200"
-          @click="$emit('dashboard', questDeck)"
-          v-tooltip="'Inspect this realm in dashboard'"
-        >
-          Inspect Realm
-        </button>
-      </div>
-    </div>
+    </details>
   </div>
 </template>
 
@@ -182,6 +196,11 @@ export default {
       if (this.questRemaining <= 0) return `Farm +${this.sprintGainTarget} bonus now (2 min)`
       if (this.questRemaining <= 5) return `Finish quest now (+${this.sprintGainTarget})`
       return `Get +${this.sprintGainTarget} now (2 min)`
+    },
+    sprintLabelShort() {
+      if (this.questRemaining <= 0) return `Recovery +${this.sprintGainTarget}`
+      if (this.questRemaining <= 5) return `Finish +${this.sprintGainTarget}`
+      return `Quick +${this.sprintGainTarget}`
     },
   },
   mounted() {

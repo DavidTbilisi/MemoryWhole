@@ -11,6 +11,7 @@ vi.mock('../../src/core/storage', () => ({
 vi.mock('../../src/core/analytics', () => ({
     ANALYTICS_KEY: 'analytics_v1',
     MASTERY_PEAK_KEY: 'masteryPeak_v1',
+    SESSION_HISTORY_KEY: 'sessionHistory_v1',
 }))
 
 vi.mock('../../src/data/decks', () => ({
@@ -25,10 +26,11 @@ vi.mock('../../src/data/decks', () => ({
 
 import { getAllRankInfo, getGlobalRank, getSyntheticRank } from '../../src/core/ranking'
 
-function seedStorage({ analytics = {}, peaks = {} } = {}) {
+function seedStorage({ analytics = {}, peaks = {}, sessionHistory = {} } = {}) {
     readJsonMock.mockImplementation((key, fallback) => {
         if (key === 'analytics_v1') return analytics
         if (key === 'masteryPeak_v1') return peaks
+        if (key === 'sessionHistory_v1') return sessionHistory
         return fallback
     })
 }
@@ -95,7 +97,8 @@ describe('ranking model', () => {
         expect(global.rank).toBe('S+')
         expect(global.nextRank?.rank).toBe('SS')
         expect(global.nextRank?.minScore).toBe(86)
-        expect(global.perfectNeeded).toBe(72)
+        // Sliding-window fill uses cumulative accuracy (84%) → fewer extra perfect answers than all-time-only math
+        expect(global.perfectNeeded).toBe(29)
         expect(global.coverageDecksNeeded).toBe(0)
     })
 

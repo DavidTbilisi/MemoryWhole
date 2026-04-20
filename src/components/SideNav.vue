@@ -30,7 +30,7 @@
           isActive(item.view) ? 'bg-slate-700 text-slate-100' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
         ]"
         :style="isActive(item.view) ? 'border-left: 2px solid var(--brand-1)' : 'border-left: 2px solid transparent'"
-        :title="collapsed ? item.label : ''"
+        :title="collapsed ? (item.tooltip || item.label) : ''"
       >
         <span class="text-base leading-none">{{ item.icon }}</span>
         <span v-if="!collapsed" class="text-sm">{{ item.label }}</span>
@@ -348,7 +348,7 @@ export default {
       // nav
       mainNavItems: [
         { view: 'home', icon: '🏠', label: 'Home' },
-        { view: 'stack-library', icon: '📚', label: 'Stack library' },
+        { view: 'stack-library', icon: '📚', label: 'Stack library', tooltip: 'Atlas docs, CAST & stack drills' },
         { view: 'champion-evaluation', icon: '🏆', label: 'Champion Eval' },
         { view: 'training-log', icon: '📊', label: 'Training Log' },
         { view: 'ranking-info', icon: '🏆', label: 'Ranking' },
@@ -356,6 +356,7 @@ export default {
       ],
       deckNavItems: [
         { view: 'quiz-config', icon: '▶', label: 'Start Quiz' },
+        { view: 'competition-setup', icon: '🏁', label: 'Competition' },
         { view: 'dashboard', icon: '📈', label: 'Dashboard' },
         { view: 'preview', icon: '👁', label: 'Preview' },
         { view: 'editor', icon: '✏️', label: 'Edit' },

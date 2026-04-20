@@ -16,16 +16,24 @@ const BASE = 'http://127.0.0.1:5174/MemoryWhole/';
 async function goToQuizConfig(page) {
   await page.goto(BASE, { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: '▶ Start Quiz' }).first().click();
-  await expect(page.getByText('COMPETITION MODE')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('#quiz-config')).toBeVisible({ timeout: 5000 });
+}
+
+/** From QuizConfig, open the dedicated competition setup screen. */
+async function goToCompetitionSetup(page) {
+  await goToQuizConfig(page);
+  await page.getByRole('button', { name: /Competition setup/i }).click();
+  await expect(page.locator('#competition-setup')).toBeVisible({ timeout: 5000 });
+  await expect(page.getByText('COMPETITION MODE')).toBeVisible();
 }
 
 /**
- * Open QuizConfig, install Playwright's fake clock (so setInterval is
+ * Open competition setup, install Playwright's fake clock (so setInterval is
  * controlled), then click Start Competition.  Returns after the study
  * phase element is visible.
  */
 async function startCompetition(page) {
-  await goToQuizConfig(page);
+  await goToCompetitionSetup(page);
   // Install fake clock BEFORE the competition mounts so its setInterval
   // is captured by the fake implementation.
   await page.clock.install();
@@ -55,15 +63,15 @@ async function answerAllRecall(page, { itemCount = 10 } = {}) {
   }
 }
 
-// ── QuizConfig: competition panel ─────────────────────────────────────────────
-test.describe('QuizConfig — Competition panel', () => {
-  test('Competition Mode section is visible in QuizConfig', async ({ page }) => {
-    await goToQuizConfig(page);
+// ── Competition setup page ───────────────────────────────────────────────────
+test.describe('Competition setup page', () => {
+  test('COMPETITION MODE section is visible on setup page', async ({ page }) => {
+    await goToCompetitionSetup(page);
     await expect(page.getByText('COMPETITION MODE')).toBeVisible();
   });
 
   test('shows item count buttons 10, 20, 50', async ({ page }) => {
-    await goToQuizConfig(page);
+    await goToCompetitionSetup(page);
     // Item count and speed buttons are all inside the competition panel
     await expect(page.getByRole('button', { name: '10' }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: '20' }).first()).toBeVisible();
@@ -71,7 +79,7 @@ test.describe('QuizConfig — Competition panel', () => {
   });
 
   test('shows study speed buttons 2s, 3s, 5s, 10s', async ({ page }) => {
-    await goToQuizConfig(page);
+    await goToCompetitionSetup(page);
     await expect(page.getByRole('button', { name: '2s' }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: '3s' }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: '5s' }).first()).toBeVisible();
@@ -79,12 +87,12 @@ test.describe('QuizConfig — Competition panel', () => {
   });
 
   test('Start Competition button is present', async ({ page }) => {
-    await goToQuizConfig(page);
+    await goToCompetitionSetup(page);
     await expect(page.getByRole('button', { name: /Start Competition/i })).toBeVisible();
   });
 
   test('selecting item count 20 highlights that button', async ({ page }) => {
-    await goToQuizConfig(page);
+    await goToCompetitionSetup(page);
     const btn20 = page.getByRole('button', { name: '20' }).first();
     await btn20.click();
     // The selected button gets amber border classes — check aria or text presence
@@ -93,15 +101,13 @@ test.describe('QuizConfig — Competition panel', () => {
   });
 
   test('selecting speed 5s does not navigate away', async ({ page }) => {
-    await goToQuizConfig(page);
+    await goToCompetitionSetup(page);
     await page.getByRole('button', { name: '5s' }).first().click();
     await expect(page.getByText('COMPETITION MODE')).toBeVisible();
   });
 
   test('cannot start competition with 0 groups selected — shows alert', async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'networkidle' });
-    await page.getByRole('button', { name: '▶ Start Quiz' }).first().click();
-    await expect(page.getByText('COMPETITION MODE')).toBeVisible({ timeout: 5000 });
+    await goToCompetitionSetup(page);
 
     // Deselect all groups via Toggle All
     await page.getByRole('button', { name: 'Toggle All' }).click();
@@ -150,9 +156,9 @@ test.describe('Competition — Study phase', () => {
   test('Abort button returns to previous view', async ({ page }) => {
     await startCompetition(page);
     await page.getByRole('button', { name: 'Abort' }).click();
-    // Should return to QuizConfig (COMPETITION MODE text) or Home (Start Quiz text)
+    // Stack returns to competition setup (or home if stack empty)
     await expect(
-      page.getByText('COMPETITION MODE').or(page.getByRole('button', { name: '▶ Start Quiz' }).first())
+      page.locator('#competition-setup').or(page.locator('#quiz-config')).first()
     ).toBeVisible({ timeout: 5000 });
   });
 
@@ -243,12 +249,12 @@ test.describe('Competition — Results', () => {
     await startCompetition(page);
     await skipStudyPhase(page);
     await answerAllRecall(page);
-    await expect(page.getByText('Competition Results')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Competition Results' })).toBeVisible({ timeout: 5000 });
   }
 
   test('Competition Results screen appears after completing recall', async ({ page }) => {
     await completeCompetition(page);
-    await expect(page.getByText('Competition Results')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Competition Results' })).toBeVisible();
   });
 
   test('results show accuracy percentage', async ({ page }) => {
@@ -320,7 +326,7 @@ test.describe('Competition — Results', () => {
     await startCompetition(page);
     await skipStudyPhase(page);
     await answerAllRecall(page);
-    await expect(page.getByText('Competition Results')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Competition Results' })).toBeVisible({ timeout: 5000 });
 
     // Second run via Replay
     await page.clock.install();
@@ -328,7 +334,7 @@ test.describe('Competition — Results', () => {
     await expect(page.getByText('STUDY PHASE')).toBeVisible({ timeout: 5000 });
     await skipStudyPhase(page);
     await answerAllRecall(page);
-    await expect(page.getByText('Competition Results')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Competition Results' })).toBeVisible({ timeout: 5000 });
 
     const stored = await page.evaluate(() => {
       const raw = localStorage.getItem('competitionRecords_v1');
@@ -346,7 +352,7 @@ test.describe('Competition — item count & speed variations', () => {
    * Returns after study phase is visible.
    */
   async function startWith(page, { itemCount, speedLabel, speedSec }) {
-    await goToQuizConfig(page);
+    await goToCompetitionSetup(page);
     // Use exact: true so '20' doesn't substring-match group buttons like '20-29'
     await page.getByRole('button', { name: String(itemCount), exact: true }).first().click();
     await page.getByRole('button', { name: speedLabel, exact: true }).first().click();
@@ -370,7 +376,7 @@ test.describe('Competition — item count & speed variations', () => {
     await startWith(page, { itemCount: 20, speedLabel: '3s', speedSec: 3 });
     await skipStudyPhase(page, { itemCount: 20, studySpeedSec: 3 });
     await answerAllRecall(page, { itemCount: 20 });
-    await expect(page.getByText('Competition Results')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Competition Results' })).toBeVisible({ timeout: 5000 });
     await expect(page.getByText(/\d+ \/ 20 correct/).first()).toBeVisible();
   });
 
@@ -408,7 +414,7 @@ test.describe('Competition — item count & speed variations', () => {
     await startWith(page, { itemCount: 10, speedLabel: '10s', speedSec: 10 });
     await skipStudyPhase(page, { itemCount: 10, studySpeedSec: 10 });
     await answerAllRecall(page, { itemCount: 10 });
-    await expect(page.getByText('Competition Results')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Competition Results' })).toBeVisible({ timeout: 5000 });
     await expect(page.getByText(/10s\/card/).first()).toBeVisible();
   });
 });
@@ -419,7 +425,7 @@ test.describe('Competition — personal best banner', () => {
     await startCompetition(page);
     await skipStudyPhase(page);
     await answerAllRecall(page);
-    await expect(page.getByText('Competition Results')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Competition Results' })).toBeVisible({ timeout: 5000 });
     // isPersonalBest returns true when totalRuns === 1 — first run is always celebrated
     await expect(page.getByText(/New personal best/i)).toBeVisible({ timeout: 3000 });
   });
@@ -429,7 +435,7 @@ test.describe('Competition — personal best banner', () => {
     await startCompetition(page);
     await skipStudyPhase(page);
     await answerAllRecall(page);
-    await expect(page.getByText('Competition Results')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Competition Results' })).toBeVisible({ timeout: 5000 });
 
     // Replay → reach the recall phase of run 2
     await page.clock.install();
@@ -455,7 +461,7 @@ test.describe('Competition — personal best banner', () => {
     });
 
     await answerAllRecall(page);
-    await expect(page.getByText('Competition Results')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Competition Results' })).toBeVisible({ timeout: 5000 });
     // With previousRun.correct = -1, any score ≥ 0 is a personal best
     await expect(page.getByText(/New personal best/i)).toBeVisible({ timeout: 3000 });
   });
@@ -485,13 +491,15 @@ test.describe('Competition — personal best banner', () => {
     }, deckKey);
 
     await page.getByRole('button', { name: '▶ Start Quiz' }).first().click();
-    await expect(page.getByText('COMPETITION MODE')).toBeVisible({ timeout: 5000 });
+    await page.getByRole('button', { name: /Competition setup/i }).click();
+    await expect(page.locator('#competition-setup')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('COMPETITION MODE')).toBeVisible();
     await page.clock.install();
     await page.getByRole('button', { name: /Start Competition/i }).click();
     await expect(page.getByText('STUDY PHASE')).toBeVisible({ timeout: 5000 });
     await skipStudyPhase(page);
     await answerAllRecall(page);
-    await expect(page.getByText('Competition Results')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Competition Results' })).toBeVisible({ timeout: 5000 });
 
     // Run 2 score (max 10) can never beat previous score of 999 → no banner
     await expect(page.getByText(/New personal best/i)).not.toBeVisible();
@@ -500,8 +508,10 @@ test.describe('Competition — personal best banner', () => {
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
 test.describe('Competition — Keyboard shortcuts', () => {
-  test('C key in QuizConfig starts competition', async ({ page }) => {
+  test('C key from Quiz Config opens setup; C again starts competition', async ({ page }) => {
     await goToQuizConfig(page);
+    await page.keyboard.press('c');
+    await expect(page.locator('#competition-setup')).toBeVisible({ timeout: 5000 });
     await page.clock.install();
     await page.keyboard.press('c');
     await expect(page.getByText('STUDY PHASE')).toBeVisible({ timeout: 5000 });
@@ -511,7 +521,7 @@ test.describe('Competition — Keyboard shortcuts', () => {
     await startCompetition(page);
     await skipStudyPhase(page);
     await answerAllRecall(page);
-    await expect(page.getByText('Competition Results')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Competition Results' })).toBeVisible({ timeout: 5000 });
 
     await page.clock.install();
     await page.keyboard.press('r');
@@ -522,12 +532,9 @@ test.describe('Competition — Keyboard shortcuts', () => {
     await startCompetition(page);
     await skipStudyPhase(page);
     await answerAllRecall(page);
-    await expect(page.getByText('Competition Results')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Competition Results' })).toBeVisible({ timeout: 5000 });
 
     await page.keyboard.press('h');
-    // Should go back (to QuizConfig or Home)
-    await expect(
-      page.getByText('COMPETITION MODE').or(page.getByText('MNEMONIC').first())
-    ).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('#competition-setup')).toBeVisible({ timeout: 3000 });
   });
 });

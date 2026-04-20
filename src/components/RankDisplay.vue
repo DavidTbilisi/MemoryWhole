@@ -1,7 +1,7 @@
 <template>
-  <div class="space-y-4">
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3 items-stretch">
-      <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-4">
+  <div class="space-y-3 md:space-y-4">
+    <div class="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-4 items-stretch">
+      <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-3 sm:p-4">
           <div class="text-[11px] font-semibold tracking-widest text-slate-400 uppercase">Global Rank</div>
           <div class="mt-3 flex items-center justify-between gap-4">
             <div class="min-w-0">
@@ -54,57 +54,66 @@
           </div>
       </div>
 
-      <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-4">
-          <div class="text-[11px] font-semibold tracking-widest text-slate-400 uppercase">Synthetic Rank</div>
-          <div class="mt-3 flex items-end justify-between gap-3">
-            <div>
-              <div class="text-4xl font-black"
-                :style="{ color: syntheticRank.color, textShadow: `0 0 16px ${syntheticRank.color}55` }">
-                {{ syntheticRank.rank }}
-              </div>
-              <div class="mt-1 text-sm font-medium text-slate-300">{{ syntheticRank.description }}</div>
-            </div>
-            <div class="text-right">
-              <div class="text-2xl font-bold text-violet-400">{{ syntheticRank.score }}</div>
-              <div class="text-[11px] text-slate-500 mt-1">composite</div>
-            </div>
-          </div>
-          <div class="mt-3 space-y-2 text-xs">
-            <div class="overflow-hidden rounded-full bg-slate-800 h-3 flex">
-              <div
-                v-for="segment in syntheticSegments"
-                :key="segment.key"
-                class="h-full"
-                :style="{ width: `${segment.width}%`, background: segment.background }"
-              ></div>
-            </div>
-            <div class="grid grid-cols-1 gap-1 pt-1">
-              <div v-for="segment in syntheticSegments" :key="`${segment.key}-legend`" class="flex items-center justify-between gap-3 text-slate-400">
-                <div class="inline-flex items-center gap-2">
-                  <span class="h-2.5 w-2.5 rounded-full" :style="{ background: segment.dot }"></span>
-                  <span>{{ segment.label }}</span>
+      <details
+        class="group rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900/80 via-[#0f0f23] to-slate-950 lg:col-span-2 lg:border-0 lg:bg-transparent lg:shadow-none overflow-hidden"
+        :open="rankLayoutWide ? true : undefined"
+      >
+        <summary
+          class="lg:hidden cursor-pointer list-none px-3 py-3 sm:px-4 min-h-[48px] flex items-center justify-between gap-2 text-sm font-semibold text-slate-200 hover:bg-slate-800/30 [&::-webkit-details-marker]:hidden"
+        >
+          <span class="min-w-0">Synthetic <span class="text-violet-300">{{ syntheticRank.rank }}</span> · {{ syntheticRank.score }}</span>
+          <span class="text-slate-500 text-xs shrink-0 tabular-nums" aria-hidden="true"><span class="group-open:hidden">Show</span><span class="hidden group-open:inline">Hide</span></span>
+        </summary>
+        <div class="grid grid-cols-1 gap-3 border-t border-slate-700/50 px-3 pb-3 pt-3 sm:px-4 lg:grid-cols-2 lg:gap-4 lg:border-t-0 lg:p-0">
+          <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-3 sm:p-4">
+            <div class="text-[11px] font-semibold tracking-widest text-slate-400 uppercase">Synthetic Rank</div>
+            <div class="mt-3 flex items-end justify-between gap-3">
+              <div>
+                <div class="text-4xl font-black"
+                  :style="{ color: syntheticRank.color, textShadow: `0 0 16px ${syntheticRank.color}55` }">
+                  {{ syntheticRank.rank }}
                 </div>
-                <span class="text-slate-200">{{ segment.valueLabel }}</span>
+                <div class="mt-1 text-sm font-medium text-slate-300">{{ syntheticRank.description }}</div>
+              </div>
+              <div class="text-right">
+                <div class="text-2xl font-bold text-violet-400">{{ syntheticRank.score }}</div>
+                <div class="text-[11px] text-slate-500 mt-1">composite</div>
               </div>
             </div>
+            <div class="mt-3 space-y-2 text-xs">
+              <div class="overflow-hidden rounded-full bg-slate-800 h-3 flex">
+                <div
+                  v-for="segment in syntheticSegments"
+                  :key="segment.key"
+                  class="h-full"
+                  :style="{ width: `${segment.width}%`, background: segment.background }"
+                ></div>
+              </div>
+              <div class="grid grid-cols-1 gap-1 pt-1">
+                <div v-for="segment in syntheticSegments" :key="`${segment.key}-legend`" class="flex items-center justify-between gap-3 text-slate-400">
+                  <div class="inline-flex items-center gap-2">
+                    <span class="h-2.5 w-2.5 rounded-full" :style="{ background: segment.dot }"></span>
+                    <span>{{ segment.label }}</span>
+                  </div>
+                  <span class="text-slate-200">{{ segment.valueLabel }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="mt-3 text-xs text-slate-400">{{ syntheticExplanation }}</div>
           </div>
-          <div class="mt-3 text-xs text-slate-400">{{ syntheticExplanation }}</div>
-      </div>
-
-      <RankRadarChart :global-rank="globalRank" :synthetic-rank="syntheticRank" />
+          <RankRadarChart :global-rank="globalRank" :synthetic-rank="syntheticRank" />
+        </div>
+      </details>
     </div>
 
     <div class="hidden md:block">
       <ActivityHeatmapChart />
     </div>
 
-    <div class="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0f0f23] to-slate-950 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div>
-        <h3 class="text-lg font-bold text-slate-100">Want to understand ranking better?</h3>
-        <p class="mt-1 text-sm text-slate-400">Learn how Global Rank and Synthetic Rank work, and try the interactive simulator.</p>
-      </div>
-      <button @click="goToRankingInfo" class="shrink-0 px-5 py-2 bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-700 hover:to-cyan-700 rounded-lg font-semibold text-slate-100 transition-all">
-        Learn More →
+    <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-700/60 bg-slate-900/40 px-3 py-2.5">
+      <span class="text-sm text-slate-400">Ranking guide and simulator</span>
+      <button type="button" @click="goToRankingInfo" class="text-sm font-semibold text-cyan-400 hover:text-cyan-300 min-h-[40px] px-1">
+        Open →
       </button>
     </div>
   </div>
@@ -121,7 +130,8 @@ export default {
   data() {
     return {
       globalRank: { rank: 'D', score: 0, color: '#00b4d8', description: 'Initialize', stats: { totalAttempts: 0, deckCount: 0 } },
-      syntheticRank: { rank: 'D', score: 0, color: '#00b4d8', description: 'Initialize' }
+      syntheticRank: { rank: 'D', score: 0, color: '#00b4d8', description: 'Initialize' },
+      rankLayoutWide: false,
     }
   },
   computed: {
@@ -181,11 +191,17 @@ export default {
   },
   mounted() {
     this.updateRanks()
-    // Update ranks when storage changes
+    this.rankLayoutWide = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
+    if (typeof window !== 'undefined') {
+      this._rankMq = window.matchMedia('(min-width: 1024px)')
+      this._onRankMq = () => { this.rankLayoutWide = this._rankMq.matches }
+      this._rankMq.addEventListener('change', this._onRankMq)
+    }
     window.addEventListener('storage', this.updateRanks)
     window.addEventListener('mnemonic-stats-updated', this.updateRanks)
   },
   beforeUnmount() {
+    this._rankMq?.removeEventListener('change', this._onRankMq)
     window.removeEventListener('storage', this.updateRanks)
     window.removeEventListener('mnemonic-stats-updated', this.updateRanks)
   },

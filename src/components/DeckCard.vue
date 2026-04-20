@@ -1,6 +1,6 @@
 <template>
   <div
-    class="deck-card bg-[#071421] p-4 rounded-lg text-sky-100 border shadow-[0_0_0_1px_rgba(15,23,42,0.25)] cursor-pointer transition-all hover:border-cyan-400/60 select-none"
+    class="deck-card bg-[#071421] p-3 sm:p-4 rounded-lg text-sky-100 border shadow-[0_0_0_1px_rgba(15,23,42,0.25)] cursor-pointer transition-all hover:border-cyan-400/60 select-none"
     :class="[
       focused ? 'border-cyan-400/90 shadow-[0_0_0_2px_rgba(34,211,238,0.55)]' : 'border-slate-700/70',
       longPressing ? 'scale-[0.97] brightness-110' : ''

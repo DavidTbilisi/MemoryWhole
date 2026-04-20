@@ -1,44 +1,92 @@
 <template>
-  <div class="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-slate-900 via-[#0f0f1a] to-slate-950 p-5">
-    <div class="flex items-center justify-between mb-3">
-      <div class="flex items-center gap-2">
-        <span class="text-lg">🎯</span>
-        <span class="text-xs font-bold text-amber-300 uppercase tracking-widest">Priority Coach</span>
+  <div class="rounded-xl border border-amber-500/30 bg-gradient-to-br from-slate-900 via-[#0f0f1a] to-slate-950 p-2 sm:p-3">
+    <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex min-w-0 items-center gap-1.5">
+        <span class="text-sm">🎯</span>
+        <span class="text-[10px] font-bold text-amber-300 uppercase tracking-widest">Priority coach</span>
       </div>
-      <div v-if="hasPractice" class="flex items-center gap-1.5 text-[10px]">
-        <span class="text-slate-500">1 mistake</span>
-        <span class="text-slate-600">=</span>
-        <span class="font-bold" :class="mistakeCost >= 9 ? 'text-rose-400' : mistakeCost >= 4 ? 'text-amber-400' : 'text-slate-400'">~{{ mistakeCost }}x correct to recover</span>
-      </div>
-      <span v-else class="text-[10px] text-slate-500">Today's focus</span>
+      <details v-if="hasPractice" class="group text-left">
+        <summary class="cursor-pointer list-none text-[10px] text-slate-500 hover:text-slate-300 [&::-webkit-details-marker]:hidden inline-flex items-center gap-1">
+          Mistake cost <span class="text-slate-600">·</span>
+          <span class="font-bold" :class="mistakeCost >= 9 ? 'text-rose-400' : mistakeCost >= 4 ? 'text-amber-400' : 'text-slate-400'">~{{ mistakeCost }}×</span>
+          <span class="text-slate-600 group-open:hidden">▸</span>
+        </summary>
+        <p class="mt-1.5 max-w-xs text-[10px] leading-snug text-slate-500">Roughly how many clean answers balance one wrong answer in the rank window.</p>
+      </details>
+      <span v-else class="text-[10px] text-slate-500">After first session</span>
     </div>
 
-    <div v-if="!hasPractice" class="text-center py-4 text-slate-500 text-xs">
-      Complete at least one deck to get personalized priorities.
+    <div v-if="!hasPractice" class="py-2 text-center text-[11px] text-slate-500">
+      Practice any deck once for tailored tips.
     </div>
 
-    <div v-else class="space-y-2">
-      <div
-        v-for="(item, i) in priorities"
-        :key="i"
-        class="group flex items-start gap-3 rounded-xl border p-3 transition-all cursor-pointer hover:brightness-110"
-        :class="item.rowClass"
-        @click="act(item)"
-      >
-        <div
-          class="shrink-0 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black mt-0.5"
-          :class="item.badgeClass"
-        >{{ i + 1 }}</div>
-        <div class="flex-1 min-w-0">
-          <div class="text-xs font-semibold leading-snug mb-0.5" :class="item.titleClass">{{ item.title }}</div>
-          <div class="text-[11px] text-slate-400 leading-relaxed">{{ item.detail }}</div>
+    <details v-else class="group/coach rounded-lg border border-slate-700/45 bg-slate-950/25">
+      <summary class="flex min-h-[40px] cursor-pointer list-none items-center justify-between gap-2 px-2 py-1.5 hover:bg-slate-800/25 [&::-webkit-details-marker]:hidden sm:min-h-[44px] sm:px-2.5 sm:py-2">
+        <div class="min-w-0 flex-1 text-left">
+          <div v-if="topPriority" class="truncate text-[11px] font-semibold leading-snug" :class="topPriority.titleClass">{{ topPriority.title }}</div>
+          <div v-else class="text-[11px] text-slate-500">Tips loading…</div>
+          <div v-if="topPriority" class="truncate text-[10px] text-slate-500">{{ topPriority.detail }}</div>
         </div>
+        <div class="flex shrink-0 items-center gap-1.5">
+          <span
+            v-if="topPriority"
+            class="hidden rounded-full px-1.5 py-0.5 text-[9px] font-bold sm:inline"
+            :class="topPriority.tagClass"
+          >{{ topPriority.tag }}</span>
+          <span class="text-[10px] text-slate-500" aria-hidden="true"><span class="group-open/coach:hidden">Show</span><span class="hidden group-open/coach:inline">Hide</span></span>
+        </div>
+      </summary>
+      <div class="space-y-2 border-t border-slate-700/40 p-2">
         <div
-          class="shrink-0 self-center text-[10px] font-bold px-2 py-0.5 rounded-full"
-          :class="item.tagClass"
-        >{{ item.tag }}</div>
+          v-if="topPriority"
+          class="flex cursor-pointer items-start gap-2 rounded-lg border p-2 transition-all hover:brightness-110 sm:gap-3 sm:p-3"
+          :class="topPriority.rowClass"
+          @click="act(topPriority)"
+        >
+          <div
+            class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-black sm:h-6 sm:w-6 sm:text-[10px]"
+            :class="topPriority.badgeClass"
+          >1</div>
+          <div class="min-w-0 flex-1">
+            <div class="text-xs font-semibold leading-snug" :class="topPriority.titleClass">{{ topPriority.title }}</div>
+            <div class="mt-0.5 text-[11px] leading-snug text-slate-400">{{ topPriority.detail }}</div>
+          </div>
+          <div
+            class="shrink-0 self-center rounded-full px-2 py-0.5 text-[10px] font-bold"
+            :class="topPriority.tagClass"
+          >{{ topPriority.tag }}</div>
+        </div>
+
+        <details v-if="morePriorities.length" class="group/more rounded-lg border border-slate-700/50 bg-slate-950/25">
+          <summary class="flex min-h-[40px] cursor-pointer list-none items-center justify-between gap-2 px-2 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-800/30 [&::-webkit-details-marker]:hidden sm:min-h-[44px] sm:px-3 sm:py-2">
+            <span>{{ morePriorities.length }} more tip{{ morePriorities.length > 1 ? 's' : '' }}</span>
+            <span class="text-slate-500 tabular-nums" aria-hidden="true"><span class="group-open/more:hidden">Show</span><span class="hidden group-open/more:inline">Hide</span></span>
+          </summary>
+          <div class="space-y-2 border-t border-slate-700/40 p-2">
+            <div
+              v-for="(item, i) in morePriorities"
+              :key="i"
+              class="flex cursor-pointer items-start gap-2 rounded-lg border p-2 transition-all hover:brightness-110 sm:gap-3 sm:p-2.5"
+              :class="item.rowClass"
+              @click="act(item)"
+            >
+              <div
+                class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-black"
+                :class="item.badgeClass"
+              >{{ i + 2 }}</div>
+              <div class="min-w-0 flex-1">
+                <div class="text-[11px] font-semibold leading-snug" :class="item.titleClass">{{ item.title }}</div>
+                <div class="mt-0.5 text-[10px] leading-snug text-slate-400">{{ item.detail }}</div>
+              </div>
+              <div
+                class="shrink-0 self-center rounded-full px-2 py-0.5 text-[10px] font-bold"
+                :class="item.tagClass"
+              >{{ item.tag }}</div>
+            </div>
+          </div>
+        </details>
       </div>
-    </div>
+    </details>
   </div>
 </template>
 
@@ -121,32 +169,32 @@ export default {
       // ── Priority 1: Urgent ──────────────────────────────────────────────
       if (coverageNeed > 0) {
         items.push({
-          title: `Unlock ${coverageNeed} new deck${coverageNeed > 1 ? 's' : ''} — rank is gated`,
-          detail: `Coverage is blocking ${nextRankName ? nextRankName : 'your next rank'}. Each new deck raises your score ceiling.`,
+          title: `Unlock ${coverageNeed} deck${coverageNeed > 1 ? 's' : ''} for next rank`,
+          detail: `Coverage caps score until you practice more decks.`,
           tag: 'Coverage',
           action: { type: 'home' },
           ...URGENT,
         })
       } else if (weakest && weakest.acc < 75) {
         items.push({
-          title: `Fix weak link: "${weakest.deck}" at ${weakest.acc}%`,
-          detail: `Your lowest accuracy deck drags down global score. A 10-min recovery drill lifts it fast.`,
+          title: `"${weakest.deck}" at ${weakest.acc}% — weakest`,
+          detail: `Short recovery drill helps global score most.`,
           tag: 'Accuracy',
           action: { type: 'recovery', deck: weakest.deck },
           ...URGENT,
         })
       } else if (nextRankName && perfectNeeded > 0 && perfectNeeded <= 30) {
         items.push({
-          title: `Only ${perfectNeeded} perfect answers away from ${nextRankName}`,
-          detail: `You're very close. Start a clean run on your best deck right now.`,
+          title: `~${perfectNeeded} clean answers to ${nextRankName}`,
+          detail: `Run a tight session on a deck you know well.`,
           tag: 'Rank Up',
           action: { type: 'start', deck: strongest?.deck },
           ...URGENT,
         })
       } else {
         items.push({
-          title: `Drill your strongest deck for clean answers`,
-          detail: `At ${score}% score, a focused accurate run is your fastest rank lever today.`,
+          title: `Clean run on your strongest deck`,
+          detail: `At ${score}%, accuracy moves the needle fastest.`,
           tag: 'Accuracy',
           action: { type: 'start', deck: strongest?.deck },
           ...URGENT,
@@ -156,32 +204,32 @@ export default {
       // ── Priority 2: Important ───────────────────────────────────────────
       if (nextRankName && perfectNeeded > 30) {
         items.push({
-          title: `${perfectNeeded} perfect answers needed for ${nextRankName}`,
-          detail: `Pick any deck you know well for steady accurate practice.`,
+          title: `${perfectNeeded} clean answers for ${nextRankName}`,
+          detail: `Use a familiar deck; steady beats rushed.`,
           tag: 'Rank Up',
           action: { type: 'start', deck: strongest?.deck },
           ...IMPORTANT,
         })
       } else if (avgMastery < 70) {
         items.push({
-          title: `Raise average mastery (now ${avgMastery}%)`,
-          detail: `Repeat any deck until it stays above 75% per-item mastery to boost synthetic rank.`,
+          title: `Mastery avg ${avgMastery}% — push higher`,
+          detail: `Revisit weak items until decks sit ~75%+ mastery.`,
           tag: 'Mastery',
           action: { type: 'recovery', deck: weakest?.deck },
           ...IMPORTANT,
         })
       } else if (second) {
         items.push({
-          title: `Improve "${second.deck}" — currently ${second.acc}%`,
-          detail: `Your second-weakest deck. A short drill today improves both accuracy and mastery metrics.`,
+          title: `Second-weakest: "${second.deck}" (${second.acc}%)`,
+          detail: `Quick drill here lifts both rank signals.`,
           tag: 'Accuracy',
           action: { type: 'recovery', deck: second.deck },
           ...IMPORTANT,
         })
       } else {
         items.push({
-          title: `Do a second pass on today's deck`,
-          detail: `Repeating the same deck within 24 h solidifies memory traces and raises mastery.`,
+          title: `Second pass on today's deck`,
+          detail: `Same-day repeats boost mastery.`,
           tag: 'Mastery',
           action: { type: 'start', deck: strongest?.deck },
           ...IMPORTANT,
@@ -191,24 +239,24 @@ export default {
       // ── Priority 3: Growth ──────────────────────────────────────────────
       if (deckCount < 3) {
         items.push({
-          title: `Try a new deck for a diversity bonus`,
-          detail: `Each additional deck adds up to +2 pts to synthetic score. You can gain up to +10 total.`,
+          title: `New deck → diversity bonus`,
+          detail: `More practiced decks raise synthetic score (up to +10).`,
           tag: 'Diversity',
           action: { type: 'home' },
           ...GROWTH,
         })
       } else if (score > 82) {
         items.push({
-          title: `Cycle all practiced decks this week`,
-          detail: `At ${score}% you're consistent. Rotating through all decks prevents skill decay.`,
+          title: `Rotate decks this week`,
+          detail: `At ${score}%, variety keeps skills sharp.`,
           tag: 'Consistency',
           action: { type: 'dashboard', deck: weakest?.deck },
           ...GROWTH,
         })
       } else {
         items.push({
-          title: `Keep sessions short: 10-20 answers at high accuracy`,
-          detail: `Shorter precise sessions beat longer sloppy ones. Quality over quantity in rank math.`,
+          title: `Short sessions, high accuracy`,
+          detail: `10–20 clean answers beat long sloppy runs.`,
           tag: 'Strategy',
           action: { type: 'start', deck: strongest?.deck },
           ...GROWTH,
@@ -216,6 +264,13 @@ export default {
       }
 
       return items
+    },
+    topPriority() {
+      const list = this.priorities
+      return list.length ? list[0] : null
+    },
+    morePriorities() {
+      return this.priorities.slice(1)
     },
   },
   mounted() {
