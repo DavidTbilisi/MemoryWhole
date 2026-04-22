@@ -7,14 +7,6 @@
 //   EF → Object
 //   GH → Environment
 //
-// 4-bit matrix layout (both matrices share this structure):
-//
-//   Element ↓ \ State →  | 00 Solid | 01 Liquid | 10 Gas | 11 Plasma
-//   ─────────────────────┼──────────┼───────────┼────────┼──────────
-//   00 Earth             | 0000     | 0001      | 0010   | 0011
-//   01 Water             | 0100     | 0101      | 0110   | 0111
-//   10 Air               | 1000     | 1001      | 1010   | 1011
-//   11 Fire              | 1100     | 1101      | 1110   | 1111
 
 
 // ── Persons (AB) ──

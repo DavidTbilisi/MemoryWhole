@@ -126,6 +126,21 @@
                       <img :src="paoImageForOption(opt, 'object')" alt="object" class="h-full w-full object-contain rounded" />
                     </div>
                   </div>
+                  <!-- 4-part images for binary/hex decks -->
+                  <div v-else-if="deck === 'binary' || deck === 'hex'" class="absolute inset-x-0 top-0 bottom-6 sm:bottom-7 flex items-stretch justify-center gap-0.5 px-1 py-1 overflow-hidden rounded-t-lg">
+                    <div class="flex-1 min-w-0 flex items-center justify-center">
+                      <img :src="partImageForOption(opt, 'person')" alt="person" class="h-full w-full object-contain rounded" @error="onPartImageError($event, opt, 'person')" />
+                    </div>
+                    <div class="flex-1 min-w-0 flex items-center justify-center">
+                      <img :src="partImageForOption(opt, 'action')" alt="action" class="h-full w-full object-contain rounded" @error="onPartImageError($event, opt, 'action')" />
+                    </div>
+                    <div class="flex-1 min-w-0 flex items-center justify-center">
+                      <img :src="partImageForOption(opt, 'object')" alt="object" class="h-full w-full object-contain rounded" @error="onPartImageError($event, opt, 'object')" />
+                    </div>
+                    <div class="flex-1 min-w-0 flex items-center justify-center">
+                      <img :src="partImageForOption(opt, 'environment')" alt="environment" class="h-full w-full object-contain rounded" @error="onPartImageError($event, opt, 'environment')" />
+                    </div>
+                  </div>
                   <!-- Fallback for other decks -->
                   <div v-else class="absolute inset-x-0 top-0 bottom-6 sm:bottom-7 overflow-hidden rounded-t-lg">
                     <img
@@ -811,6 +826,80 @@ export default {
         return img.visual
       }
       return makeEmojiFallbackDataUri('👁️')
+    },
+    partImageForOption(opt, part) {
+      const key = this.optionKeyForLabel(opt)
+      if (!key) return makeEmojiFallbackDataUri('❓')
+
+      let ab, cd, ef, gh
+      if (this.deck === 'binary') {
+        const s = String(key)
+        const bits8 = (/^[01]{8}$/.test(s)) ? s : Number(s).toString(2).padStart(8, '0')
+        ab = bits8.slice(0, 2)
+        cd = bits8.slice(2, 4)
+        ef = bits8.slice(4, 6)
+        gh = bits8.slice(6, 8)
+      } else if (this.deck === 'hex') {
+        const s = String(key)
+        const bits4 = parseInt(s, 16).toString(2).padStart(4, '0')
+        ab = bits4.slice(0, 2)
+        cd = bits4.slice(2, 4)
+        ef = '00'
+        gh = '00'
+      } else {
+        return makeEmojiFallbackDataUri('❓')
+      }
+
+      const personMap = { '00': 'giant_00.jpg', '01': 'mermaid_01.jpg', '10': 'mage_10.jpg', '11': 'dragon_11.jpg' }
+      const actionMap = { '00': 'action_00.jpg', '01': 'action_01.jpg', '10': 'action_10.jpg', '11': 'action_11.jpg' }
+      const objectMap = { '00': 'rock_00.jpg', '01': 'water_01.jpg', '10': 'cloud_10.jpg', '11': 'lightning_11.jpg' }
+      const envMap = { '00': 'env_red.jpg', '01': 'env_blue.jpg', '10': 'env_green.jpg', '11': 'env_purple.jpg' }
+
+      if (part === 'person') return `/images/binary/${personMap[ab] || `person_${ab}.jpg`}`
+      if (part === 'action') return `/images/binary/${actionMap[cd] || `action_${cd}.jpg`}`
+      if (part === 'object') return `/images/binary/${objectMap[ef] || `object_${ef}.jpg`}`
+      if (part === 'environment') return `/images/binary/${envMap[gh] || `env_${gh}.jpg`}`
+
+      return makeEmojiFallbackDataUri('❓')
+    },
+    onPartImageError(event, opt, part) {
+      const img = event?.target
+      if (!img || img.dataset.fallbackApplied === '1') return
+      img.dataset.fallbackApplied = '1'
+
+      const key = this.optionKeyForLabel(opt)
+      let ab, cd, ef, gh
+      if (this.deck === 'binary') {
+        const s = String(key)
+        const bits8 = (/^[01]{8}$/.test(s)) ? s : Number(s).toString(2).padStart(8, '0')
+        ab = bits8.slice(0, 2)
+        cd = bits8.slice(2, 4)
+        ef = bits8.slice(4, 6)
+        gh = bits8.slice(6, 8)
+      } else if (this.deck === 'hex') {
+        const s = String(key)
+        const bits4 = parseInt(s, 16).toString(2).padStart(4, '0')
+        ab = bits4.slice(0, 2)
+        cd = bits4.slice(2, 4)
+        ef = '00'
+        gh = '00'
+      } else {
+        img.src = makeEmojiFallbackDataUri('❓')
+        return
+      }
+
+      const personEmoji = { '00': '🗿', '01': '🧜', '10': '🧙', '11': '🐉' }
+      const actionEmoji = { '00': '🗜️', '01': '💧', '10': '➿', '11': '💥' }
+      const objectEmoji = { '00': '🧱', '01': '💧', '10': '☁️', '11': '⚡' }
+      const envEmoji = { '00': '🪨', '01': '🌊', '10': '☁️', '11': '🌋' }
+
+      let emoji = '❓'
+      if (part === 'person') emoji = personEmoji[ab] || '🧑'
+      if (part === 'action') emoji = actionEmoji[cd] || '⚡'
+      if (part === 'object') emoji = objectEmoji[ef] || '🧩'
+      if (part === 'environment') emoji = envEmoji[gh] || '📍'
+
+      img.src = makeEmojiFallbackDataUri(emoji)
     },
     buildValueToKeyMap(dataMap) {
       const out = {}

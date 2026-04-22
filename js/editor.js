@@ -1,3 +1,55 @@
+// ── Anki Export ─────────────────────────────────────────────────────────────
+function exportDeckAnki(deck) {
+  const merged = loadDeckData(deck);
+  // CSV: key,value (front,back)
+  let csv = 'Front,Back\n';
+  Object.entries(merged).forEach(([key, val]) => {
+    // Escape quotes for CSV
+    const esc = s => '"' + String(s).replace(/"/g, '""') + '"';
+    csv += esc(key) + ',' + esc(val) + '\n';
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `anki-${deck}-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Anki CSV exported ✓');
+}
+
+// ── Anki Import ─────────────────────────────────────────────────────────────
+function importDeckAnki(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const lines = e.target.result.split(/\r?\n/).filter(Boolean);
+      if (lines.length < 2) throw new Error('No data rows found');
+      // Assume first row is header
+      let applied = 0;
+      for (let i = 1; i < lines.length; i++) {
+        const [front, back] = lines[i].split(/,(.+)/); // Only split on first comma
+        if (!front) continue;
+        const key = front.replace(/^"|"$/g, '').replace(/""/g, '"');
+        const val = (back || '').replace(/^"|"$/g, '').replace(/""/g, '"');
+        const input = document.querySelector(`.word-input[data-num="${key}"]`);
+        if (input) { input.value = val.trim(); applied++; }
+      }
+      event.target.value = '';
+      if (applied === 0) {
+        showToast('No matching keys found');
+      } else {
+        showToast(`Imported ${applied} items from Anki CSV — click Save to apply`);
+      }
+    } catch (err) {
+      showToast('Anki import failed: ' + err.message);
+      event.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
 // Uses DECK_LS_KEYS from state.js
 const EDITOR_KEYS = DECK_LS_KEYS;
 

@@ -2,6 +2,39 @@ function showPreview(deck) {
   const table = document.getElementById('preview-table');
   table.innerHTML = '';
 
+  // Insert deck image if available
+  const previewImageId = 'preview-deck-image';
+  let imgElem = document.getElementById(previewImageId);
+  if (imgElem) imgElem.remove();
+  // Try to find an image in images/[deck]/
+  const previewContainer = table.parentElement;
+  const imageExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+  let foundImage = null;
+  for (const ext of imageExtensions) {
+    // Use relative path for Vite/Vanilla
+    const imgPath = `images/${deck}/${deck}.${ext}`;
+    // Check if image exists by creating a new Image and checking onload
+    // We'll use a synchronous approach for the first found extension
+    const testImg = new window.Image();
+    testImg.src = imgPath;
+    if (testImg.complete || testImg.width + testImg.height > 0) {
+      foundImage = imgPath;
+      break;
+    }
+  }
+  if (foundImage) {
+    imgElem = document.createElement('img');
+    imgElem.id = previewImageId;
+    imgElem.src = foundImage;
+    imgElem.alt = `${deck} preview`;
+    imgElem.style.display = 'block';
+    imgElem.style.maxWidth = '320px';
+    imgElem.style.margin = '0 auto 1.5rem auto';
+    imgElem.style.borderRadius = '1rem';
+    imgElem.style.boxShadow = '0 2px 16px #0004';
+    previewContainer.insertBefore(imgElem, table);
+  }
+
   if (deck === 'major') {
     document.getElementById('preview-title').textContent = 'Major System';
 
