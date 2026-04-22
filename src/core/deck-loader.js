@@ -4,7 +4,6 @@ import { MONTHS_DATA, MONTHS_IMAGES } from '../data/month-days'
 import { CLOCKS_DATA, CLOCKS_IMAGES } from '../data/clocks'
 import { PAO_DATA, PAO_IMAGES, PAO_ICONS, getPAOSceneLabel } from '../data/pao'
 import { BINARY_DATA, BINARY_IMAGES } from '../data/binary'
-import { BINARY8_DATA, BINARY8_IMAGES } from '../data/binary8'
 import { HEX_DATA, HEX_IMAGES } from '../data/hex'
 import { CALENDAR_DATA, CALENDAR_IMAGES } from '../data/calendar'
 import { BIBLE_OVERVIEW_DATA } from '../data/bible-overview'
@@ -50,6 +49,21 @@ export function migrateDeckSavedAtTimestamps() {
   if (migrated) writeJson(DECK_SAVED_AT_KEY, timestamps)
 }
 
+export function migrateStatsFromBinary8ToBinary() {
+  const storageKeys = [
+    'analytics_v1', 'deckStats_v1', 'masteryPeak_v1',
+    'sessionHistory_v1', 'drillRecords_v1', 'competitionRecords_v1',
+    DECK_EDITS_KEY, DECK_IMAGES_KEY, DECK_ICONS_KEY, DECK_SAVED_AT_KEY,
+  ]
+  for (const key of storageKeys) {
+    const root = readJson(key, {})
+    if (!('binary8' in root)) continue
+    root.binary = root.binary8
+    delete root.binary8
+    writeJson(key, root)
+  }
+}
+
 const DECK_EMOJI = {
   major: '🔢',
   sem3: '🧠',
@@ -57,8 +71,7 @@ const DECK_EMOJI = {
   months: '📅',
   clocks: '🕐',
   pao: '🎭',
-  binary: '⬛',
-  binary8: '🔲',
+  binary: '🔲',
   hex: '🔶',
   primes: '🔺',
   calendar: '🗓️',
@@ -93,7 +106,6 @@ const DECK_DATA = {
   clocks: CLOCKS_DATA,
   pao: PAO_DATA,
   binary: BINARY_DATA,
-  binary8: BINARY8_DATA,
   hex: HEX_DATA,
   calendar: CALENDAR_DATA,
   bibleoverview: BIBLE_OVERVIEW_DATA,
@@ -218,7 +230,6 @@ const LEGACY_DEFAULT_IMAGES = {
   clocks: CLOCKS_IMAGES,
   pao: PAO_IMAGES,
   binary: BINARY_IMAGES,
-  binary8: BINARY8_IMAGES,
   hex: HEX_IMAGES,
   calendar: CALENDAR_IMAGES,
   bibleoverview: BIBLE_OVERVIEW_IMAGES,
@@ -353,7 +364,7 @@ function makeDefaultImage(deck, key, assocText) {
 }
 
 
-// Sprite-based SVG for binary/binary8 decks
+// Sprite-based SVG for binary deck
 
 function makeBinarySpriteSvg(deck, key) {
   // Use the user's mapping
@@ -362,18 +373,12 @@ function makeBinarySpriteSvg(deck, key) {
   const objects = ['🧱', '💧', '☁️', '🔋']
   const envs = ['🕳', '🌊', '🌤', '🌋']
   let ab, cd, ef, gh
-  if (deck === 'binary8') {
+  if (deck === 'binary') {
     const n = parseInt(key, 2)
     ab = (n >> 6) & 3
     cd = (n >> 4) & 3
     ef = (n >> 2) & 3
     gh = n & 3
-  } else if (deck === 'binary') {
-    const n = parseInt(key, 2)
-    ab = (n >> 2) & 3
-    cd = n & 3
-    ef = 0
-    gh = 0
   } else {
     ab = cd = ef = gh = 0
   }
@@ -407,8 +412,8 @@ function buildDefaultDeckImages(deck) {
     const normalizedKey = String(key)
     const paddedKey = normalizedKey.padStart(2, '0')
     let legacyImg = legacy[normalizedKey] || legacy[paddedKey]
-    // Sprite SVG for binary/binary8
-    if ((deck === 'binary8' && key.length === 8) || (deck === 'binary' && key.length === 4)) {
+    // Sprite SVG for binary
+    if (deck === 'binary' && key.length === 8) {
       legacyImg = legacyImg || makeBinarySpriteSvg(deck, normalizedKey)
     }
     out[normalizedKey] = legacyImg || makeDefaultImage(deck, normalizedKey, String(value || ''))

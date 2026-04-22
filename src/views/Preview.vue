@@ -98,29 +98,6 @@
       </div>
     </div>
 
-    <div v-else-if="mode === 'binary'" class="overflow-auto rounded-lg border border-slate-700">
-      <table class="w-full border-collapse text-sm">
-        <thead class="bg-slate-900/70 sticky top-0">
-          <tr>
-            <th class="p-2 border border-slate-700 text-left">MSB elem \\ LSB qual</th>
-            <th v-for="header in binaryColumnHeaders" :key="header.bits" class="p-2 border border-slate-700 text-left">
-              <div class="font-semibold">{{ header.label }} <span class="text-[11px] font-normal text-slate-400">{{ header.bits }}</span></div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="header in binaryRowHeaders" :key="header.bits" class="odd:bg-slate-900/30">
-            <td class="p-2 border border-slate-700 font-semibold">
-              <div>{{ header.label }} <span class="text-[11px] font-normal text-slate-400">{{ header.bits }}</span></div>
-            </td>
-            <td v-for="low in bits2" :key="`${header.bits}-${low}`" class="p-2 border border-slate-700 whitespace-nowrap">
-              {{ dataMap[`${header.bits}${low}`] || '—' }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
     <div v-else-if="mode === 'hex'" class="overflow-auto rounded-lg border border-slate-700">
       <table class="w-full border-collapse text-sm">
         <thead class="bg-slate-900/70 sticky top-0">
@@ -272,7 +249,6 @@ export default {
       if (this.deck === 'major') return 'major-matrix'
       if (this.deck === 'pegmatrix' || this.deck === 'pegmatrixru') return 'peg'
       if (this.deck === 'sem3major') return 'sem3major-matrix'
-      if (this.deck === 'binary') return 'binary'
       if (this.deck === 'hex') return 'hex'
       if (this.deck === 'sem3') return 'grouped'
       if (this.deck === 'pao') return 'pao'

@@ -72,7 +72,7 @@ import TrainingLog from './views/TrainingLog.vue';
 import Competition from './views/Competition.vue';
 import CompetitionStats from './views/CompetitionStats.vue';
 import ChampionEvaluation from './views/ChampionEvaluation.vue';
-import { exportDeckPayload, migrateDeckSavedAtTimestamps } from './core/deck-loader'
+import { exportDeckPayload, migrateDeckSavedAtTimestamps, migrateStatsFromBinary8ToBinary } from './core/deck-loader'
 import { DECKS } from './data/decks'
 import { publishLeaderboardSnapshot } from './core/firebase-leaderboard'
 
@@ -320,6 +320,7 @@ export default {
     activeDeck() { this.syncHash() },
   },
   mounted() {
+    migrateStatsFromBinary8ToBinary()
     migrateDeckSavedAtTimestamps()
     this.restoreFromHash()
     window.addEventListener('keydown', this.onGlobalKeydown)

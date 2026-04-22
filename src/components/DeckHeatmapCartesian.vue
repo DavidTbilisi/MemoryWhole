@@ -25,7 +25,7 @@ export default {
   },
   methods: {
     supportsDeck(deck) {
-      return ['major', 'pegaudio', 'pegvisual', 'pegmatrix', 'pegmatrixru', 'sem3', 'binary', 'hex'].includes(deck)
+      return ['major', 'pegaudio', 'pegvisual', 'pegmatrix', 'pegmatrixru', 'sem3', 'hex'].includes(deck)
     },
     normalizeMetric(stat) {
       const attempts = Number(stat?.attempts || 0)
@@ -36,15 +36,6 @@ export default {
     buildGrid(deck, dataMap, statsMap) {
       const entries = Object.keys(dataMap || {})
       const metric = (k) => this.normalizeMetric(statsMap[String(k)] || statsMap[String(k).padStart(2, '0')] || {})
-
-      if (deck === 'binary') {
-        const axis = ['00', '01', '10', '11']
-        const points = entries.map((k) => {
-          const bits = String(k).padStart(4, '0')
-          return [bits.slice(2), bits.slice(0, 2), metric(k), bits]
-        })
-        return { xAxis: axis, yAxis: [...axis].reverse(), points }
-      }
 
       if (deck === 'hex') {
         const axis = ['00', '01', '10', '11']

@@ -61,15 +61,7 @@ export function getChunkGroups(deck, dataMap) {
   }
 
   if (deck === 'binary') {
-    const sorted = [...keys].sort()
-    return [
-      { label: '0000-0111', keys: sorted.slice(0, 8) },
-      { label: '1000-1111', keys: sorted.slice(8, 16) },
-    ]
-  }
-
-  if (deck === 'binary8') {
-    // 256 entries grouped by the first nibble (Matrix 1 = character + form)
+    // 256 entries grouped by the first nibble (character + action)
     const sorted = [...keys].sort()
     return [
       { label: '0000xxxx', keys: sorted.slice(0, 16) },
